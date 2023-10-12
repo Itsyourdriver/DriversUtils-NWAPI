@@ -2,7 +2,7 @@
 
 A SCPSL NorthwoodAPI (NWAPI) plugin purpose built for a private server; currently has these features:
 
-# Requires https://github.com/brayden-dowson/TheRiptide/ 's Utility.dll and Teleport.dll (not used)
+# Requires https://github.com/brayden-dowson/TheRiptide/ 's Utility.dll and Teleport.dll (teleport is not used for now)
 
 
 ### SCP-294 Command
