@@ -1,5 +1,6 @@
 # DriversUtils
 
+## Builds will NOT be provided unless I make a seperate version that is a little bit better and isn't janky.
 A SCPSL NorthwoodAPI (NWAPI) plugin purpose built for a private server; currently has these features:
 
 # Requires https://github.com/brayden-dowson/TheRiptide/ 's Utility.dll and Teleport.dll (teleport is not used for now)
