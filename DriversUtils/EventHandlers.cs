@@ -319,6 +319,40 @@
 
 
 
+        [PluginEvent(ServerEventType.PlayerDamage)]
+        internal bool OnPlayerDamage(PlayerDamageEvent ev)
+        {
+            try
+            {
+                if (ev.Target is null)
+                    return true;
+                if (ev.DamageHandler is null)
+                    return true;
+                if (ev.DamageHandler is FirearmDamageHandler fdh && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
+                    return false;
+                if (ev.DamageHandler is JailbirdDamageHandler jdh && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
+                    return false;
+                if (ev.DamageHandler is ExplosionDamageHandler gdh && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
+                    return false;
+                if (ev.DamageHandler is DisruptorDamageHandler ddh && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
+                    return false;
+                if (ev.DamageHandler is MicroHidDamageHandler mhd && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
+                    return false;
+                if (ev.Player.IsSCP == true && ev.Target.IsTutorial == true && fbi.Contains(ev.Target.PlayerId))
+                    return false;
+
+                return true;
+            }
+            catch (Exception e)
+            {
+               // Log.Error($"An error has occured while catching damage handlers.");
+              //  Log.Debug($"Error: {e}");
+                return true;
+            }
+        }
+
+
+
 
 
 
@@ -1300,15 +1334,15 @@
                 Timing.CallDelayed(4f, () =>
                 {
                   //  plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                    plr.EffectsManager.EnableEffect<CustomPlayerEffects.Scp207>(5, true);
+                   // plr.EffectsManager.EnableEffect<CustomPlayerEffects.Scp207>(5, true);
                     
 
 
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 s207effect) && s207effect.IsEnabled)
-                    {
+                  //  if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 s207effect) && s207effect.IsEnabled)
+                   // {
 
-                        plr.EffectsManager.ChangeState<CustomPlayerEffects.Scp207>(s207effect.Intensity += 1, 5, false);
-                    }
+                    //    plr.EffectsManager.ChangeState<CustomPlayerEffects.Scp207>(s207effect.Intensity += 1, 5, false);
+                   // }
 
                    // plr.EffectsManager.EnableEffect<Ensnared>(15, true);
                     //plr.EffectsManager.EnableEffect<Bleeding>(60, true);
@@ -1316,7 +1350,7 @@
                     //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You drank a bottle of medusa. You begin to feel like a statue..", 3);
+                    plr.ReceiveHint("You drank a bottle of cola. You now feel faster...", 3);
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -1346,19 +1380,18 @@
 
                     //   }
 
-                    // plr.Position = os;
+                    
                     //
-                    // var randomRoom = Facility.Rooms.PullRandomItem();
+                     var randomRoom = Facility.Rooms.PullRandomItem();
 
-                    //    foreach (var room in Facility.Rooms)
-                    //   {
-                    //      if (room.Identifier.Name == randomRoom.Identifier.Name)
+                        foreach (var room in Facility.Rooms)
+                       {
+                         if (room.Identifier.Name == randomRoom.Identifier.Name)
 
-                    //      {
-                    //
-
-                    //     }
-                    //   }
+                          {
+                            plr.Position = room.Position + Vector3.up * 1f;
+                         }
+                       }
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
                     plr.ReceiveHint("Teleported you to a random room...", 3);
                     //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
@@ -1504,6 +1537,13 @@
                     plr.ClearBroadcasts();
                     //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
                     plr.ReceiveHint("You equipped a can of gasoline.", 3);
+
+                }
+                else if (!newItemBase == false && colas_scp207.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ClearBroadcasts();
+                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+                    plr.ReceiveHint("COCA COLA ESPUMA", 3);
 
                 }
                 else if (!newItemBase == false && colas_teleportation.Contains(newItemBase.ItemSerial))
