@@ -23,6 +23,6 @@ More coming soon, however this adds a custom chance message which is a nice imme
 Facility Guard Captain class which is like a beefed up guard, which everyone on our server likes (amazingly), due to the fact that it makes early game have more affects on the end of the game, because you can do MUCH, MUCH more damage. as we play with a small amount of people.
 
 
-+ more if I ever add any, feel free to modify this or help me with making it so you can't damage scps as serpents hand.
++ more if I ever add any, feel free to modify this or help me to patch out bugs
 
 Have fun!
