@@ -20,7 +20,11 @@ namespace Plugin
     using InventorySystem.Items.Usables;
     using Hazards;
     using RelativePositioning;
-
+    using Random = UnityEngine.Random;
+    using PluginAPI.Core.Interfaces;
+    using PlayerRoles.PlayableScps.Scp939;
+    using InventorySystem.Items.Pickups;
+    using RemoteAdmin.Communication;
 
     public class EventHandlers : IComparable
     {
@@ -110,6 +114,10 @@ namespace Plugin
 
         }
 
+
+        public bool waswave1mtf = false;
+        public bool waswave2mtf = false;
+
         [PluginEvent(ServerEventType.TeamRespawn)]
         void OnRespawnWave(SpawnableTeamType team, List<Player> players, int max)
         {
@@ -119,6 +127,24 @@ namespace Plugin
             // && new System.Random().Next(2) == 1
             Config config = Plugin.Singleton.Config;
             // thanks to my friend seagull101 for the help with system.random, i still have almost no idea what I am doing lol
+            if (respawn_count == 1 && spawning_team == SpawnableTeamType.NineTailedFox)
+            {
+                waswave1mtf = true;
+            }
+
+            if (respawn_count == 2 && spawning_team == SpawnableTeamType.NineTailedFox)
+            {
+                waswave2mtf = true;
+
+                Timing.CallDelayed(2f, () =>
+                {
+                    RespawnTokensManager.ForceTeamDominance(SpawnableTeamType.ChaosInsurgency, 90);
+                });
+
+               
+            }
+
+
             if (respawn_count >= 2 && spawning_team == SpawnableTeamType.ChaosInsurgency && config.ShouldSerpentsSpawn == true && haveSerpentsSpawned == false && new System.Random().Next(2) == 1)
             {
                 isSerpentSpawning = true;
@@ -133,6 +159,8 @@ namespace Plugin
                 {
                     Cassie.Message(config.CassieMessage, true, config.CassieNoise, config.CassieText);
                 }
+
+
 
                 //       }
                 //    !player.TemporaryData.Contains("custom_class"))
@@ -195,6 +223,15 @@ namespace Plugin
                 fbi.Remove(player.PlayerId);
                 player.TemporaryData.Remove("custom_class");
             }
+
+            if (player != null && newRole == RoleTypeId.Scp0492)
+            {
+                Timing.CallDelayed(0.1f, () =>
+                {
+                    SetScale(player, UnityEngine.Random.Range(0.7f, 1.2f));
+                });
+                
+            }
         }
 
         [PluginEvent(ServerEventType.PlayerDeath)]
@@ -238,6 +275,8 @@ namespace Plugin
                 player.DisplayNickname = null;
             }
         }
+
+        [PluginEvent(ServerEventType.Scp939Attack)]
         public bool OnScp939Attack(Player player, IDestructible target)
         {
             if (!ReferenceHub.TryGetHubNetID(target.NetworkId, out ReferenceHub hub))
@@ -257,6 +296,12 @@ namespace Plugin
             return true;
             // Log.Info($"Player &6{player.Nickname}&r (&6{player.UserId}&r) playing as SCP-939 attacked &6{targetPlayer.Nickname}&r (&6{targetPlayer.UserId}&r)!");
         }
+
+
+
+
+
+
 
         [PluginEvent(ServerEventType.Scp096AddingTarget)]
         public bool New096Target(Scp096AddingTargetEvent args)
@@ -315,10 +360,6 @@ namespace Plugin
         }
 
 
-
-
-
-
         [PluginEvent(ServerEventType.PlayerDamage)]
         internal bool OnPlayerDamage(PlayerDamageEvent ev)
         {
@@ -337,6 +378,12 @@ namespace Plugin
                 if (ev.DamageHandler is DisruptorDamageHandler ddh && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
                     return false;
                 if (ev.DamageHandler is MicroHidDamageHandler mhd && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
+                    return false;
+                if (ev.DamageHandler is Scp939DamageHandler sc939dh && ev.Player.IsSCP == true && fbi.Contains(ev.Target.PlayerId))
+                    return false;
+                if (ev.DamageHandler is Scp049DamageHandler sc049dh && ev.Player.IsSCP == true && fbi.Contains(ev.Target.PlayerId))
+                    return false;
+                if (fbi.Contains(ev.Player.PlayerId) && ev.Player.IsTutorial && ev.Target.IsSCP == true)
                     return false;
                 if (ev.Player.IsSCP == true && ev.Target.IsTutorial == true && fbi.Contains(ev.Target.PlayerId))
                     return false;
@@ -422,7 +469,7 @@ namespace Plugin
         {
             public string Command { get; } = "scp294";
 
-            public string[] Aliases { get; } = new string[] { "294", "coffeemachine", "exchange" };
+            public string[] Aliases { get; } = new string[] { "294", "coffeemachine", "scp-294" };
 
             public string Description { get; } = "scp 294 command real";
 
@@ -434,7 +481,7 @@ namespace Plugin
 
                 if (arguments.Count != 0)
                 {
-                    if (ItemType.Coin.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room.name == "EZ_Smallrooms2")
+                    if (ItemType.Coin.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room.name == "EZ_Smallrooms2" || player.Room.name == "LCZ_TCross (11)")
                     {
                         // response = " Success, you gave your coin for: ";
                         // problem if statement, wants me to stop comparing a string to a system.predicate string I'm probably stupid but yeah  if (arguments.First() == list.Find("deeznuts"))
@@ -1380,20 +1427,19 @@ namespace Plugin
 
                     //   }
 
-                    
+
                     //
-                     var randomRoom = Facility.Rooms.PullRandomItem();
+                     List <Player> Playerss = Player.GetPlayers();
 
-                        foreach (var room in Facility.Rooms)
+                    foreach (var randplr in Playerss)
                        {
-                         if (room.Identifier.Name == randomRoom.Identifier.Name)
-
+                         if (randplr.IsSCP == true && randplr.Role != RoleTypeId.Scp079)
                           {
-                            plr.Position = room.Position + Vector3.up * 1f;
+                            plr.Position = randplr.Position;
                          }
                        }
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("Teleported you to a random room...", 3);
+                    plr.ReceiveHint("You have been teleported to the nearest SCP... Have fun!", 3);
                     //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
                     //  plr.IsGodModeEnabled = true;
                     //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
@@ -1661,6 +1707,53 @@ namespace Plugin
                 return false;
             }
         }
+
+
+
+        [CommandHandler(typeof(RemoteAdminCommandHandler))]
+        public class forcepowerfailure : ICommand
+        {
+            public string Command { get; } = "forcepowerfailure";
+
+            public string[] Aliases { get; } = new string[] { };
+
+            public string Description { get; } = "Force a facility power blackout.";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+
+                System.Random rnd = new System.Random();
+                Player player;
+
+
+                int val1 = rnd.Next(10, 17);
+                float val2 = (float)val1;
+                if (Player.TryGet(sender, out player))
+                {
+                    Cassie.Message("pitch_0.5 .g6 .g6 Pitch_0.9 jam_057_6 Attention pitch_0.7 .g3 Central pitch_0.89 Power pitch_0.85 jam_12_3 System .g4 pitch_0.7 failure jam_057_6 pitch_0.5 .g2 .g2 .G4 pitch_1.4 All personnel are to report to jam_056_4 .G1 .G2 .G4 immediately .G3 .G4", true, true, false);
+ 
+
+
+                    Timing.CallDelayed(20f, () =>
+                    {
+                        Facility.TurnOffAllLights();
+                    });
+
+                    Timing.CallDelayed(val2, () =>
+                    {
+                        Facility.TurnOnAllLights();
+                        Cassie.Message("Central Power System is back online", true, true, true);
+                    });
+
+
+                   response = "success, facility power blackout begun.";
+                    return true;
+                }
+                response = "failed";
+                return false;
+            }
+        }
+
 
 
 
