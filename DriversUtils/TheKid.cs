@@ -1,14 +1,11 @@
-﻿using CentralAuth;
-using CommandSystem;
+﻿using CommandSystem;
 using CustomPlayerEffects;
-using DriversUtils;
 using GameCore;
+using InventorySystem;
 using InventorySystem.Items.Firearms;
 using InventorySystem.Items.Pickups;
 using MEC;
-using Mirror;
 using PlayerRoles;
-using PlayerRoles.FirstPersonControl;
 using PlayerStatsSystem;
 //using Plugin;
 //using Plugin.Commands;
@@ -17,76 +14,46 @@ using PluginAPI.Core.Attributes;
 using PluginAPI.Core.Interfaces;
 using PluginAPI.Enums;
 using PluginAPI.Events;
+using PluginAPI.Roles;
 using RemoteAdmin.Communication;
-using SCPSLAudioApi.AudioCore;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using UnityEngine;
-using slocLoader;
-using slocLoader.Objects;
 using static TheRiptide.Utility;
 using Log = PluginAPI.Core.Log;
-using slocLoader.ObjectCreation;
+
 
 namespace Plugin
 {
 
 
-    public class Plugin
+    public class TheKid
     {
-      //  public static Plugin Singleton { get; private set; }
+        //  public static Plugin Singleton { get; private set; }
 
-        public static Plugin Singleton;
+
         private Player player = null;
 
-        [PluginConfig]
-        public Config Config;
-
-
-        [PluginEntryPoint("DriversUtils", "1.0.0", "This plugin adds custom features to scpsl.", "itsyourdriver")]
-        public void LoadPlugin()
-        {
-            if (!Config.IsEnabled)
-                return;
-
-
-            Log.Info("Loading Item Commands...");
-            //    Singleton = this;
-
-
-            Singleton = this;
-            Log.Info("Loading eventhandlers...");
-            EventManager.RegisterEvents<Plugin>(this);
-            EventManager.RegisterEvents<EventHandlers>(this);
-            EventManager.RegisterEvents<MTFUnits>(this);
-            EventManager.RegisterEvents<Coin914>(this);
-            EventManager.RegisterEvents<TheKid>(this);
-            Log.Debug("Event Handlers Loaded...");
-           // Log.Debug("Serpents Hand Loaded...");
-
-
-        }
-        
-
-        
 
 
         static int guard_captain = -1;
         static int attempts = 0;
-
+        public int candytaken = 0;
 
         // static int randomGlitchSound = new System.Random().Next(30, 150);
 
 
 
-        public ReferenceHub RadioHub;
-        public Player Radio;
+
+
+
+
 
         [PluginEvent(ServerEventType.RoundStart)]
         void OnRoundStart()
         {
             Config config = Plugin.Singleton.Config;
-
             try
             {
                 Timing.CallDelayed(0.5f, () =>
@@ -105,40 +72,24 @@ namespace Plugin
 
                         int i = random.Next(0, players.Count);
                         player = players[i];
-                        if (player.Role == PlayerRoles.RoleTypeId.FacilityGuard)
+                        if (player.Role == PlayerRoles.RoleTypeId.ClassD)
                         {
                             guard_captain = 0;
                             player = players[i];
 
-                            player.SendBroadcast(config.GuardText, 10);
-                            //  player.DisplayNickname = "Guard Captain | " + player.Nickname;
-                            player.ReferenceHub.inventory.UserInventory.Items.Clear();
-                            //player.AddItem(ItemType.GunE11SR
-                            player.AddItem(ItemType.ArmorCombat);
-                            AddOrDropFirearm(player, ItemType.GunE11SR, true);
-                            player.AddAmmo(ItemType.Ammo556x45, 80);
-                            player.AddAmmo(ItemType.Ammo9x19, 39); // funny number, doesnt look like it but it is
-                            player.AddItem(ItemType.KeycardGuard);
-                            player.AddItem(ItemType.GrenadeFlash);
-                            player.AddItem(ItemType.Medkit);
-                            player.AddItem(ItemType.Painkillers);
+                            player.SendBroadcast(config.KidText, 10);
+                         //   SetScale(player, 0.6f);
 
-                            Timing.CallDelayed(0.2f, () =>
-                            {
-                                player.AddItem(ItemType.Radio);
-                            });
-
-
-
+                            player.EffectsManager.EnableEffect<Scp559Effect>(99999, true);
+                            player.AddItem(ItemType.SCP330);
+                            player.AddItem(ItemType.SCP330);
+                            player.AddItem(ItemType.SCP330);
 
 
                             if (config.Debug == true)
                             {
                                 Log.Debug("Finished setting up guard captain yahoo");
                             }
-
-
-
 
 
 
@@ -157,24 +108,21 @@ namespace Plugin
                         }
                     }
 
+
+
+                    //player.Role = PlayerRoles.RoleTypeId.Tutorial;
+                    //  player.SendBroadcast("你是SCP-999", 3);
+                    //  player.DisplayNickname = "SCP-999 " + player.Nickname;
+                    //  player.AddItem(ItemType.GunLogicer);
+                    //  player.AddItem(ItemType.ArmorHeavy);
+                    //  player.AddAmmo(ItemType.Ammo762x39, 100);
+                    //player.GameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 0.5f);
                 });
-               // UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
-                Timing.CallDelayed(7f, () =>
-                {
-                    //slocLoader.API.SpawnObjectsFromFile("C:/Users/defin/SLoc/test.sloc",, offset, Quaternion.Euler(0, 0, 0));
-                    //  ObjectsSource.From()
-                   // ObjectsSource obj = ObjectsSource.FromFile("C:/object");
-
-
-                   // obj.AddTriggerAction(data, customHandler)
-                  // slocObjectData.FindObjectsOfType)
-                });
-
 
             }
             catch (Exception e)
             {
-                Log.Info("ERROR: At round start, setting up guard captain.");
+              //  Log.Info("ERROR: At round start, setting up guard captain.");
             }
         }
 
@@ -182,7 +130,14 @@ namespace Plugin
 
 
 
+     
 
+        [PluginEvent(ServerEventType.PlayerChangeRole)]
+        private void OnPlayerChangeRole(PlayerChangeRoleEvent ev)
+        {
+
+
+        }
 
         [PluginEvent(PluginAPI.Enums.ServerEventType.PlayerDeath)]
         private void PlayerDead(Player player, Player attacker, DamageHandlerBase damageHandler)
@@ -216,7 +171,39 @@ namespace Plugin
         }
 
 
+        [PluginEvent(ServerEventType.PlayerInteractScp330)]
+        public bool OnPlayerPickupScp330(Player plr, ItemPickupBase pickup)
+        {
+            Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) pickup scp330 {pickup.Info.ItemId}.");
 
+            candytaken += 1;
+
+
+            if (plr.PlayerId == player.PlayerId)
+            {
+                if (candytaken > 3)
+                {
+                    return true;
+                }
+                else if (candytaken == 3)
+                {
+                   // plr.ReferenceHub.inventory.ServerAddItem(ItemType.SCP330);
+                  //  plr.SendBroadcast("DO NOT TAKE ONE MORE, CAREFUL", 5);
+                    return true;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return true;
+            }
+           
+
+
+        }
 
 
 
@@ -225,6 +212,7 @@ namespace Plugin
         {
             guard_captain = -1;
             attempts = 0;
+            candytaken = 0;
             Config config = Plugin.Singleton.Config;
             if (config.Debug == true)
             {
@@ -232,6 +220,10 @@ namespace Plugin
                 Log.Debug($"Round ended. {leadingTeam.ToString()} won!");
             }
         }
+
+      
+
+
 
 
         [PluginEvent(ServerEventType.PlayerLeft)]

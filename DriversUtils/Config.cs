@@ -18,7 +18,13 @@ namespace Plugin
         public bool ShouldCassie { get; set; } = true;
 
         [Description("Cassie announcement when serpents hand spawn. Only valid cassie words will work")]
-        public string CassieMessage { get; set; } = "Attention All Personnel The Serpents .G5 Hand have entered the facility . All .G2 remaining personnel are to pitch_0.7 jam_056_4 .G1 .G2 .G4 pitch_1.2 NOSCPSLEFT .G6";
+        public string CassieMessage { get; set; } = "Attention All Personnel The Serpents .G5 Hand have been detected inside the facility . All .G2 remaining personnel are to pitch_0.7 jam_056_4 .G1 .G2 .G4 pitch_1.2 NOSCPSLEFT .G6";
+
+        [Description("Cassie announcement when flamingos spawn. Only valid cassie words will work. ")]
+        public string FlamingoCassieMessage { get; set; } = "Attention All Personnel a new group of SCP 1 5 0 7 .G5 has been detected . All remaining .g6 . are to report to jam_45_3 .g4 .g5 .g2 . pitch_1.2 NOSCPSLEFT .G6";
+
+        [Description("Can Flamingos spawn instead of the serpents hand?")]
+        public bool CanFlamingosSpawn { get; set; } = true;
 
         [Description("Whether or not to play the cassie bell start and bell end / cassie noise")]
         public bool CassieNoise { get; set; } = true;
