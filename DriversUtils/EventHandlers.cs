@@ -25,16 +25,22 @@ namespace Plugin
     using PlayerRoles.PlayableScps.Scp939;
     using InventorySystem.Items.Pickups;
     using RemoteAdmin.Communication;
+    using MapGeneration;
+    using Interactables.Interobjects.DoorUtils;
+    using PlayerRoles.FirstPersonControl;
+    using PlayerRoles.PlayableScps.Scp106;
 
     public class EventHandlers : IComparable
     {
-        static int respawn_count = 0;
-        static HashSet<int> fbi = new HashSet<int>();
+        int respawn_count = 0;
+        HashSet<int> fbi = new HashSet<int>();
         static UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
         SpawnableTeamType spawning_team = SpawnableTeamType.None;
         static bool isSerpentSpawning = false;
+        static bool isFlamingosSpawning = false;
+        bool doWeHaveAnAlpha = false;
 
-        // kid class stuff :D
+
 
 
 
@@ -45,11 +51,15 @@ namespace Plugin
             fbi.Clear();
             spawning_team = SpawnableTeamType.None;
             isSerpentSpawning = false;
+            doWeHaveAnAlpha = true;
         }
 
 
 
         static bool haveSerpentsSpawned = false;
+        static bool haveFlamingosSpawned = false;
+
+     
 
 
         void ChangeToTutorial(Player player, RoleTypeId role)
@@ -111,7 +121,7 @@ namespace Plugin
             playertoTP.Position = new UnityEngine.Vector3(0.06f, 1000.96f, 0.33f);
             // might add config for this in the future, dunno yet
             // fyi add +1000 to ur y coord if you wanna tp someone to somewhere on surface, learned that from axwabo. 
-
+           
         }
 
 
@@ -138,37 +148,76 @@ namespace Plugin
 
                 Timing.CallDelayed(2f, () =>
                 {
-                    RespawnTokensManager.ForceTeamDominance(SpawnableTeamType.ChaosInsurgency, 90);
+                    RespawnTokensManager.ForceTeamDominance(SpawnableTeamType.ChaosInsurgency, 85);
                 });
 
                
             }
 
 
-            if (respawn_count >= 2 && spawning_team == SpawnableTeamType.ChaosInsurgency && config.ShouldSerpentsSpawn == true && haveSerpentsSpawned == false && new System.Random().Next(2) == 1)
+            if (respawn_count >= 2 && spawning_team == SpawnableTeamType.ChaosInsurgency && config.ShouldSerpentsSpawn == true && new System.Random().Next(2) == 1)
             {
-                isSerpentSpawning = true;
-
-                if (config.ShouldSerpentsHandSpawnMore == false)
+                //  int randn = Random.RandomRange(1, 2);
+                int randn = 2;
+                if (randn == 2)
                 {
-                    haveSerpentsSpawned = true;
+                    if (haveSerpentsSpawned == false) { 
+                        isSerpentSpawning = true;
+
+                    if (config.ShouldSerpentsHandSpawnMore == false)
+                    {
+                        haveSerpentsSpawned = true;
+                    }
+                    //  if (UnityEngine.Random.value < 0.10 && spawning_team == SpawnableTeamType.ChaosInsurgency)
+                    //  {
+                    if (config.ShouldCassie == true)
+                    {
+                        Cassie.Message(config.CassieMessage, true, config.CassieNoise, config.CassieText);
+                    }
+
+
+
+                    //       }
+                    //    !player.TemporaryData.Contains("custom_class"))
+
+                    Timing.CallDelayed(5f, () =>
+                    {
+                        isSerpentSpawning = false;
+                    });
                 }
-                //  if (UnityEngine.Random.value < 0.10 && spawning_team == SpawnableTeamType.ChaosInsurgency)
-                //  {
-                if (config.ShouldCassie == true)
-                {
-                    Cassie.Message(config.CassieMessage, true, config.CassieNoise, config.CassieText);
                 }
+                else
 
-
-
-                //       }
-                //    !player.TemporaryData.Contains("custom_class"))
-
-                Timing.CallDelayed(5f, () =>
+                if (config.CanFlamingosSpawn == true && randn == 1)
                 {
-                    isSerpentSpawning = false;
-                });
+                    isFlamingosSpawning = true;
+
+                    if (config.ShouldSerpentsHandSpawnMore == false)
+                    {
+                        haveFlamingosSpawned = true;
+                    }
+
+
+                    //  if (UnityEngine.Random.value < 0.10 && spawning_team == SpawnableTeamType.ChaosInsurgency)
+                    //  {
+                    if (config.ShouldCassie == true)
+                    {
+                        Cassie.Message(config.FlamingoCassieMessage, true, config.CassieNoise, config.CassieText);
+                    }
+
+
+
+                    //       }
+                    //    !player.TemporaryData.Contains("custom_class"))
+
+                    Timing.CallDelayed(5f, () =>
+                    {
+                        isFlamingosSpawning = false;
+                    });
+                }
+                   
+
+
             }
         }
 
@@ -209,6 +258,34 @@ namespace Plugin
                 }
             }
 
+            if (respawn_count >= 2 && isFlamingosSpawning == true && haveFlamingosSpawned == false)
+            {
+                if (spawning_team == SpawnableTeamType.ChaosInsurgency && role.GetTeam() == Team.ChaosInsurgency)
+                {
+
+                    // ewww formatting went bye bye, this is probably really inefficient but it seems to fix my original problem where players would infinitely be set to tutorial or have like thousands of each ammo type
+                    Timing.CallDelayed(0.1f, () =>
+                    {
+                        if (doWeHaveAnAlpha == true)
+                        {
+                            player.Role = RoleTypeId.Flamingo;
+                            Player playertoTP = Player.Get(player.ReferenceHub);
+                            playertoTP.Position = new UnityEngine.Vector3(0.06f, 1000.96f, 0.33f);
+                            
+                        }
+                        if (doWeHaveAnAlpha == false)
+                        {
+                            player.Role = RoleTypeId.AlphaFlamingo;
+                            Player localplayertoTP = Player.Get(player.ReferenceHub);
+                            localplayertoTP.Position = new UnityEngine.Vector3(0.06f, 1000.96f, 0.33f);
+                            doWeHaveAnAlpha = true;
+
+                        }
+
+                    });
+                }
+            }
+
         }
 
 
@@ -229,6 +306,7 @@ namespace Plugin
                 Timing.CallDelayed(0.1f, () =>
                 {
                     SetScale(player, UnityEngine.Random.Range(0.7f, 1.2f));
+                    
                 });
                 
             }
@@ -398,8 +476,8 @@ namespace Plugin
             }
         }
 
-
-
+ 
+        
 
 
 
@@ -461,8 +539,10 @@ namespace Plugin
         public static HashSet<ushort> colas_bepis = new HashSet<ushort>();
         public static HashSet<ushort> colas_leaflover = new HashSet<ushort>();
         public static HashSet<ushort> colas_scp207 = new HashSet<ushort>();
-
-
+        public static HashSet<ushort> colas_flamingo = new HashSet<ushort>();
+        public static HashSet<ushort> colas_big = new HashSet<ushort>();
+        public static HashSet<ushort> colas_sour_patch_kids_slushy = new HashSet<ushort>();
+        public static HashSet<ushort> colas_ghost = new HashSet<ushort>();
 
         [CommandHandler(typeof(ClientCommandHandler))]
         public sealed class scp294 : ICommand
@@ -489,7 +569,19 @@ namespace Plugin
 
                         //}    
 
-                        if (arguments.First() == "oxygen" || arguments.First() == "Oxygen")
+                        if (arguments.First() == "Ghost" || arguments.First() == "ghost")
+                        {
+                            // Log.Debug("send help pls");
+                            //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
+                            player.RemoveItem(player.CurrentItem);
+                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a cup of {arguments.First()}", 5);
+                            //  player.AddItem(ItemType.SCP207); no longer need this lol
+                            ItemBase thiscola = player.AddItem(ItemType.SCP207);
+
+                            colas_ghost.Add(thiscola.ItemSerial);
+
+                        }
+                        else if (arguments.First() == "oxygen" || arguments.First() == "Oxygen")
                         {
                             // Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
@@ -711,6 +803,17 @@ namespace Plugin
                             colas_medusa.Add(thiscola.ItemSerial);
 
                         }
+                        else if (arguments.First() == "Slushy" || arguments.First() == "slushy" || arguments.First() == "slush" || arguments.First() == "Slush")
+                        {
+                            //  Log.Debug("send help pls");
+                            //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
+                            player.RemoveItem(player.CurrentItem);
+                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a glimmering noise and dispensed you a bottle of Sour Patch Kids Slushy.", 5);
+                            //  player.AddItem(ItemType.SCP207); no longer need this lol
+                            ItemBase thiscola = player.AddItem(ItemType.SCP207);
+                            colas_sour_patch_kids_slushy.Add(thiscola.ItemSerial);
+
+                        }
                         else if (arguments.First() == "Crazy" || arguments.First() == "crazy" || arguments.First() == "Crazy?" || arguments.First() == "rubberroom" || arguments.First() == "arubberroom" || arguments.First() == "Iwascrazyonce")
                         {
                             //  Log.Debug("send help pls");
@@ -751,6 +854,51 @@ namespace Plugin
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_scp207.Add(thiscola.ItemSerial);
                         }
+                        else if (arguments.First() == "water" || arguments.First() == "Water" || arguments.First() == "h2o")
+                        {
+                            //  Log.Debug("send help pls");
+                            //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
+                            player.RemoveItem(player.CurrentItem);
+                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            //  player.AddItem(ItemType.SCP207); no longer need this lol
+                            ItemBase thiscola = player.AddItem(ItemType.SCP207);
+                            colas_water.Add(thiscola.ItemSerial);
+
+                        }
+                        else if (arguments.First() == "flamingo" || arguments.First() == "Flamingo" || arguments.First() == "1507" || arguments.First() == "scp-1507" || arguments.First() == "SCP-1507")
+                        {
+                            //  Log.Debug("send help pls");
+                            //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
+                            player.RemoveItem(player.CurrentItem);
+                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            //  player.AddItem(ItemType.SCP207); no longer need this lol
+                            ItemBase thiscola = player.AddItem(ItemType.SCP207);
+                            colas_flamingo.Add(thiscola.ItemSerial);
+
+                        }
+                        else if (arguments.First() == "big" || arguments.First() == "Big" || arguments.First() == "large" || arguments.First() == "Large" || arguments.First() == "grow")
+                        {
+                            //  Log.Debug("send help pls");
+                            //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
+                            player.RemoveItem(player.CurrentItem);
+                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            //  player.AddItem(ItemType.SCP207); no longer need this lol
+                            ItemBase thiscola = player.AddItem(ItemType.SCP207);
+                            colas_big.Add(thiscola.ItemSerial);
+
+                        }
+                        else if (arguments.First() == "Tutorial" || arguments.First() == "tutorial" || arguments.First() == "large" || arguments.First() == "Large" || arguments.First() == "grow")
+                        {
+                            //  Log.Debug("send help pls");
+                            //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
+                            player.RemoveItem(player.CurrentItem);
+                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            //  player.AddItem(ItemType.SCP207); no longer need this lol
+                            ItemBase thiscola = player.AddItem(ItemType.SCP207);
+                            colas_big.Add(thiscola.ItemSerial);
+
+                        }
+
 
                     }
                 }
@@ -758,7 +906,54 @@ namespace Plugin
                 return true;
             }
         }
-        
+
+        public static Vector3 GetBestExitPosition(Player player)
+        {
+
+            PlayerRoleBase playerRoleBase;
+            ReferenceHub referenceHub;
+
+            IFpcRole fpcRole;
+            if ((fpcRole = (player.ReferenceHub.roleManager.CurrentRole as IFpcRole)) == null)
+            {
+                return new Vector3(0, 0, 0);
+            }
+
+            if ((playerRoleBase = (fpcRole as PlayerRoleBase)) == null || !playerRoleBase.TryGetOwner(out referenceHub))
+            {
+                throw new InvalidOperationException(
+                    "Scp106PocketExitFinder.GetBestExitPosition provided with non-compatible role!");
+            }
+
+            Vector3 position = player.Position;
+            RoomIdentifier roomIdentifier = RoomIdUtils.RoomAtPositionRaycasts(position, true);
+            if (roomIdentifier == null)
+            {
+                return position;
+            }
+
+            DoorVariant[] whitelistedDoorsForZone =
+                Scp106PocketExitFinder.GetWhitelistedDoorsForZone(roomIdentifier.Zone);
+            if (whitelistedDoorsForZone.Length != 0)
+            {
+                DoorVariant randomDoor = Scp106PocketExitFinder.GetRandomDoor(whitelistedDoorsForZone);
+                float range = (roomIdentifier.Zone == FacilityZone.Surface) ? 45f : 11f;
+                return Scp106PocketExitFinder.GetSafePositionForDoor(randomDoor, range,
+                    fpcRole.FpcModule.CharController);
+            }
+
+            return position;
+        }
+
+       
+
+
+
+
+
+
+
+
 
         [PluginEvent(PluginAPI.Enums.ServerEventType.PlayerDeath)]
         void PlayerDead(Player player, Player attacker, DamageHandlerBase damageHandler)
@@ -794,7 +989,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     plr.EffectsManager.EnableEffect<CardiacArrest>(60, true);
@@ -813,7 +1008,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     plr.EffectsManager.EnableEffect<MovementBoost>(30, true);
@@ -828,14 +1023,14 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     //   plr.EffectsManager.EnableEffect<MovementBoost>(30, true);
                     //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You drank a cup of water. You now feel like going to the bathroom.", 3);
+                    plr.ReceiveHint("You drank a cup of water.", 3);
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -843,7 +1038,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
@@ -860,7 +1055,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.AntiScp207>();
                     plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
@@ -879,7 +1074,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     plr.EffectsManager.EnableEffect<DamageReduction>(5, true);
@@ -898,7 +1093,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     plr.EffectsManager.EnableEffect<SeveredHands>(10, true);
@@ -916,7 +1111,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
@@ -942,7 +1137,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
@@ -963,7 +1158,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
@@ -988,7 +1183,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
@@ -1004,7 +1199,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
@@ -1021,7 +1216,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
@@ -1038,7 +1233,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
@@ -1056,7 +1251,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
@@ -1079,7 +1274,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
@@ -1100,7 +1295,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
@@ -1121,7 +1316,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
@@ -1130,7 +1325,10 @@ namespace Plugin
                     //  plr.EffectsManager.EnableEffect<DamageReduction>(15, true);
                     //  plr.EffectsManager.EnableEffect<Scp1853>(20, true);
                     // plr.Kill("I don't know what you expected.");
-                    SetScale(plr, 0.85f);
+                   // SetScale(plr, 0.85f);
+                    SetScale(plr, plr.GameObject.transform.localScale.y - 0.15f);
+                    // player.GameObject.transform.localScale.y
+                    // plr.SCal
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
@@ -1138,11 +1336,35 @@ namespace Plugin
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
+            else if (item.ItemTypeId == ItemType.SCP207 && colas_big.Contains(item.ItemSerial))
+            {
+                //  Log.Debug("SCP-268 was used.");
+
+                Timing.CallDelayed(3.4f, () =>
+                {
+                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
+                    // plr.EffectsManager.EnableEffect<Invigorated>(20, true);
+                    //  plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
+                    //  plr.EffectsManager.EnableEffect<DamageReduction>(15, true);
+                    //  plr.EffectsManager.EnableEffect<Scp1853>(20, true);
+                    // plr.Kill("I don't know what you expected.");
+                    // SetScale(plr, 0.85f);
+                    SetScale(plr, plr.GameObject.transform.localScale.y + 0.15f);
+                    // player.GameObject.transform.localScale.y
+                    // plr.SCal
+                    //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
+                    plr.ClearBroadcasts();
+                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                    plr.ReceiveHint("You feel bigger... (if you need to return to normal after a respawn or revive, run the command .fixmepls in your ~ console.)", 3);
+                });
+                // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
+            }
             else if (item.ItemTypeId == ItemType.SCP207 && colas_peanut.Contains(item.ItemSerial))
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
@@ -1160,7 +1382,7 @@ namespace Plugin
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You drank the bottle of SCP-173. You feel like taking a crap.", 3);
+                    plr.ReceiveHint("You drank the bottle of SCP-173. You suddenly feel the need to go to the bathroom, will you make it?", 3);
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -1168,7 +1390,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(3.5f, () =>
+                Timing.CallDelayed(3.3f, () =>
                 {
                     // plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
@@ -1185,7 +1407,7 @@ namespace Plugin
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.SendBroadcast("You took a drink of gunpowder. BOOM!", 3);
+                    plr.SendBroadcast("You inhaled the box of gunpowder. BOOM!", 3);
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -1257,12 +1479,31 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Flashed>(20, true);
-                    plr.Kill("I don't know what you expected.");
+                    plr.Kill("This used to explode the entire facility, but here you go.");
+
+                    //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
+                    plr.ClearBroadcasts();
+                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                    // plr.ReceiveHint("Borgor.", 3);
+                });
+                // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
+            }
+            else if (item.ItemTypeId == ItemType.SCP207 && colas_ghost.Contains(item.ItemSerial))
+            {
+                //  Log.Debug("SCP-268 was used.");
+
+                Timing.CallDelayed(3.4f, () =>
+                {
+                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
+                    plr.EffectsManager.EnableEffect<Ghostly>(20, true);
+                    plr.EffectsManager.EnableEffect<CustomPlayerEffects.Invisible>(20, true);
+                    plr.ReceiveHint("You drank the ghastly brew...", 3);
 
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
                     plr.ClearBroadcasts();
@@ -1275,18 +1516,18 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Invigorated>(20, true);
                     //plr.Kill("I don't know what you expected.");
 
-
+                    
                     Timing.CallDelayed(4f, () =>
                     {
 
-                        plr.Kill("drank windex for some reason.");
+                        plr.Kill("Drank windex for some reason.");
 
                         //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
                     });
@@ -1301,7 +1542,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     Vector3 plrpos = new Vector3(129.9321f, -13f, 25.997f);
                     RoleTypeId lastrole = RoleTypeId.None;
@@ -1352,11 +1593,48 @@ namespace Plugin
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
+            else if (item.ItemTypeId == ItemType.SCP207 && colas_flamingo.Contains(item.ItemSerial))
+            {
+                //  Log.Debug("SCP-268 was used.");
+
+                Timing.CallDelayed(3.4f, () =>
+                {
+                Vector3 plrpos = new Vector3(129.9321f, -13f, 25.997f);
+                RoleTypeId lastrole = RoleTypeId.None;
+
+                plrpos = plr.Position;
+                // lastrole = plr.Role;
+                plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
+                //plr.EffectsManager.EnableEffect<Flashed>(20, true);
+                //plr.Kill("I don't know what you expected.");
+
+                plr.ReceiveHint("You drank a cup of (FLAMINGO BATTLE CRY). Your items magically disappeared!", 3);
+                plr.ClearBroadcasts();
+                plr.SetRole(RoleTypeId.Flamingo);
+
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                        plr.Position = plrpos;
+                    });
+                   
+                    //plr.EffectsManager.EnableEffect<SeveredHands>(10, true);
+                    //plr.EffectsManager.EnableEffect<Deafened>(10, true);
+                   
+
+
+                    //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
+                    plr.ClearBroadcasts();
+                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                    // plr.ReceiveHint("Borgor.", 3);
+                });
+                // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
+            }
             else if (item.ItemTypeId == ItemType.SCP207 && colas_saltwater.Contains(item.ItemSerial))
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
@@ -1374,11 +1652,42 @@ namespace Plugin
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
+            else if (item.ItemTypeId == ItemType.SCP207 && colas_sour_patch_kids_slushy.Contains(item.ItemSerial))
+            {
+                //  Log.Debug("SCP-268 was used.");
+
+                Timing.CallDelayed(3.4f, () =>
+                {
+                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
+                    //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
+                    // plr.EffectsManager.EnableEffect<Invisible>(10, true);
+                    // plr.Heal(50);
+                    //   plr.Damage(damageHandlerBase);
+                    plr.ClearBroadcasts();
+                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                    plr.ReceiveHint("Good luck!", 3);
+                    Vector3 plrpos = new Vector3(40f, 1014f, -32.60f);
+                   // plrpos = plr.Position;
+                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                  //  plr.ReceiveHint("You drank a cup of [REDACTED]. Your items magically disappeared!", 3);
+                    plr.ClearBroadcasts();
+                    //        plr.Position = plrpos;
+                        plr.Position = GetBestExitPosition(plr);
+                   
+
+                    //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
+                    //  plr.IsGodModeEnabled = true;
+                    //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
+
+                });
+                // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
+            }
             else if (item.ItemTypeId == ItemType.SCP207 && colas_scp207.Contains(item.ItemSerial))
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                   //  plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                    // plr.EffectsManager.EnableEffect<CustomPlayerEffects.Scp207>(5, true);
@@ -1405,7 +1714,7 @@ namespace Plugin
             {
                 //  Log.Debug("SCP-268 was used.");
 
-                Timing.CallDelayed(4f, () =>
+                Timing.CallDelayed(3.4f, () =>
                 {
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
@@ -1494,6 +1803,13 @@ namespace Plugin
                     plr.ReceiveHint("You equipped a bottle of Nuclear Kick!", 3);
 
                 }
+                else if (!newItemBase == false && colas_sour_patch_kids_slushy.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ClearBroadcasts();
+                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+                    plr.ReceiveHint("You equipped a sour patch kids slushy.", 3);
+
+                }
                 else if (!newItemBase == false && colas_invis.Contains(newItemBase.ItemSerial))
                 {
                     plr.ClearBroadcasts();
@@ -1540,7 +1856,14 @@ namespace Plugin
                 {
                     plr.ClearBroadcasts();
                     //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
-                    plr.ReceiveHint("You equipped a cup of SCP 049-2.", 3);
+                    plr.ReceiveHint("You equipped a cup of [REDACTED].", 3);
+
+                }
+                else if (!newItemBase == false && colas_flamingo.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ClearBroadcasts();
+                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+                    plr.ReceiveHint("You equipped a cup of (FLAMINGO BATTLE CRY).", 3);
 
                 }
                 else if (!newItemBase == false && colas_cherryatomkick.Contains(newItemBase.ItemSerial))
@@ -1554,14 +1877,14 @@ namespace Plugin
                 {
                     plr.ClearBroadcasts();
                     //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
-                    plr.ReceiveHint("You equipped a bottle of Bepis.", 3);
+                    plr.ReceiveHint("You equipped a can of Bepis.", 3);
 
                 }
                 else if (!newItemBase == false && colas_explosion.Contains(newItemBase.ItemSerial))
                 {
                     plr.ClearBroadcasts();
                     //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
-                    plr.ReceiveHint("You equipped a bottle of gunpowder.", 3);
+                    plr.ReceiveHint("You equipped a box of gunpowder.", 3);
 
                 }
                 else if (!newItemBase == false && colas_saltwater.Contains(newItemBase.ItemSerial))
@@ -1585,11 +1908,25 @@ namespace Plugin
                     plr.ReceiveHint("You equipped a can of gasoline.", 3);
 
                 }
+                else if (!newItemBase == false && colas_ghost.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ClearBroadcasts();
+                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+                    plr.ReceiveHint("You equipped a ghostly brew.", 3);
+
+                }
                 else if (!newItemBase == false && colas_scp207.Contains(newItemBase.ItemSerial))
                 {
                     plr.ClearBroadcasts();
                     //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
                     plr.ReceiveHint("COCA COLA ESPUMA", 3);
+
+                }
+                else if (!newItemBase == false && colas_big.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ClearBroadcasts();
+                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+                    plr.ReceiveHint("You equipped a bottle of growing juice.", 3);
 
                 }
                 else if (!newItemBase == false && colas_teleportation.Contains(newItemBase.ItemSerial))
@@ -1709,6 +2046,77 @@ namespace Plugin
         }
 
 
+        [CommandHandler(typeof(ClientCommandHandler))]
+        public class fixmepls : ICommand
+        {
+            public string Command { get; } = "fixmepls";
+
+            public string[] Aliases { get; } = new string[] { };
+
+            public string Description { get; } = "Hi!";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+                Player player;
+                if (Player.TryGet(sender, out player))
+                {
+                    SetScale(player, 1.0f);
+                    response = "success, your scale should be fixed. If issues persist, please rejoin the game.";
+                    return true;
+                }
+                response = "failed";
+                return false;
+            }
+        }
+
+
+        [CommandHandler(typeof(RemoteAdminCommandHandler))]
+        public class setscale : ICommand
+        {
+            public string Command { get; } = "setscale";
+
+            public string[] Aliases { get; } = new string[] { };
+
+            public string Description { get; } = "Set player scale";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+
+
+                Player player;
+
+                if (Player.TryGet(sender, out player))
+                {
+                    if (arguments.Count != 0)
+                    {
+
+                        // response = " Success, you gave your coin for: ";
+                        // problem if statement, wants me to stop comparing a string to a system.predicate string I'm probably stupid but yeah  if (arguments.First() == list.Find("deeznuts"))
+                        //  {
+
+                        //}    
+
+                        if (Player.TryGet(sender, out player)) ;
+                        SetScale(player, (float)int.Parse(arguments.First()));
+
+
+                        response = "set player scale";
+                        return true;
+                    }
+
+              
+
+                  
+
+                   
+                }
+                response = "failed";
+                return false;
+            }
+        }
+
+
+
 
         [CommandHandler(typeof(RemoteAdminCommandHandler))]
         public class forcepowerfailure : ICommand
@@ -1721,13 +2129,9 @@ namespace Plugin
 
             public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
             {
-
-                System.Random rnd = new System.Random();
-                Player player;
+                    Player player = Player.Get(((CommandSender)sender).SenderId);
 
 
-                int val1 = rnd.Next(10, 17);
-                float val2 = (float)val1;
                 if (Player.TryGet(sender, out player))
                 {
                     Cassie.Message("pitch_0.5 .g6 .g6 Pitch_0.9 jam_057_6 Attention pitch_0.7 .g3 Central pitch_0.89 Power pitch_0.85 jam_12_3 System .g4 pitch_0.7 failure jam_057_6 pitch_0.5 .g2 .g2 .G4 pitch_1.4 All personnel are to report to jam_056_4 .G1 .G2 .G4 immediately .G3 .G4", true, true, false);
@@ -1739,7 +2143,7 @@ namespace Plugin
                         Facility.TurnOffAllLights();
                     });
 
-                    Timing.CallDelayed(val2, () =>
+                    Timing.CallDelayed(Random.Range(10f, 17f), () =>
                     {
                         Facility.TurnOnAllLights();
                         Cassie.Message("Central Power System is back online", true, true, true);
