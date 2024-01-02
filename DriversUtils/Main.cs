@@ -1,10 +1,14 @@
-﻿using CommandSystem;
+using CentralAuth;
+using CommandSystem;
 using CustomPlayerEffects;
+using DriversUtils;
 using GameCore;
 using InventorySystem.Items.Firearms;
 using InventorySystem.Items.Pickups;
 using MEC;
+using Mirror;
 using PlayerRoles;
+using PlayerRoles.FirstPersonControl;
 using PlayerStatsSystem;
 //using Plugin;
 //using Plugin.Commands;
@@ -14,11 +18,16 @@ using PluginAPI.Core.Interfaces;
 using PluginAPI.Enums;
 using PluginAPI.Events;
 using RemoteAdmin.Communication;
+using SCPSLAudioApi.AudioCore;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using slocLoader;
+using slocLoader.Objects;
 using static TheRiptide.Utility;
 using Log = PluginAPI.Core.Log;
+using slocLoader.ObjectCreation;
+
 namespace Plugin
 {
 
@@ -49,12 +58,17 @@ namespace Plugin
             Log.Info("Loading eventhandlers...");
             EventManager.RegisterEvents<Plugin>(this);
             EventManager.RegisterEvents<EventHandlers>(this);
-
-            Log.Debug("Item Commands Loaded...");
-            Log.Debug("Serpents Hand Loaded...");
+            EventManager.RegisterEvents<MTFUnits>(this);
+            EventManager.RegisterEvents<Coin914>(this);
+            EventManager.RegisterEvents<TheKid>(this);
+            Log.Debug("Event Handlers Loaded...");
+           // Log.Debug("Serpents Hand Loaded...");
 
 
         }
+        
+
+        
 
 
         static int guard_captain = -1;
@@ -65,12 +79,14 @@ namespace Plugin
 
 
 
-
+        public ReferenceHub RadioHub;
+        public Player Radio;
 
         [PluginEvent(ServerEventType.RoundStart)]
         void OnRoundStart()
         {
             Config config = Plugin.Singleton.Config;
+
             try
             {
                 Timing.CallDelayed(0.5f, () =>
@@ -114,10 +130,15 @@ namespace Plugin
 
 
 
+
+
                             if (config.Debug == true)
                             {
                                 Log.Debug("Finished setting up guard captain yahoo");
                             }
+
+
+
 
 
 
@@ -136,16 +157,19 @@ namespace Plugin
                         }
                     }
 
-
-
-                    //player.Role = PlayerRoles.RoleTypeId.Tutorial;
-                    //  player.SendBroadcast("你是SCP-999", 3);
-                    //  player.DisplayNickname = "SCP-999 " + player.Nickname;
-                    //  player.AddItem(ItemType.GunLogicer);
-                    //  player.AddItem(ItemType.ArmorHeavy);
-                    //  player.AddAmmo(ItemType.Ammo762x39, 100);
-                    //player.GameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 0.5f);
                 });
+               // UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
+                Timing.CallDelayed(7f, () =>
+                {
+                    //slocLoader.API.SpawnObjectsFromFile("C:/Users/defin/SLoc/test.sloc",, offset, Quaternion.Euler(0, 0, 0));
+                    //  ObjectsSource.From()
+                   // ObjectsSource obj = ObjectsSource.FromFile("C:/object");
+
+
+                   // obj.AddTriggerAction(data, customHandler)
+                  // slocObjectData.FindObjectsOfType)
+                });
+
 
             }
             catch (Exception e)
@@ -153,6 +177,10 @@ namespace Plugin
                 Log.Info("ERROR: At round start, setting up guard captain.");
             }
         }
+
+
+
+
 
 
 
