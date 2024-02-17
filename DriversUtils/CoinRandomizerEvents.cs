@@ -21,9 +21,9 @@ namespace Plugin
 {
     public class Coin914
     {
-        // Credit to TheRiptide.
 
-        public List<ItemType> list = new List<ItemType> {ItemType.Snowball, ItemType.Adrenaline, ItemType.AntiSCP207, ItemType.SCP500, ItemType.SCP018, ItemType.SCP1576, ItemType.SCP1853, ItemType.SCP268, ItemType.SpecialCoal, ItemType.Coal, ItemType.ArmorCombat, ItemType.ArmorHeavy, ItemType.ArmorLight, ItemType.Flashlight, ItemType.KeycardContainmentEngineer, ItemType.GunCOM15, ItemType.GunCOM18, ItemType.GrenadeFlash, ItemType.KeycardChaosInsurgency, ItemType.KeycardJanitor, ItemType.KeycardScientist, ItemType.KeycardResearchCoordinator, ItemType.GunLogicer, ItemType.Medkit, ItemType.Painkillers, ItemType.GunFSP9, ItemType.Tape, ItemType.SCP244b, ItemType.SCP244a, ItemType.KeycardZoneManager, ItemType.KeycardGuard, ItemType.Lantern, ItemType.Radio, ItemType.GrenadeHE, ItemType.SCP207};
+
+        public List<ItemType> list = new List<ItemType> {ItemType.GunE11SR, ItemType.GunCrossvec, ItemType.Adrenaline, ItemType.AntiSCP207, ItemType.SCP500, ItemType.SCP018, ItemType.SCP1576, ItemType.SCP1853, ItemType.SCP268, ItemType.ArmorCombat, ItemType.ArmorHeavy, ItemType.ArmorLight, ItemType.Flashlight, ItemType.KeycardContainmentEngineer, ItemType.GunCOM15, ItemType.GunCOM18, ItemType.GrenadeFlash, ItemType.KeycardChaosInsurgency, ItemType.KeycardJanitor, ItemType.KeycardScientist, ItemType.KeycardResearchCoordinator, ItemType.GunLogicer, ItemType.Medkit, ItemType.Painkillers, ItemType.GunFSP9, ItemType.SCP244b, ItemType.SCP244a, ItemType.KeycardZoneManager, ItemType.KeycardGuard, ItemType.Lantern, ItemType.Radio, ItemType.GrenadeHE, ItemType.SCP207};
         System.Random random = new System.Random();
         [PluginEvent(ServerEventType.Scp914UpgradeInventory)]
         public void OnScp914UpgradeInventory(Player player, ItemBase item, Scp914KnobSetting setting)
