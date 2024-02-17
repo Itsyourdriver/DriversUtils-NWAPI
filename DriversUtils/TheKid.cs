@@ -62,6 +62,11 @@ namespace Plugin
                     {
                         Log.Debug("Picking player...");
                     }
+
+                    if (new System.Random().Next(3) == 1)
+                    {
+
+                    
                     List<Player> players = Player.GetPlayers();
                     System.Random random = new System.Random();
 
@@ -78,17 +83,17 @@ namespace Plugin
                             player = players[i];
 
                             player.SendBroadcast(config.KidText, 10);
-                         //   SetScale(player, 0.6f);
+                            SetScale(player, 0.85f);
 
-                            player.EffectsManager.EnableEffect<Scp559Effect>(99999, true);
+                            //player.EffectsManager.EnableEffect<Scp559Effect>(99999, true);
                             player.AddItem(ItemType.SCP330);
                             player.AddItem(ItemType.SCP330);
                             player.AddItem(ItemType.SCP330);
-
+                           
 
                             if (config.Debug == true)
                             {
-                                Log.Debug("Finished setting up guard captain yahoo");
+                                Log.Debug("Finished setting up kid role yippee");
                             }
 
 
@@ -107,7 +112,7 @@ namespace Plugin
                                 break;
                         }
                     }
-
+                    }
 
 
                     //player.Role = PlayerRoles.RoleTypeId.Tutorial;
@@ -155,6 +160,7 @@ namespace Plugin
                         this.player = null;
                         // Log.Info("WARNING: Chance to explode the server, ATTEMPTING TO SET NULL TO SOMETHING THAT SHOULD ALREADY BE NULL");
                         player = null;
+                        SetScale(player, 1.0f);
                         guard_captain = -1;
                         if (config.Debug == true)
                         {
