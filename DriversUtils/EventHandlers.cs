@@ -29,6 +29,11 @@ namespace Plugin
     using Interactables.Interobjects.DoorUtils;
     using PlayerRoles.FirstPersonControl;
     using PlayerRoles.PlayableScps.Scp106;
+    using CommandSystem.Commands.RemoteAdmin;
+    using PlayerRoles.PlayableScps.Scp079;
+    using PluginAPI.Roles;
+    using PlayerRoles.PlayableScps.Scp3114;
+    using Hints;
 
     public class EventHandlers : IComparable
     {
@@ -54,7 +59,7 @@ namespace Plugin
             doWeHaveAnAlpha = false;
 
 
-            
+
         }
 
 
@@ -157,11 +162,11 @@ namespace Plugin
             }
 
 
-            if (respawn_count >= 2 && spawning_team == SpawnableTeamType.ChaosInsurgency && config.ShouldSerpentsSpawn == true && new System.Random().Next(2) == 1)
+            if (respawn_count >= 2 && spawning_team == SpawnableTeamType.ChaosInsurgency && config.ShouldSerpentsSpawn == true && new System.Random().Next(4) == 1)
             {
-                //  int randn = Random.RandomRange(1, 2);
-                int randn = 2;
-                if (randn == 2)
+                int randn = Random.RandomRange(1, 4);
+                //int randn = 2;
+                if (randn == 2 || randn == 3 || randn == 4 || randn == 1)
                 {
                     if (haveSerpentsSpawned == false) {
                         isSerpentSpawning = true;
@@ -182,15 +187,16 @@ namespace Plugin
                         //       }
                         //    !player.TemporaryData.Contains("custom_class"))
 
-                        Timing.CallDelayed(5f, () =>
+                        Timing.CallDelayed(2f, () =>
                         {
                             isSerpentSpawning = false;
+                            isFlamingosSpawning = false;
                         });
                     }
                 }
                 else
 
-                if (config.CanFlamingosSpawn == true && randn == 1)
+                if (config.CanFlamingosSpawn == true && randn == 69)
                 {
                     isFlamingosSpawning = true;
 
@@ -212,9 +218,10 @@ namespace Plugin
                     //       }
                     //    !player.TemporaryData.Contains("custom_class"))
 
-                    Timing.CallDelayed(5f, () =>
+                    Timing.CallDelayed(2f, () =>
                     {
                         isFlamingosSpawning = false;
+                        isSerpentSpawning = false;
                     });
                 }
 
@@ -273,14 +280,14 @@ namespace Plugin
                     {
                         if (doWeHaveAnAlpha == true)
                         {
-                            player.Role = RoleTypeId.Flamingo;
+                            // player.Role = RoleTypeId.Flamingo;
                             Player playertoTP = Player.Get(player.ReferenceHub);
                             playertoTP.Position = new UnityEngine.Vector3(0.06f, 1000.96f, 0.33f);
 
                         }
                         if (doWeHaveAnAlpha == false)
                         {
-                            player.Role = RoleTypeId.AlphaFlamingo;
+                            // player.Role = RoleTypeId.AlphaFlamingo;
                             Player localplayertoTP = Player.Get(player.ReferenceHub);
                             localplayertoTP.Position = new UnityEngine.Vector3(0.06f, 1000.96f, 0.33f);
                             doWeHaveAnAlpha = true;
@@ -298,7 +305,7 @@ namespace Plugin
                     player.ReceiveHint("ComputerBuff: You have bonus abilities availible. Open your console (press ~ to open it) and run the command .pcbuff for more info.", 10f);
                 });
             }
-            
+
 
         }
 
@@ -320,6 +327,12 @@ namespace Plugin
                 Timing.CallDelayed(0.1f, () =>
                 {
                     SetScale(player, UnityEngine.Random.Range(0.7f, 1.2f));
+                    Timing.CallDelayed(1f, () =>
+                    {
+                        player.Health = UnityEngine.Random.Range(400f, 450f);
+
+                    });
+
 
                 });
 
@@ -452,11 +465,16 @@ namespace Plugin
         }
 
 
+
+
+
         [PluginEvent(ServerEventType.PlayerDamage)]
         internal bool OnPlayerDamage(PlayerDamageEvent ev)
         {
             try
             {
+
+
                 if (ev.Target is null)
                     return true;
                 if (ev.DamageHandler is null)
@@ -474,6 +492,8 @@ namespace Plugin
                 if (ev.DamageHandler is Scp939DamageHandler sc939dh && ev.Player.IsSCP == true && fbi.Contains(ev.Target.PlayerId))
                     return false;
                 if (ev.DamageHandler is Scp049DamageHandler sc049dh && ev.Player.IsSCP == true && fbi.Contains(ev.Target.PlayerId))
+                    return false;
+                if (ev.DamageHandler is Scp3114DamageHandler scp3114dh && ev.Player.IsSCP == true && fbi.Contains(ev.Target.PlayerId))
                     return false;
                 if (fbi.Contains(ev.Player.PlayerId) && ev.Player.IsTutorial && ev.Target.IsSCP == true)
                     return false;
@@ -581,7 +601,7 @@ namespace Plugin
                 {
                     if (arguments.First().ToLower() == "list" || arguments.First().ToLower() == "help" || arguments.First().ToLower() == "drinks")
                     {
-                        player.SendConsoleMessage("List of SCP-294 Drinks: oxygen, speed, SCP-207, Coffee, Espresso, GoldenAtomKick, NuclearKick, godmode, nuclearkick, Invisibility, scp268, Me, Tea, Horror, PocketDimension, Borgor, Cheeserburger, Antimatter, Nuke, 049, Zombie, CherryAtomKick, HealthPotion, grenade, pinkcandy, Boom, SCP-173, Peanut, Saltwater, Ocean, Teleportation, Teleport, Windex, Medusa, SCP-330, Candy, SeveredHands, BEPIS, Small, Big, Grow, LeafLover, Water, Flamingo, Slushy, Ghost, Cold, Ice, Death, Metal, Steel, RazorBlade, Oil, AlphaFlamingo (please only use this one as needed -driver)");
+                        player.SendConsoleMessage("List of SCP-294 Drinks: oxygen, speed, SCP-207, Coffee, Espresso, GoldenAtomKick, NuclearKick, godmode, nuclearkick, Invisibility, scp268, Me, Tea, Horror, PocketDimension, Borgor, Cheeserburger, Antimatter, Nuke, 049, Zombie, CherryAtomKick, HealthPotion, grenade, pinkcandy, Boom, SCP-173, Peanut, Saltwater, Ocean, Teleportation, Teleport, Windex, Medusa, SCP-330, Candy, SeveredHands, BEPIS, Small, Big, grow, LeafLover, Water, Slushy, Ghost, Cold, Ice, Death, Metal, Steel, RazorBlade, Oil");
                         player.SendConsoleMessage("DUPLICATE ENTRIES ARE INCLUDED. SOME MAY BE CASE-SENSITIVE; MAKE SURE TO DOUBLE CHECK CAPS / LOWERCASE.");
                     }
                     if (ItemType.Coin.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room.name == "EZ_Smallrooms2" || player.Room.name == "LCZ_TCross (11)")
@@ -615,7 +635,7 @@ namespace Plugin
                             colas_oil.Add(thiscola.ItemSerial);
 
                         }
-                        if (arguments.First().ToLower() == "metal" || arguments.First().ToLower() == "steel" || arguments.First().ToLower() == "razorblades")
+                        if (arguments.First().ToLower() == "metal" || arguments.First().ToLower() == "steel" || arguments.First().ToLower() == "razorblade")
                         {
                             // Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
@@ -1643,10 +1663,11 @@ namespace Plugin
 
                         plr.ReceiveHint("I cannot believe you would betray your friends...", 3);
                         plr.Position = plrpos;
-
+                        SetScale(plr, 1.0f);
                         Timing.CallDelayed(0.5f, () =>
                         {
                             plr.ClearInventory();
+
                         });
 
                         //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
@@ -1681,7 +1702,7 @@ namespace Plugin
 
                     plr.ReceiveHint("You drank a cup of (FLAMINGO BATTLE CRY). Your items magically disappeared!", 3);
                     plr.ClearBroadcasts();
-                    plr.SetRole(RoleTypeId.Flamingo);
+                    // plr.SetRole(RoleTypeId.Flamingo);
 
                     Timing.CallDelayed(0.2f, () =>
                     {
@@ -1713,7 +1734,7 @@ namespace Plugin
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     plr.ReceiveHint("You drank a cup of (VERY LOUD FLAMINGO BATTLE CRY). Your items magically disappeared!", 3);
                     plr.ClearBroadcasts();
-                    plr.SetRole(RoleTypeId.AlphaFlamingo);
+                    // plr.SetRole(RoleTypeId.AlphaFlamingo);
                     Timing.CallDelayed(0.2f, () =>
                     {
                         plr.Position = plrpos;
@@ -1745,7 +1766,7 @@ namespace Plugin
             }
             else if (item.ItemTypeId == ItemType.SCP207 && colas_oil.Contains(item.ItemSerial))
             {
-              
+
 
                 Timing.CallDelayed(3.4f, () =>
                 {
@@ -1757,7 +1778,7 @@ namespace Plugin
                     //   plr.Damage(damageHandlerBase);
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You don't feel so good. Maybe drinking oil wasn't the best choice.", 3);
+                    plr.ReceiveHint("You drank oil. *RED TAILED HAWK SCREECH* MURICA!!!!!!!!", 3);
                     Timing.CallDelayed(3f, () =>
                     {
                         plr.Kill("Drank oil.");
@@ -1778,7 +1799,7 @@ namespace Plugin
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.AntiScp207>();
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
-                     plr.EffectsManager.EnableEffect<Snowed>(30, true);
+                   // plr.EffectsManager.EnableEffect<Snowed>(30, true);
                     plr.EffectsManager.EnableEffect<Stained>(30, true);
                     plr.EffectsManager.EnableEffect<Exhausted>(30, true);
                     // plr.Heal(50);
@@ -1789,6 +1810,9 @@ namespace Plugin
                     //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
                     //  plr.IsGodModeEnabled = true;
                     //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
+
+
+
 
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
@@ -1807,15 +1831,21 @@ namespace Plugin
                     //   plr.Damage(damageHandlerBase);
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("Good luck!", 3);
+                    plr.ReceiveHint("Timeout for you!", 3);
                     Vector3 plrpos = new Vector3(40f, 1014f, -32.60f);
+                    Vector3 tppos = new Vector3(40f, 1014f, -32.60f);
                     // plrpos = plr.Position;
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     //  plr.ReceiveHint("You drank a cup of [REDACTED]. Your items magically disappeared!", 3);
                     plr.ClearBroadcasts();
-                    //        plr.Position = plrpos;
-                    plr.Position = GetBestExitPosition(plr);
+                    plrpos = plr.Position;
+                    plr.Position = tppos;
 
+
+                    Timing.CallDelayed(10f, () =>
+                    {
+                        plr.Position = plrpos;
+                    });
 
                     //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
                     //  plr.IsGodModeEnabled = true;
@@ -1823,6 +1853,53 @@ namespace Plugin
 
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
+            }
+            else if (item.ItemTypeId == ItemType.AntiSCP207 && colas_sour_patch_kids_slushy.Contains(item.ItemSerial))
+            {
+                //  Log.Debug("SCP-268 was used.");
+
+                Timing.CallDelayed(3.4f, () =>
+                {
+                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
+                    //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
+                    // plr.EffectsManager.EnableEffect<Invisible>(10, true);
+                    // plr.Heal(50);
+                    //   plr.Damage(damageHandlerBase);
+                    plr.ClearBroadcasts();
+                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                    plr.ReceiveHint("Timeout for you!", 3);
+                    Vector3 plrpos = new Vector3(40f, 1014f, -32.60f);
+                    Vector3 tppos = new Vector3(40f, 1014f, -32.60f);
+                    // plrpos = plr.Position;
+                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    //  plr.ReceiveHint("You drank a cup of [REDACTED]. Your items magically disappeared!", 3);
+                    plr.ClearBroadcasts();
+                    plrpos = plr.Position;
+                    plr.Position = tppos;
+
+
+                    Timing.CallDelayed(10f, () =>
+                    {
+                        plr.Position = plrpos;
+                    });
+
+                    //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
+                    //  plr.IsGodModeEnabled = true;
+                    //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
+
+                });
+                // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
+            }
+            else if (item.ItemTypeId == ItemType.AntiSCP207 && !colas_atomkick.Contains(item.ItemSerial) && !colas_cold.Contains(item.ItemSerial) && !colas_explosion.Contains(item.ItemSerial))
+            {
+                //  Log.Debug("SCP-268 was used.");
+
+                Timing.CallDelayed(3.4f, () =>
+                {
+                    plr.Health = plr.Health + 15;
+                });
+
             }
             else if (item.ItemTypeId == ItemType.SCP207 && colas_metal.Contains(item.ItemSerial))
             {
@@ -1846,7 +1923,7 @@ namespace Plugin
                     //  plr.ClearBroadcasts();
                     //        plr.Position = plrpos;
                     //   plr.Position = GetBestExitPosition(plr);
-                    
+
                     plr.Kill("Swallowed metal.");
 
                     //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
@@ -1917,11 +1994,12 @@ namespace Plugin
                     {
                         if (randplr.IsSCP == true && randplr.Role != RoleTypeId.Scp079)
                         {
-                            plr.Position = randplr.Position;
+                            // plr.Position = randplr.Position;
                         }
                     }
+                    plr.Kill("Tried to drink the telportation potion.");
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You have been teleported to the nearest SCP... Have fun!", 3);
+                    //plr.ReceiveHint("You have been teleported to the nearest SCP... Have fun!", 3);
                     //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
                     //  plr.IsGodModeEnabled = true;
                     //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
@@ -1930,6 +2008,8 @@ namespace Plugin
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
         }
+
+
 
 
         [PluginEvent(ServerEventType.PlayerChangeItem)]
@@ -2194,6 +2274,9 @@ namespace Plugin
         }
 
 
+
+
+
         [CommandHandler(typeof(RemoteAdminCommandHandler))]
         public class GiveScp127 : ICommand
         {
@@ -2313,15 +2396,15 @@ namespace Plugin
             }
         }
 
+        static bool coolDowned2 = false;
 
 
-
-        [CommandHandler(typeof(RemoteAdminCommandHandler))]
+        [CommandHandler(typeof(ClientCommandHandler))]
         public class forcepowerfailure : ICommand
         {
             public string Command { get; } = "forcepowerfailure";
 
-            public string[] Aliases { get; } = new string[] { };
+            public string[] Aliases { get; } = new string[] { "fpf", "powerblackout", "blackout", "forceblackout" };
 
             public string Description { get; } = "Force a facility power blackout.";
 
@@ -2330,32 +2413,63 @@ namespace Plugin
                 Player player = Player.Get(((CommandSender)sender).SenderId);
 
 
-                if (Player.TryGet(sender, out player))
+                if (Player.TryGet(sender, out player) && player.Role == RoleTypeId.Scp079 && coolDowned2 == false)
                 {
-                    Cassie.Message("pitch_0.5 .g6 .g6 Pitch_0.9 jam_057_6 Attention pitch_0.7 .g3 Central pitch_0.89 Power pitch_0.85 jam_12_3 System .g4 pitch_0.7 failure jam_057_6 pitch_0.5 .g2 .g2 .G4 pitch_1.4 All personnel are to report to jam_056_4 .G1 .G2 .G4 immediately .G3 .G4", true, true, false);
-
-
-
-                    Timing.CallDelayed(20f, () =>
+                    if (player.RoleBase is Scp079Role scp079Role && scp079Role.SubroutineModule.TryGetSubroutine(out Scp079TierManager tierManager)
+                     && scp079Role.SubroutineModule.TryGetSubroutine(out Scp079AuxManager energyManager))
                     {
-                        Facility.TurnOffAllLights();
-                    });
-
-                    Timing.CallDelayed(Random.Range(10f, 17f), () =>
-                    {
-                        Facility.TurnOnAllLights();
-                        Cassie.Message("Central Power System is back online", true, true, true);
-                    });
 
 
-                    response = "success, facility power blackout begun.";
+                        if (energyManager.CurrentAux >= 90 && tierManager.AccessTierLevel >= 3)
+                        {
+                            coolDowned2 = true;
+                            // case Scp079Role scp079:
+                            //  scp079.SubroutineModule.TryGetSubroutine(out Scp079TierManager tier);
+
+                            player.SendConsoleMessage("Command is now on a 1m 30s cooldown.");
+
+                            Cassie.Message("pitch_0.5 .g6 .g6 Pitch_0.9 jam_057_6 Attention pitch_0.7 .g3 Central pitch_0.89 Power pitch_0.85 jam_12_3 System .g4 pitch_0.7 failure jam_057_6 pitch_0.5 .g2 .g2 .G4 pitch_1.4 All personnel are to report to jam_056_4 .G1 .G2 .G4 immediately .G3 .G4", true, true, false);
+
+                            energyManager.CurrentAux = energyManager.CurrentAux - 90;
+
+                            Timing.CallDelayed(20f, () =>
+                            {
+                                Facility.TurnOffAllLights();
+
+
+                                Timing.CallDelayed(Random.Range(15f, 20f), () =>
+                                {
+                                    Facility.TurnOnAllLights();
+                                    Cassie.Message("Central Power System is back online", true, true, true);
+
+                                });
+                            });
+
+
+                            Timing.CallDelayed(90f, () =>
+                            {
+                                coolDowned2 = false;
+                                player.SendConsoleMessage("Power failure ability is ready!");
+                                player.SendBroadcast("Power failure ability is ready!", 5);
+                            });
+
+                        }
+
+
+                    }
+                    response = "success. If you do not hear a cassie announcement, you likely do not have the right tier or command is on cooldown.";
                     return true;
                 }
-                response = "failed";
-                return false;
+
+                else
+                {
+                    response = "failed";
+                    return false;
+                }
+
             }
         }
-    
+
         static bool coolDowned = false;
 
         [CommandHandler(typeof(ClientCommandHandler))]
@@ -2363,7 +2477,7 @@ namespace Plugin
         {
             public string Command { get; } = "findally";
 
-            public string[] Aliases { get; } = new string[] {"findallies","find079" };
+            public string[] Aliases { get; } = new string[] { "findallies", "find079" };
 
             public string Description { get; } = "Lists the rooms of allied classes.";
 
@@ -2377,21 +2491,24 @@ namespace Plugin
                     coolDowned = true;
                     foreach (var currentplr in Player.GetPlayers())
                     {
-                        if (currentplr.Team == Team.SCPs || currentplr.IsTutorial) 
+                        if (currentplr.Team == Team.SCPs || currentplr.IsTutorial)
                         {
                             if (currentplr != player)
                             {
-                                player.SendConsoleMessage(currentplr.Room.Name.ToString());
+                                player.SendConsoleMessage(currentplr.Role.ToString() + currentplr.Room.Name.ToString(), "white");
+
                             }
-                           
+
                         }
                     }
                     player.SendConsoleMessage("Command is now on a 15s cooldown.");
                     Timing.CallDelayed(15f, () =>
                     {
                         coolDowned = false;
+                        player.SendConsoleMessage("Find allies is ready!");
+                        player.SendBroadcast("Find allies ability is ready!", 3);
                     });
-                    
+
                     response = "Success, outputting the rooms of allied classes. (Serpents Hand AND SCPs)";
                     return true;
                 }
@@ -2400,7 +2517,7 @@ namespace Plugin
                     response = "That ability is on cooldown.";
                     return false;
                 }
-                
+
             }
         }
 
@@ -2421,8 +2538,11 @@ namespace Plugin
 
                 if (Player.TryGet(sender, out player) && player.Role == RoleTypeId.Scp079)
                 {
-                    player.SendConsoleMessage(".findally - Finds allied classes and their current rooms.");
+
+
                     response = "ComputerBuff Commands:";
+                    player.SendConsoleMessage(".findallies - (ANY TIER) Finds allied classes and their current rooms.");
+                    player.SendConsoleMessage(".blackout - (LOCKED TO TIER 3+) Forces a facility power failure. BLACKS OUT THE ENTIRE FACILITY FOR 15-20 seconds.");
                     return true;
                 }
                 else
@@ -2433,6 +2553,98 @@ namespace Plugin
 
             }
         }
+
+        static bool CanPush = true;
+
+
+        /*
+
+
+
+        [CommandHandler(typeof(ClientCommandHandler))]
+        public class push : ICommand
+        {
+            public string Command { get; } = "push";
+
+            public string[] Aliases { get; } = new string[] { "pcbuff", "079buff" };
+
+            public string Description { get; } = "Help command";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+                Player player = Player.Get(((CommandSender)sender).SenderId);
+                Transform transform = player.Camera.transform;
+
+                var ray = new Ray(transform.position + (transform.forward * 0.1f), transform.forward);
+
+               
+
+                if (Player.TryGet(sender, out player) && CanPush == true)
+                {
+
+
+
+
+                    if (!Physics.Raycast(ray, out RaycastHit hit, 1.7f))
+                    {
+                       response = "hi";
+                       return false;
+                    }
+
+                    CanPush = true;
+                    response = "ComputerBuff Commands:";
+
+
+                    Player target = Player.Get(hit.collider.transform.root.gameObject);
+                    CanPush = false;
+                    //.pushCooldown[player] = 3;
+                    Timing.RunCoroutine(PushPlayer(player, target));
+
+                    Timing.CallDelayed(3f, () =>
+                    {
+                        CanPush = true;
+                       
+                    });
+
+                    return true;
+                }
+                else
+                {
+                    response = "You can't run that.";
+                    return false;
+                }
+            }
+        }
+
+
+
+        public static IEnumerator<float> PushPlayer(Player player, Player target)
+        {
+            Vector3 pushed = player.Camera.transform.forward * 1.7f;
+            Vector3 endPos = target.Position + new Vector3(pushed.x, 0, pushed.z);
+            int layerAsLayerMask = 0;
+
+            for (int x = 1; x < 8; x++)
+                layerAsLayerMask |= (1 << x);
+
+            for (int i = 1; i < 15; i++)
+            {
+                float movementAmount = 1.7f / 15;
+                Vector3 newPos = Vector3.MoveTowards(target.Position, endPos, movementAmount);
+
+                if (Physics.Linecast(target.Position, newPos, layerAsLayerMask))
+                    yield break;
+
+                target.Position = newPos;
+                yield return Timing.WaitForOneFrame;
+            }
+        }
+
+
+
+
+        */
+
 
 
         public int CompareTo(object obj)
