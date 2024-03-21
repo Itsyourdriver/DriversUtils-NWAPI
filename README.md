@@ -23,10 +23,10 @@ Serpents Hand! But it's janky! Mostly finished and functions as it should now.
 More coming soon, however this adds a custom chance message which is a nice immersion message letting everyone know that SCP-999 was lost in decontamination :(( (as we also use slocLoader to make our own little guy in the candy room :D)
 
 ### PcBuff
-- Adds 2 commands to assist SCP-079 very slightly, .blackout isn't very useful (as you need a higher tier, it has a high cooldown, and uses a lot of power), finally .findally or .findallies (or the other aliases i forgot about) allows you to see the current room of serpents hand for better cooperation because they usually don't have a way to communicate unless they find eachother.
+Adds 2 commands to assist SCP-079 very slightly, .blackout isn't very useful (as you need a higher tier, it has a high cooldown, and uses a lot of power), finally .findally or .findallies (or the other aliases i forgot about) allows you to see the current room of serpents hand for better cooperation because they usually don't have a way to communicate unless they find eachother.
 
 ### Custom Roles
-MTF Nu-7 can spawn.
+MTF Nu-7 can spawn. They have 10 more hp (iirc), guaranteed better gear, and are basically just epsilon-11 on steroids. 
 Facility Guard Captain class which is like a beefed up guard, which everyone on our server likes (amazingly), due to the fact that it makes early game have more affects on the end of the game, because you can do MUCH, MUCH more damage. as we play with a small amount of people.
 
 ### Balance Tweaks
