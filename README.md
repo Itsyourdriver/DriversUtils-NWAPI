@@ -33,6 +33,6 @@ Facility Guard Captain class which is like a beefed up guard, which everyone on 
 ### Balance Tweaks
 Chaos will be forced if mtf spawn twice in a row. Mostly fixes some of the issues for **low** player servers.
 
-+ more if I ever add any, feel free to modify this or help me to patch out bugs
++ more tweaks that I probably forgot about
 
 Have fun!
