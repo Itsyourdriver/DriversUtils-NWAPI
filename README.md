@@ -2,7 +2,7 @@
 
 v1.98
 
-## Builds will NOT be provided unless I make a seperate version that is a little bit better and has less specific features.
+## Builds will NOT be provided unless I make a seperate version that is a little bit better and ommits some of the server-specific features.
 A SCPSL NorthwoodAPI (NWAPI) plugin purpose built for a private server; currently has these features:
 
 # Requires https://github.com/brayden-dowson/TheRiptide/ 's Utility.dll & maybe some other things that I might've forgot about
@@ -22,6 +22,8 @@ Serpents Hand! But it's janky! Mostly finished and functions as it should now.
 ### Custom CASSIE Messages
 More coming soon, however this adds a custom chance message which is a nice immersion message letting everyone know that SCP-999 was lost in decontamination :(( (as we also use slocLoader to make our own little guy in the candy room :D)
 
+### PcBuff
+- Adds 2 commands to assist SCP-079 very slightly, .blackout isn't very useful (as you need a higher tier, it has a high cooldown, and uses a lot of power), finally .findally or .findallies (or the other aliases i forgot about) allows you to see the current room of serpents hand for better cooperation because they usually don't have a way to communicate unless they find eachother.
 
 ### Custom Roles
 MTF Nu-7 can spawn.
