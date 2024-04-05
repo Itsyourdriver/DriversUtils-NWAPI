@@ -34,6 +34,9 @@ namespace Plugin
     using PluginAPI.Roles;
     using PlayerRoles.PlayableScps.Scp3114;
     using Hints;
+    using InventorySystem.Items.Coin;
+    using System.Data;
+    using System.Numerics;
 
     public class EventHandlers : IComparable
     {
@@ -126,6 +129,7 @@ namespace Plugin
             //   player.DisplayNickname = "Serpents Hand | " + player.Nickname;
             Player playertoTP = Player.Get(player.ReferenceHub);
             playertoTP.Position = new UnityEngine.Vector3(0.06f, 1000.96f, 0.33f);
+            player.CustomInfo = $"<color=#FF96DE>{player.DisplayNickname}</color>" + "\n<color=#FF96DE>SERPENTS HAND</color>";
             // might add config for this in the future, dunno yet
             // fyi add +1000 to ur y coord if you wanna tp someone to somewhere on surface, learned that from axwabo. 
 
@@ -143,7 +147,7 @@ namespace Plugin
             respawn_count++;
             // && new System.Random().Next(2) == 1
             Config config = Plugin.Singleton.Config;
-            // thanks to my friend seagull101 for the help with system.random, i still have almost no idea what I am doing lol
+            // thanks to my friend seagull for help with system.random
             if (respawn_count == 1 && spawning_team == SpawnableTeamType.NineTailedFox)
             {
                 waswave1mtf = true;
@@ -237,7 +241,7 @@ namespace Plugin
         [PluginEvent(ServerEventType.PlayerSpawn)]
         void OnPlayerSpawned(Player player, RoleTypeId role)
         {
-
+            
 
 
             if (respawn_count >= 2 && isSerpentSpawning == true)
@@ -298,6 +302,9 @@ namespace Plugin
                 }
             }
 
+            
+
+
             if (role == RoleTypeId.Scp079)
             {
                 Timing.CallDelayed(3f, () =>
@@ -316,6 +323,28 @@ namespace Plugin
         [PluginEvent(ServerEventType.PlayerChangeRole)]
         void PlayerChangeRole(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
         {
+
+            if (player != null && newRole == RoleTypeId.NtfSergeant)
+            {
+               int randn = Random.Range(1, 10);
+               if (!(randn == 1))
+               {
+
+
+                    Timing.CallDelayed(0.1f, () =>
+                    {
+                        player.SendBroadcast("You are an MTF Boom Boom Boy. You have access to EXPLOSIVES!", 10);
+                        player.AddItem(ItemType.GrenadeHE);
+                        player.AddItem(ItemType.GrenadeHE);
+                        player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>Nine Tailed Fox Boom Boom Boy</color>";
+                       
+                       player.ReceiveHint(player.CustomInfo, 10);
+                    });
+
+
+               }
+            }
+
             if (player != null && fbi.Contains(player.PlayerId))
             {
                 fbi.Remove(player.PlayerId);
@@ -327,17 +356,21 @@ namespace Plugin
                 Timing.CallDelayed(0.1f, () =>
                 {
                     SetScale(player, UnityEngine.Random.Range(0.7f, 1.2f));
+
+                    if (UnityEngine.Random.Range(1, 4) == 1)
+                    {
+                        player.EffectsManager.EnableEffect<MovementBoost>(60f, true);
+                    }
                     Timing.CallDelayed(1f, () =>
                     {
-                        player.Health = UnityEngine.Random.Range(400f, 450f);
+                        // player.Health = UnityEngine.Random.Range(400f, 450f);
 
                     });
-
-
                 });
-
             }
-        }
+
+            
+            }
 
         [PluginEvent(ServerEventType.PlayerDeath)]
         void OnPlayerDied(Player player, Player attacker, DamageHandlerBase damageHandler)
@@ -977,27 +1010,17 @@ namespace Plugin
                             colas_big.Add(thiscola.ItemSerial);
 
                         }
-                        else if (arguments.First() == "Tutorial" || arguments.First() == "tutorial" || arguments.First() == "large" || arguments.First() == "Large" || arguments.First() == "grow")
-                        {
-                            //  Log.Debug("send help pls");
-                            //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
-                            //  player.AddItem(ItemType.SCP207); no longer need this lol
-                            ItemBase thiscola = player.AddItem(ItemType.SCP207);
-                            colas_big.Add(thiscola.ItemSerial);
-
-                        }
+                        
 
 
                     }
                 }
-                response = " If you were not holding a coin, did not enter a valid drink, and you did not get anything and should run this command again. Please also make sure you are in the same room as the machine.";
+                response = " If you were not holding a coin, did not enter a valid drink, and you did not get anything. You should run this command again. Please also make sure you are in the same room as the machine. You can get a list of valid drinks by running the command .scp294 list";
                 return true;
             }
         }
 
-        public static Vector3 GetBestExitPosition(Player player)
+        public static UnityEngine.Vector3 GetBestExitPosition(Player player)
         {
 
             PlayerRoleBase playerRoleBase;
@@ -1006,7 +1029,7 @@ namespace Plugin
             IFpcRole fpcRole;
             if ((fpcRole = (player.ReferenceHub.roleManager.CurrentRole as IFpcRole)) == null)
             {
-                return new Vector3(0, 0, 0);
+                return new UnityEngine.Vector3(0, 0, 0);
             }
 
             if ((playerRoleBase = (fpcRole as PlayerRoleBase)) == null || !playerRoleBase.TryGetOwner(out referenceHub))
@@ -1015,7 +1038,7 @@ namespace Plugin
                     "Scp106PocketExitFinder.GetBestExitPosition provided with non-compatible role!");
             }
 
-            Vector3 position = player.Position;
+            UnityEngine.Vector3 position = player.Position;
             RoomIdentifier roomIdentifier = RoomIdUtils.RoomAtPositionRaycasts(position, true);
             if (roomIdentifier == null)
             {
@@ -1081,7 +1104,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
+                    
                     plr.EffectsManager.EnableEffect<CardiacArrest>(60, true);
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
@@ -1100,7 +1132,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     plr.EffectsManager.EnableEffect<MovementBoost>(30, true);
                     plr.EffectsManager.EnableEffect<Invigorated>(30, true);
                     plr.ClearBroadcasts();
@@ -1115,7 +1156,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     //   plr.EffectsManager.EnableEffect<MovementBoost>(30, true);
                     //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
                     plr.ClearBroadcasts();
@@ -1130,7 +1180,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
                     plr.Heal(20);
                     //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
@@ -1147,7 +1206,17 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.AntiScp207>();
+                    
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.AntiScp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.AntiScp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.AntiScp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.AntiScp207>();
+                    }
+                    //plr.EffectsManager.DisableEffect<CustomPlayerEffects.AntiScp207>();
                     plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     plr.EffectsManager.EnableEffect<CardiacArrest>(60, true);
@@ -1166,7 +1235,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     plr.EffectsManager.EnableEffect<DamageReduction>(5, true);
                     plr.EffectsManager.ChangeState<DamageReduction>(4, 5, false);
                     plr.EffectsManager.EnableEffect<Ensnared>(15, true);
@@ -1185,7 +1263,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     plr.EffectsManager.EnableEffect<SeveredHands>(10, true);
                     //plr.EffectsManager.EnableEffect<Bleeding>(60, true);
                     // plr.Heal(50);
@@ -1203,7 +1290,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     //    plr.EffectsManager.EnableEffect<Sinkhole>(20, true);
@@ -1229,7 +1325,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     plr.EffectsManager.EnableEffect<Invisible>(15, true);
@@ -1250,7 +1355,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     plr.EffectsManager.EnableEffect<Flashed>(10, true);
@@ -1275,7 +1389,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
                     plr.Heal(20);
                     //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
@@ -1291,7 +1414,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
                     //  plr.Heal(20);
                     plr.EffectsManager.EnableEffect<Flashed>(3, true);
@@ -1308,7 +1440,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
                     //  plr.Heal(20);
                     plr.EffectsManager.EnableEffect<Invigorated>(15, true);
@@ -1325,7 +1466,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Flashed>(20, true);
                     plr.Kill("I don't know what you expected.");
@@ -1343,7 +1493,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Blinded>(20, true);
                     plr.EffectsManager.EnableEffect<CardiacArrest>(20, true);
@@ -1366,7 +1525,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Invigorated>(20, true);
                     plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
@@ -1387,7 +1555,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Invigorated>(20, true);
                     plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
@@ -1408,7 +1585,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     // plr.EffectsManager.EnableEffect<Invigorated>(20, true);
                     //  plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
@@ -1432,7 +1618,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     // plr.EffectsManager.EnableEffect<Invigorated>(20, true);
                     //  plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
@@ -1456,7 +1651,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     //   plr.EffectsManager.EnableEffect<Invigorated>(20, true);
                     //  plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
@@ -1464,7 +1668,7 @@ namespace Plugin
                     // plr.EffectsManager.EnableEffect<Scp1853>(20, true);
                     // plr.Kill("I don't know what you expected.");
                     var prefab = NetworkClient.prefabs[1306864341];
-                    var tantrumObj = UnityEngine.Object.Instantiate(prefab, plr.Position, Quaternion.identity);
+                    var tantrumObj = UnityEngine.Object.Instantiate(prefab, plr.Position, UnityEngine.Quaternion.identity);
                     var comp = tantrumObj.GetComponent<TantrumEnvironmentalHazard>();
                     comp.SynchronizedPosition = new RelativePosition(plr.Position);
 
@@ -1513,18 +1717,18 @@ namespace Plugin
                     plr.ClearBroadcasts();
                     //  plr.SendBroadcast("You took a equipped SCP-1499", 3);
 
-                    Vector3 plrpos = new Vector3(129.9321f, -13f, 25.997f);
-                    Vector3 dimension = new Vector3(145.699997f, 1005.4000001f, 73.0999985f);
+                    UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(129.9321f, -13f, 25.997f);
+                    UnityEngine.Vector3 dimension = new UnityEngine.Vector3(145.699997f, 1005.4000001f, 73.0999985f);
 
 
                     var relative = new RelativePosition(plr.Position);
                     if (relative.WaypointId != 0 && WaypointBase.TryGetWaypoint(relative.WaypointId, out var waypoint) && waypoint is ElevatorWaypoint)
                     {
-                        plr.SendBroadcast("Unable to use SCP-1499 as you were in an elevator.", 3);
-                        Timing.CallDelayed(0.5f, () =>
-                        {
-                            plr.EffectsManager.DisableEffect<Invisible>();
-                        });
+                        plr.SendBroadcast("Unable to use SCP-1499 as you were in an elevator. It will act as a normal SCP-268.", 3);
+                        //Timing.CallDelayed(0.5f, () =>
+                        //{
+                       //     plr.EffectsManager.DisableEffect<Invisible>();
+                       // });
                     }
                     else if (plr.EffectsManager.TryGetEffect(out PocketCorroding sevHands) && sevHands.IsEnabled)
                     {
@@ -1571,7 +1775,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Flashed>(20, true);
                     plr.Kill("This used to explode the entire facility, but here you go.");
@@ -1589,7 +1802,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Ghostly>(20, true);
                     plr.EffectsManager.EnableEffect<CustomPlayerEffects.Invisible>(20, true);
@@ -1608,7 +1830,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Invigorated>(20, true);
                     //plr.Kill("I don't know what you expected.");
@@ -1634,12 +1865,21 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    Vector3 plrpos = new Vector3(129.9321f, -13f, 25.997f);
+                    UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(129.9321f, -13f, 25.997f);
                     RoleTypeId lastrole = RoleTypeId.None;
 
                     plrpos = plr.Position;
                     lastrole = plr.Role;
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     //plr.EffectsManager.EnableEffect<Flashed>(20, true);
                     //plr.Kill("I don't know what you expected.");
@@ -1690,12 +1930,21 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    Vector3 plrpos = new Vector3(129.9321f, -13f, 25.997f);
+                    UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(129.9321f, -13f, 25.997f);
                     RoleTypeId lastrole = RoleTypeId.None;
 
                     plrpos = plr.Position;
                     // lastrole = plr.Role;
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     //plr.EffectsManager.EnableEffect<Flashed>(20, true);
                     //plr.Kill("I don't know what you expected.");
@@ -1727,11 +1976,20 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    Vector3 plrpos = new Vector3(129.9321f, -13f, 25.997f);
+                    UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(129.9321f, -13f, 25.997f);
                     RoleTypeId lastrole = RoleTypeId.None;
 
                     plrpos = plr.Position;
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     plr.ReceiveHint("You drank a cup of (VERY LOUD FLAMINGO BATTLE CRY). Your items magically disappeared!", 3);
                     plr.ClearBroadcasts();
                     // plr.SetRole(RoleTypeId.AlphaFlamingo);
@@ -1748,7 +2006,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     // plr.EffectsManager.EnableEffect<Invisible>(10, true);
@@ -1770,7 +2037,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     // plr.EffectsManager.EnableEffect<Invisible>(10, true);
@@ -1778,7 +2054,7 @@ namespace Plugin
                     //   plr.Damage(damageHandlerBase);
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You drank oil. *RED TAILED HAWK SCREECH* MURICA!!!!!!!!", 3);
+                    plr.ReceiveHint("You drank oil. *BALD EAGLE SCREECH* MURICA!!!!!!!! FREEEEDOOMMMMM!!!!", 3);
                     Timing.CallDelayed(3f, () =>
                     {
                         plr.Kill("Drank oil.");
@@ -1796,10 +2072,19 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.AntiScp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.AntiScp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.AntiScp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.AntiScp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.AntiScp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
-                   // plr.EffectsManager.EnableEffect<Snowed>(30, true);
+                    // plr.EffectsManager.EnableEffect<Snowed>(30, true);
                     plr.EffectsManager.EnableEffect<Stained>(30, true);
                     plr.EffectsManager.EnableEffect<Exhausted>(30, true);
                     // plr.Heal(50);
@@ -1823,7 +2108,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     // plr.EffectsManager.EnableEffect<Invisible>(10, true);
@@ -1832,8 +2126,8 @@ namespace Plugin
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
                     plr.ReceiveHint("Timeout for you!", 3);
-                    Vector3 plrpos = new Vector3(40f, 1014f, -32.60f);
-                    Vector3 tppos = new Vector3(40f, 1014f, -32.60f);
+                    UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
+                    UnityEngine.Vector3 tppos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
                     // plrpos = plr.Position;
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     //  plr.ReceiveHint("You drank a cup of [REDACTED]. Your items magically disappeared!", 3);
@@ -1860,7 +2154,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.AntiScp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.AntiScp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.AntiScp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.AntiScp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     // plr.EffectsManager.EnableEffect<Invisible>(10, true);
@@ -1869,8 +2172,8 @@ namespace Plugin
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
                     plr.ReceiveHint("Timeout for you!", 3);
-                    Vector3 plrpos = new Vector3(40f, 1014f, -32.60f);
-                    Vector3 tppos = new Vector3(40f, 1014f, -32.60f);
+                    UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
+                    UnityEngine.Vector3 tppos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
                     // plrpos = plr.Position;
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     //  plr.ReceiveHint("You drank a cup of [REDACTED]. Your items magically disappeared!", 3);
@@ -1897,7 +2200,7 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.Health = plr.Health + 15;
+                   // plr.Health = plr.Health + 15;
                 });
 
             }
@@ -1907,7 +2210,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     plr.EffectsManager.EnableEffect<Flashed>(10, true);
@@ -1966,7 +2278,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     // plr.EffectsManager.EnableEffect<Invisible>(10, true);
@@ -1975,8 +2296,15 @@ namespace Plugin
                     plr.ClearBroadcasts();
 
                     //var list = new List<RoomName> = {"e","e"} 
-
-
+                    if (plr.IsAlive && plr.RoleBase is IFpcRole role)
+                    {
+                        plr.EffectsManager.EnableEffect<PocketCorroding>();
+                        var position = Scp106PocketExitFinder.GetBestExitPosition(role);
+                        plr.EffectsManager.DisableEffect<PocketCorroding>();
+                        plr.EffectsManager.DisableEffect<Corroding>();
+                        plr.Position = position;
+                    }
+                        
 
 
                     //   foreach (var room in Facility.Rooms)
@@ -1997,7 +2325,7 @@ namespace Plugin
                             // plr.Position = randplr.Position;
                         }
                     }
-                    plr.Kill("Tried to drink the telportation potion.");
+                   // plr.Kill("Tried to drink the telportation potion.");
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
                     //plr.ReceiveHint("You have been teleported to the nearest SCP... Have fun!", 3);
                     //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
@@ -2243,28 +2571,26 @@ namespace Plugin
 
                 }
 
-                else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP268) //&& scp1499.Contains(newItemBase.ItemSerial) && newItemBase.ItemTypeId == ItemType.SCP268)
+                else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP268 && scp1499.Contains(newItemBase.ItemSerial) && newItemBase.ItemTypeId == ItemType.SCP268)
                 {
-                    //   plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+                    plr.ClearBroadcasts();
+                   //   plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
 
-                    // if (new System.Random().Next(5) == 1 && !scp1499.Contains(newItemBase.ItemSerial) && !hats.Contains(newItemBase.ItemSerial))
-                    //   {
-                    //Warhead.Start();colas_saltwater.Add(thiscola.ItemSerial);
-                    //     //
-                    //     scp1499.Add(newItemBase.ItemSerial);
-                    //     plr.ReceiveHint("You equipped SCP-1499.", 3);
+                     if (new System.Random().Next(5) == 1 && !scp1499.Contains(newItemBase.ItemSerial) && !hats.Contains(newItemBase.ItemSerial))
+                       {
+                 //   Warhead.Start();colas_saltwater.Add(thiscola.ItemSerial);
+                        scp1499.Add(newItemBase.ItemSerial);
+                        plr.ReceiveHint("You equipped SCP-1499.", 3);
 
-                    //   }
-                    // else if (!hats.Contains(newItemBase.ItemSerial) && !scp1499.Contains(newItemBase.ItemSerial))
-                    // {
-                    //      hats.Add(newItemBase.ItemSerial);
-                    //  }
-                    //  else if (scp1499.Contains(newItemBase.ItemSerial))
-                    //  {
-                    //   plr.ReceiveHint("You equipped SCP-1499.", 3);
-
-                    //  }
+                       }
+                    else if (!hats.Contains(newItemBase.ItemSerial) && !scp1499.Contains(newItemBase.ItemSerial))
+                        {
+                          hats.Add(newItemBase.ItemSerial);
+                      }
+                      else if (scp1499.Contains(newItemBase.ItemSerial))
+                    {
+                       plr.ReceiveHint("You equipped SCP-1499.", 3);
+                    }
 
 
                 }
@@ -2371,11 +2697,7 @@ namespace Plugin
                     if (arguments.Count != 0)
                     {
 
-                        // response = " Success, you gave your coin for: ";
-                        // problem if statement, wants me to stop comparing a string to a system.predicate string I'm probably stupid but yeah  if (arguments.First() == list.Find("deeznuts"))
-                        //  {
 
-                        //}    
 
                         if (Player.TryGet(sender, out player)) ;
                         SetScale(player, (float)int.Parse(arguments.First()));
@@ -2423,8 +2745,6 @@ namespace Plugin
                         if (energyManager.CurrentAux >= 90 && tierManager.AccessTierLevel >= 3)
                         {
                             coolDowned2 = true;
-                            // case Scp079Role scp079:
-                            //  scp079.SubroutineModule.TryGetSubroutine(out Scp079TierManager tier);
 
                             player.SendConsoleMessage("Command is now on a 1m 30s cooldown.");
 
@@ -2539,7 +2859,7 @@ namespace Plugin
                 if (Player.TryGet(sender, out player) && player.Role == RoleTypeId.Scp079)
                 {
 
-
+                    player.SendConsoleMessage("TIP: You can cmdbind these commands. Look it up if needed in the scpsl wiki.");
                     response = "ComputerBuff Commands:";
                     player.SendConsoleMessage(".findallies - (ANY TIER) Finds allied classes and their current rooms.");
                     player.SendConsoleMessage(".blackout - (LOCKED TO TIER 3+) Forces a facility power failure. BLACKS OUT THE ENTIRE FACILITY FOR 15-20 seconds.");
@@ -2553,99 +2873,6 @@ namespace Plugin
 
             }
         }
-
-        static bool CanPush = true;
-
-
-        /*
-
-
-
-        [CommandHandler(typeof(ClientCommandHandler))]
-        public class push : ICommand
-        {
-            public string Command { get; } = "push";
-
-            public string[] Aliases { get; } = new string[] { "pcbuff", "079buff" };
-
-            public string Description { get; } = "Help command";
-
-            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
-            {
-                Player player = Player.Get(((CommandSender)sender).SenderId);
-                Transform transform = player.Camera.transform;
-
-                var ray = new Ray(transform.position + (transform.forward * 0.1f), transform.forward);
-
-               
-
-                if (Player.TryGet(sender, out player) && CanPush == true)
-                {
-
-
-
-
-                    if (!Physics.Raycast(ray, out RaycastHit hit, 1.7f))
-                    {
-                       response = "hi";
-                       return false;
-                    }
-
-                    CanPush = true;
-                    response = "ComputerBuff Commands:";
-
-
-                    Player target = Player.Get(hit.collider.transform.root.gameObject);
-                    CanPush = false;
-                    //.pushCooldown[player] = 3;
-                    Timing.RunCoroutine(PushPlayer(player, target));
-
-                    Timing.CallDelayed(3f, () =>
-                    {
-                        CanPush = true;
-                       
-                    });
-
-                    return true;
-                }
-                else
-                {
-                    response = "You can't run that.";
-                    return false;
-                }
-            }
-        }
-
-
-
-        public static IEnumerator<float> PushPlayer(Player player, Player target)
-        {
-            Vector3 pushed = player.Camera.transform.forward * 1.7f;
-            Vector3 endPos = target.Position + new Vector3(pushed.x, 0, pushed.z);
-            int layerAsLayerMask = 0;
-
-            for (int x = 1; x < 8; x++)
-                layerAsLayerMask |= (1 << x);
-
-            for (int i = 1; i < 15; i++)
-            {
-                float movementAmount = 1.7f / 15;
-                Vector3 newPos = Vector3.MoveTowards(target.Position, endPos, movementAmount);
-
-                if (Physics.Linecast(target.Position, newPos, layerAsLayerMask))
-                    yield break;
-
-                target.Position = newPos;
-                yield return Timing.WaitForOneFrame;
-            }
-        }
-
-
-
-
-        */
-
-
 
         public int CompareTo(object obj)
         {
