@@ -98,12 +98,12 @@ namespace Plugin
 
 
 
+                                player.CustomInfo = $"<color=#FF9966>{player.DisplayNickname}</color>" + "\n<color=#FF9966>THE KID</color>";
 
-
-                            //player.DisplayNickname = "Facility Guard Captain | " + player.Nickname;
-                            // player.GameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 0.5f);
-                            // Log.Info("set player's scale, they may get dcd");
-                            break;
+                                //player.DisplayNickname = "Facility Guard Captain | " + player.Nickname;
+                                // player.GameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 0.5f);
+                                // Log.Info("set player's scale, they may get dcd");
+                                break;
                         }
                         else
                         {
@@ -115,13 +115,7 @@ namespace Plugin
                     }
 
 
-                    //player.Role = PlayerRoles.RoleTypeId.Tutorial;
-                    //  player.SendBroadcast("你是SCP-999", 3);
-                    //  player.DisplayNickname = "SCP-999 " + player.Nickname;
-                    //  player.AddItem(ItemType.GunLogicer);
-                    //  player.AddItem(ItemType.ArmorHeavy);
-                    //  player.AddAmmo(ItemType.Ammo762x39, 100);
-                    //player.GameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 0.5f);
+
                 });
 
             }
@@ -141,7 +135,7 @@ namespace Plugin
         private void OnPlayerChangeRole(PlayerChangeRoleEvent ev)
         {
 
-
+        
         }
 
         [PluginEvent(PluginAPI.Enums.ServerEventType.PlayerDeath)]
@@ -172,7 +166,7 @@ namespace Plugin
             }
             catch (Exception e)
             {
-                Log.Info("ERROR READ ME on player death! Custom Roles will be the same player next Round !!!");
+                Log.Info("hi");
             }
         }
 
