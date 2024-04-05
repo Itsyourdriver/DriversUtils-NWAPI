@@ -118,11 +118,11 @@ namespace Plugin
                             AddOrDropFirearm(player, ItemType.GunE11SR, true);
                             player.AddAmmo(ItemType.Ammo556x45, 80);
                             player.AddAmmo(ItemType.Ammo9x19, 39); // funny number, doesnt look like it but it is
-                            player.AddItem(ItemType.KeycardGuard);
+                            player.AddItem(ItemType.KeycardMTFPrivate);
                             player.AddItem(ItemType.GrenadeFlash);
                             player.AddItem(ItemType.Medkit);
-                            player.AddItem(ItemType.Painkillers);
-
+                            player.AddItem(ItemType.GrenadeHE);
+                           
                             Timing.CallDelayed(0.2f, () =>
                             {
                                 player.AddItem(ItemType.Radio);
@@ -145,6 +145,7 @@ namespace Plugin
 
 
                             //player.DisplayNickname = "Facility Guard Captain | " + player.Nickname;
+                            player.CustomInfo = $"<color=#727472>{player.DisplayNickname}</color>" + "\n<color=#727472>FACILITY GUARD CAPTAIN</color>";
                             // player.GameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 0.5f);
                             // Log.Info("set player's scale, they may get dcd");
                             break;
