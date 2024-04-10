@@ -29,7 +29,7 @@ namespace Plugin
         static UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
         SpawnableTeamType spawning_team = SpawnableTeamType.None;
         static bool IsNu7Spawning = false;
-        public int scpsleft = 0;
+        int scpsleft = 0;
         // kid class stuff :D
 
 
@@ -41,6 +41,7 @@ namespace Plugin
             nu7.Clear();
             spawning_team = SpawnableTeamType.None;
             IsNu7Spawning = false;
+            scpsleft = 0;
         }
 
 
@@ -58,7 +59,7 @@ namespace Plugin
 
 
             // old code / testing crap
-             player.SendBroadcast("You have spawned as a unit of the MTF NU-7 Faction. You have more HP and start with, much, much better weaponry.", 15, shouldClearPrevious: true);
+             //player.SendBroadcast("You have spawned as a unit of the MTF NU-7 Faction.", 15, shouldClearPrevious: true);
             // Teleport.RoomPos(player, RoomIdentifier.AllRoomIdentifiers.Where((r) => r.Zone == FacilityZone.Surface).First(), offset);
             // player.ClearInventory();
             // player.AddItem(ItemType.GunRevolver);
@@ -73,6 +74,7 @@ namespace Plugin
             player.AddItem(ItemType.Adrenaline);
             // player.AddItem(ItemType.SCP1853);
             // player.AddItem(ItemType.AntiSCP207);
+           // player.i
 
             player.AddAmmo(ItemType.Ammo762x39, 120);
             player.AddAmmo(ItemType.Ammo556x45, 100);
@@ -121,17 +123,21 @@ namespace Plugin
 
                 //List<Player> Players = Player.GetPlayers();
                 
-              //  foreach (var plrr in Players)
-                //{
-                  
-                //}
-            
+                foreach (var plrr in players)
+                {
+                 if (plrr.IsSCP)
+                    {
+                        scpsleft = scpsleft+1;
+                        Log.Debug($"SCPS Left: {scpsleft}");
+                    }
+                }
+                
                 haveNU7Spawned = true;
 
                 Timing.CallDelayed(0.4f, () =>
                 {
                     Cassie.Clear();
-                    Cassie.Message("MTFUnit Nu 7 designated pitch_0.5 .G2 .G3 pitch_1 hasentered . allremaining . UNCALCULATEDSCPSLEFT", true, true, false);
+                    Cassie.Message($"MTFUnit Nu 7 designated pitch_0.5 .G2 .G3 pitch_1 hasentered . allremaining . AWAITINGRECONTAINMENT {scpsleft} SCPSUBJECTS", true, true, false);
                 });
 
 
@@ -221,6 +227,10 @@ namespace Plugin
 
 
             }
+            if (player != null && player.Team == Team.SCPs)
+            {
+                scpsleft = scpsleft-1;
+            }
         }
        
 
@@ -234,6 +244,10 @@ namespace Plugin
                 player.TemporaryData.Remove("custom_class");
                 player.DisplayNickname = null;
             }
+            if (player != null && player.Team == Team.SCPs)
+            {
+                scpsleft = scpsleft - 1;
+            }
         }
        
 
@@ -244,7 +258,7 @@ namespace Plugin
             haveNU7Spawned = false;
             respawn_count = 0;
             nu7.Clear();
-
+            scpsleft = 0;
 
         }
 
@@ -255,6 +269,7 @@ namespace Plugin
             haveNU7Spawned = false;
             respawn_count = 0;
             nu7.Clear();
+            scpsleft = 0;
         }
 
 
