@@ -39,7 +39,10 @@ namespace Plugin
         public bool ShouldSerpentsHandSpawnMore { get; set; } = false;
 
         [Description("Broadcast text to all new serpents hand agents upon spawn")]
-        public string SerpentsHandText { get; set; } = "You have been spawned as a <color=#FF96DE>Serpent's Hand</color> agent. Work with the SCPs. <color=#C50000>Friendly Fire with them is on.</color> Terminate other classes.";
+        public string SerpentsHandText { get; set; } = "You have been spawned as a <color=#FF96DE>Serpent's Hand</color> agent. Follow Orders. Work with the SCPs. Terminate other classes.";
+
+        [Description("Broadcast text to all new serpents hand agents upon spawn")]
+        public string SerpentsHandCaptainText { get; set; } = "You have been spawned as a <color=#FF96DE>Serpent's Hand</color> Captain. Command your unit. Work with the SCPs. Terminate other classes.";
 
         [Description("Should a player be picked as a guard captain upon spawn?")]
         public bool ShouldGuardCaptainsSpawn { get; set; } = true;
