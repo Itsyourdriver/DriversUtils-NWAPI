@@ -99,7 +99,9 @@ namespace Plugin
 
 
                                 player.CustomInfo = $"<color=#FF9966>{player.DisplayNickname}</color>" + "\n<color=#FF9966>THE KID</color>";
-
+                                player.PlayerInfo.IsRoleHidden = true;
+                                player.PlayerInfo.IsNicknameHidden = true;
+                                player.PlayerInfo.IsUnitNameHidden = true;
                                 //player.DisplayNickname = "Facility Guard Captain | " + player.Nickname;
                                 // player.GameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 0.5f);
                                 // Log.Info("set player's scale, they may get dcd");
@@ -153,7 +155,7 @@ namespace Plugin
                         //  player.DisplayNickname = null;
                         this.player = null;
                         // Log.Info("WARNING: Chance to explode the server, ATTEMPTING TO SET NULL TO SOMETHING THAT SHOULD ALREADY BE NULL");
-                        player = null;
+                       // player = null;
                         SetScale(player, 1.0f);
                         guard_captain = -1;
                         if (config.Debug == true)
@@ -166,7 +168,7 @@ namespace Plugin
             }
             catch (Exception e)
             {
-                Log.Info("hi");
+              //  Log.Info("hi");
             }
         }
 
