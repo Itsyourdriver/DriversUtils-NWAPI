@@ -1,7 +1,7 @@
 using CentralAuth;
 using CommandSystem;
 using CustomPlayerEffects;
-using DriversUtils;
+//using DriversUtils;
 using GameCore;
 using InventorySystem.Items.Firearms;
 using InventorySystem.Items.Pickups;
@@ -115,8 +115,8 @@ namespace Plugin
                             player.ReferenceHub.inventory.UserInventory.Items.Clear();
                             //player.AddItem(ItemType.GunE11SR
                             player.AddItem(ItemType.ArmorCombat);
-                            AddOrDropFirearm(player, ItemType.GunE11SR, true);
-                            player.AddAmmo(ItemType.Ammo556x45, 80);
+                            AddOrDropFirearm(player, ItemType.GunCrossvec, true);
+                           // player.AddAmmo(ItemType.Ammo556x45, 80);
                             player.AddAmmo(ItemType.Ammo9x19, 39); // funny number, doesnt look like it but it is
                             player.AddItem(ItemType.KeycardMTFPrivate);
                             player.AddItem(ItemType.GrenadeFlash);
@@ -127,27 +127,17 @@ namespace Plugin
                             {
                                 player.AddItem(ItemType.Radio);
                             });
-
-
-
-
-
-                            if (config.Debug == true)
-                            {
-                                Log.Debug("Finished setting up guard captain yahoo");
-                            }
-
-
-
-
-
-
-
-
                             //player.DisplayNickname = "Facility Guard Captain | " + player.Nickname;
                             player.CustomInfo = $"<color=#727472>{player.DisplayNickname}</color>" + "\n<color=#727472>FACILITY GUARD CAPTAIN</color>";
+                            player.PlayerInfo.IsRoleHidden = true;
+                            player.PlayerInfo.IsNicknameHidden = true;
+                            player.PlayerInfo.IsUnitNameHidden = true;
                             // player.GameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 0.5f);
                             // Log.Info("set player's scale, they may get dcd");
+                            if (config.Debug == true)
+                            {
+                                Log.Debug("Finished setting up guard captain.");
+                            }
                             break;
                         }
                         else
@@ -175,7 +165,7 @@ namespace Plugin
             }
             catch (Exception e)
             {
-                Log.Info("ERROR: At round start, setting up guard captain.");
+                Log.Warning(e.ToString());
             }
         }
 
@@ -200,7 +190,7 @@ namespace Plugin
                         //  player.DisplayNickname = null;
                         this.player = null;
                         // Log.Info("WARNING: Chance to explode the server, ATTEMPTING TO SET NULL TO SOMETHING THAT SHOULD ALREADY BE NULL");
-                        player = null;
+                      //  player = null;
                         guard_captain = -1;
                         if (config.Debug == true)
                         {
@@ -212,7 +202,7 @@ namespace Plugin
             }
             catch (Exception e)
             {
-                Log.Info("ERROR READ ME on player death! Custom Roles will be the same player next Round !!!");
+                Log.Warning(e.ToString());
             }
         }
 
@@ -244,7 +234,7 @@ namespace Plugin
                 {
                     //  player.DisplayNickname = player.Nickname;
                     Config config = Plugin.Singleton.Config;
-                    player.DisplayNickname = null;
+                   // player.DisplayNickname = null;
                     guard_captain = -1;
                     //Log.Info("Player left");
 
