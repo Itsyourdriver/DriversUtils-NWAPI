@@ -56,8 +56,8 @@ namespace Plugin
                     case Scp914KnobSetting.VeryFine:
                         player.RemoveItem(new Item(item));
                         player.AddItem(tempitem2);
-                        player.ReceiveHint("Your coin was upgraded into a random item...", 3);
-                        Log.Info("upgraded.");
+                        //player.ReceiveHint("Your coin was upgraded into a random item...", 3);
+                       // Log.Info("upgraded.");
                         return;
                 }
             }
@@ -71,7 +71,9 @@ namespace Plugin
                 switch (setting)
                 {
                     case Scp914KnobSetting.Rough:
+                        return;
                     case Scp914KnobSetting.Coarse:
+                        return;
                     case Scp914KnobSetting.OneToOne:
                         return;
                     case Scp914KnobSetting.Fine:
