@@ -37,6 +37,12 @@ namespace Plugin
     using InventorySystem.Items.Coin;
     using System.Data;
     using System.Numerics;
+    using InventorySystem.Items.ThrowableProjectiles;
+    using InventorySystem;
+    using SCPSLAudioApi.AudioCore;
+    using System.IO;
+    using VoiceChat;
+    using DriversUtils;
 
     public class EventHandlers : IComparable
     {
@@ -224,12 +230,14 @@ namespace Plugin
                             Cassie.Message(config.CassieMessage, true, config.CassieNoise, config.CassieText);
                         }
 
+                        PlayAudio("SerpentsHand.ogg", (byte)45f, false);
 
 
-                        //       }
-                        //    !player.TemporaryData.Contains("custom_class"))
 
-                 //   }
+                    //       }
+                    //    !player.TemporaryData.Contains("custom_class"))
+
+                    //   }
                 }
             }
         }
@@ -290,9 +298,13 @@ namespace Plugin
         }
 
 
+
+       
+
+
         // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) received effect &6{effect}&r with an intensity of &6{intensity}&r.");
 
-      //  public bool doesSubclassMTFexist = false; 
+        //  public bool doesSubclassMTFexist = false; 
         [PluginEvent(ServerEventType.PlayerChangeRole)]
         void PlayerChangeRole(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
         {
@@ -370,6 +382,45 @@ namespace Plugin
 
                 }
             }
+            if (player != null && newRole == RoleTypeId.ClassD)
+            {
+
+                if ((Random.Range(1, 10) == 7))
+                {
+
+
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                        player.SendBroadcast("You arae a brute", 10);
+
+                        // player.CustomInfo = $"<color=#228B22>{player.DisplayNickname}</color>" + "\n<color=#228B22>CHAOS SPECIALIST</color>";
+                        // player.CustomInfo.Replace(player.CustomInfo, $"<color=#228B22>{player.DisplayNickname}</color>" + "\n<color=#228B22>CHAOS SPECIALIST</color>");
+                        player.CustomInfo = $"<color=#228B22>{player.DisplayNickname}\nChaos Specialist</color>";
+                        player.PlayerInfo.IsNicknameHidden = true;
+                        player.PlayerInfo.IsUnitNameHidden = true;
+                        player.PlayerInfo.IsRoleHidden = true;
+                        switch (UnityEngine.Random.Range(0, 8))
+                        {
+                            case 0: AddOrDropItem(player, ItemType.SCP2176); break;
+                            case 1: AddOrDropItem(player, ItemType.SCP500); break;
+                            case 2: AddOrDropItem(player, ItemType.SCP1853); break;
+                            case 3: AddOrDropItem(player, ItemType.SCP207); break;
+                            case 4: AddOrDropItem(player, ItemType.SCP018); break;
+                            case 5: AddOrDropItem(player, ItemType.SCP268); break;
+                            case 6: AddOrDropItem(player, ItemType.SCP244a); break;
+                            case 7: AddOrDropItem(player, ItemType.AntiSCP207); break;
+                            case 8: AddOrDropItem(player, ItemType.SCP244b); break;
+                        }
+                       
+                        
+                        
+                        //  player.ReceiveHint(player.CustomInfo, 10);
+                    });
+
+
+                }
+            }
+
 
 
             if (player != null && newRole == RoleTypeId.Scientist)
@@ -377,7 +428,7 @@ namespace Plugin
 
                 if ((Random.Range(1, 10) == 3))
                 {
-
+                    
 
                     Timing.CallDelayed(0.1f, () =>
                     {
@@ -588,6 +639,31 @@ namespace Plugin
         }
 
 
+        [PluginEvent]
+        public void OnScp096AddTarget(Scp096AddingTargetEvent ev)
+        {
+           // Log.Info($"Player &6{ev.Target.Nickname}&r (&6{ev.Target.UserId}&r) {(ev.IsForLook ? "look" : "shoot")}  player &6{ev.Player.Nickname}&r (&6{ev.Player.UserId}&r) and was added to the SCP-096 target list");
+            if (!fbi.Contains(ev.Target.PlayerId))
+            {
+               // ev.Target.TemporaryData.Add("chasemusic", this);
+             //   ReferenceHub Dummy = AddDummy();
+              //  PlayPlayerAudio096(ev.Target, "scp096chase.ogg", (byte)85f, Dummy);
+            }
+        }
+
+        [PluginEvent]
+        public void OnScp096Enrage(Scp096EnragingEvent ev)
+        {
+           // Log.Info($"Player &6{ev.Player.Nickname}&r (&6{ev.Player.UserId}&r) went into a state of rage for {ev.InitialDuration} seconds");
+        }
+
+        [PluginEvent]
+        public void OnScp096CalmDown(Scp096ChangeStateEvent ev)
+        {
+           // Log.Info($"Player &6{ev.Player.Nickname}&r (&6{ev.Player.UserId}&r) changed its state to {ev.RageState} as SCP-096");
+        }
+
+
 
 
 
@@ -711,6 +787,9 @@ namespace Plugin
 
 
 
+
+
+
         [CommandHandler(typeof(ClientCommandHandler))]
         public sealed class scp294 : ICommand
         {
@@ -735,11 +814,12 @@ namespace Plugin
                     }
                     if (ItemType.Coin.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room.name == "EZ_Smallrooms2" || player.Room.name == "LCZ_TCross (11)")
                     {
-                        // response = " Success, you gave your coin for: ";
-                        // problem if statement, wants me to stop comparing a string to a system.predicate string I'm probably stupid but yeah  if (arguments.First() == list.Find("deeznuts"))
-                        //  {
 
-                        //}    
+
+
+                            
+
+                       
                         if (arguments.First().ToLower() == "alphaflamingo" || arguments.First().ToLower() == "alpha")
                         {
                             // Log.Debug("send help pls");
@@ -750,6 +830,8 @@ namespace Plugin
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
                             colas_alpha.Add(thiscola.ItemSerial);
+
+                            
 
                         }
                         if (arguments.First().ToLower() == "oil")
@@ -762,6 +844,7 @@ namespace Plugin
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
                             colas_oil.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
 
                         }
                         if (arguments.First().ToLower() == "metal" || arguments.First().ToLower() == "steel" || arguments.First().ToLower() == "razorblade")
@@ -774,6 +857,7 @@ namespace Plugin
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
                             colas_metal.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense2.ogg", (byte)85f);
 
                         }
                         if (arguments.First().ToLower() == "cold" || arguments.First().ToLower() == "ice")
@@ -784,7 +868,7 @@ namespace Plugin
                             player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a cup of ice.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
-
+                            PlayPlayerAudio(player, "dispense2.ogg", (byte)85f);
                             colas_cold.Add(thiscola.ItemSerial);
 
                         }
@@ -796,7 +880,7 @@ namespace Plugin
                             player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
-
+                            PlayPlayerAudio(player, "dispense3.ogg", (byte)85f);
                             colas_ghost.Add(thiscola.ItemSerial);
 
                         }
@@ -808,7 +892,7 @@ namespace Plugin
                             player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
-
+                            PlayPlayerAudio(player, "dispense3.ogg", (byte)85f);
                             colas_oxygen.Add(thiscola.ItemSerial);
 
                         }
@@ -820,7 +904,7 @@ namespace Plugin
                             player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise pitched up to high levels and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
-
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
                             colas_speed.Add(thiscola.ItemSerial);
 
                         }
@@ -833,6 +917,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_coffee.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "GoldenAtomKick" || arguments.First() == "goldenatomkick" || arguments.First() == "goldatom" || arguments.First() == "goldenatomkick")
@@ -844,6 +929,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
                             colas_atomkick.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense3.ogg", (byte)85f);
 
                         }
                         else if (arguments.First().ToLower() == "god" || arguments.First() == "NuclearKick" || arguments.First() == "godmode" || arguments.First() == "nuclearkick")
@@ -855,6 +941,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_nuclearkick.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense3.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "Invisibility" || arguments.First() == "invis" || arguments.First() == "scp268" || arguments.First() == "invisibility")
@@ -866,7 +953,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_invis.Add(thiscola.ItemSerial);
-
+                            PlayPlayerAudio(player, "dispense2.ogg", (byte)85f);
                         }
                         else if (arguments.First() == "Me" || arguments.First() == "Myself" || arguments.First() == "me" || arguments.First() == "I" || arguments.First().ToLower() == "blood")
                         {
@@ -877,7 +964,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_me.Add(thiscola.ItemSerial);
-
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
                         }
                         else if (arguments.First() == "Tea" || arguments.First() == "tea" || arguments.First() == "teadrink" || arguments.First() == "t")
                         {
@@ -888,6 +975,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_tea.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "Horror" || arguments.First() == "horror" || arguments.First() == "scp106" || arguments.First() == "PocketDimension")
@@ -899,7 +987,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_horror.Add(thiscola.ItemSerial);
-
+                            PlayPlayerAudio(player, "dispense3.ogg", (byte)85f);
                         }
                         else if (arguments.First() == "Borgor" || arguments.First() == "borgor" || arguments.First() == "Cheeseburger" || arguments.First() == "cheseburger")
                         {
@@ -910,6 +998,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_borgor.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "antimatter" || arguments.First() == "Antimatter" || arguments.First() == "Nuke" || arguments.First() == "nuke" || arguments.First().ToLower() == "death")
@@ -921,6 +1010,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_antimatter.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense3.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "049" || arguments.First() == "049-2" || arguments.First() == "Zombie" || arguments.First() == "zombie" || arguments.First() == "LeafLover" || arguments.First() == "leaflover" || arguments.First() == "Leaflover")
@@ -932,7 +1022,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_zombie.Add(thiscola.ItemSerial);
-
+                            PlayPlayerAudio(player, "dispense2.ogg", (byte)85f);
                         }
                         else if (arguments.First() == "CherryAtomKick" || arguments.First() == "cherryatomkick" || arguments.First() == "CherryatomKick" || arguments.First() == "atomkickcherry" || arguments.First() == "HealthPotion" || arguments.First() == "healthpotion" || arguments.First() == "potion" || arguments.First() == "Potion")
                         {
@@ -943,6 +1033,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_cherryatomkick.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "grenade" || arguments.First() == "Grenade" || arguments.First() == "boom" || arguments.First() == "Pinkcandy" || arguments.First() == "Boom" || arguments.First() == "pinkcandy")
@@ -954,6 +1045,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
                             colas_explosion.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense2.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "SCP-173" || arguments.First() == "scp173" || arguments.First() == "Peanut" || arguments.First() == "peanut" || arguments.First() == "173" || arguments.First() == "ocean")
@@ -965,6 +1057,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_peanut.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense2.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "Saltwater" || arguments.First() == "saltwater" || arguments.First() == "SaltWater" || arguments.First() == "salt" || arguments.First() == "Ocean" || arguments.First() == "ocean")
@@ -976,6 +1069,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_saltwater.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "Gasoline" || arguments.First() == "gas" || arguments.First() == "Petrol" || arguments.First() == "pterol" || arguments.First() == "gasoline" || arguments.First() == "Gascan")
@@ -987,7 +1081,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_gas.Add(thiscola.ItemSerial);
-
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
                         }
                         else if (arguments.First().ToLower() == "teleport" || arguments.First().ToLower() == "random" || arguments.First().ToLower() == "teleportation" || arguments.First().ToLower() == "tp" || arguments.First().ToLower() == "escape")
                         {
@@ -998,6 +1092,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_teleportation.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense3.ogg", (byte)85f);
 
                         }
                         else if (arguments.First().ToLower() == "windex" || arguments.First().ToLower() == "wind" || arguments.First().ToLower() == "cleaningsupplies")
@@ -1009,7 +1104,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_windex.Add(thiscola.ItemSerial);
-
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
                         }
                         else if (arguments.First().ToLower() == "medusa" || arguments.First().ToLower() == "rock" || arguments.First().ToLower() == "tank")
                         {
@@ -1020,6 +1115,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_medusa.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense2.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "Slushy" || arguments.First() == "slushy" || arguments.First() == "slush" || arguments.First() == "Slush")
@@ -1031,6 +1127,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_sour_patch_kids_slushy.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "Crazy" || arguments.First() == "crazy" || arguments.First() == "Crazy?" || arguments.First() == "rubberroom" || arguments.First() == "arubberroom" || arguments.First() == "Iwascrazyonce")
@@ -1042,6 +1139,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_crazy.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense3.ogg", (byte)85f);
                         }
                         else if (arguments.First() == "Small" || arguments.First() == "small" || arguments.First() == "smol" || arguments.First() == "Tiny" || arguments.First() == "tiny")
                         {
@@ -1052,6 +1150,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_small.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense3.ogg", (byte)85f);
                         }
                         else if (arguments.First() == "Bepis" || arguments.First() == "bepis" || arguments.First() == "BEPIS")
                         {
@@ -1062,6 +1161,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_bepis.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
                         }
                         else if (arguments.First() == "SCP-207" || arguments.First() == "scp207" || arguments.First() == "207" || arguments.First() == "cola" || arguments.First() == "Cola")
                         {
@@ -1072,6 +1172,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_scp207.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
                         }
                         else if (arguments.First() == "water" || arguments.First() == "Water" || arguments.First() == "h2o")
                         {
@@ -1082,6 +1183,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_water.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense1.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "flamingo" || arguments.First() == "Flamingo" || arguments.First() == "1507" || arguments.First() == "scp-1507" || arguments.First() == "SCP-1507")
@@ -1093,6 +1195,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_flamingo.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense3.ogg", (byte)85f);
 
                         }
                         else if (arguments.First() == "big" || arguments.First() == "Big" || arguments.First() == "large" || arguments.First() == "Large" || arguments.First() == "grow")
@@ -1104,6 +1207,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_big.Add(thiscola.ItemSerial);
+                            PlayPlayerAudio(player, "dispense2.ogg", (byte)85f);
 
                         }
                         else if (arguments.First().ToLower() == "quantamgas" || arguments.First().ToLower() == "bose-einstein" || arguments.First().ToLower() == "condensate")
@@ -1115,7 +1219,7 @@ namespace Plugin
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
                             colas_quantam.Add(thiscola.ItemSerial);
-
+                            PlayPlayerAudio(player, "dispense3.ogg", (byte)85f);
                         }
 
 
@@ -1355,6 +1459,15 @@ namespace Plugin
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     }
                     plr.EffectsManager.EnableEffect<SeveredHands>(10, true);
+             //       plr.ClearInventory();
+          //          plr.ReferenceHub.inventory.CreateItemInstance(new ItemIdentifier(ItemType.GrenadeHE, ItemSerialGenerator.GenerateNext()), false);
+                    if (InventoryItemLoader.AvailableItems.TryGetValue(ItemType.GrenadeHE, out ItemBase grenadeBase))
+                    {
+                        ThrowableItem grenadeThrowable = grenadeBase as ThrowableItem;
+                        ThrownProjectile grenadeProjectile = UnityEngine.Object.Instantiate(grenadeThrowable.Projectile);
+                        NetworkServer.Spawn(grenadeProjectile.gameObject);
+                    }
+
                     //plr.EffectsManager.EnableEffect<Bleeding>(60, true);
                     // plr.Heal(50);
                     //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
@@ -2292,7 +2405,7 @@ namespace Plugin
 
                 Timing.CallDelayed(1.36f, () =>
                 {
-
+                    plr.ReceiveHint("You swallowed the Resurrection Pills.");
                     foreach (var plrr in Player.GetPlayers())
                     {
                         if (plrr.Role == RoleTypeId.Spectator)
@@ -2855,7 +2968,7 @@ namespace Plugin
 
         static bool coolDowned2 = true;
 
-// disabled for now
+
         [CommandHandler(typeof(ClientCommandHandler))]
         public class forcepowerfailure : ICommand
         {
@@ -3010,6 +3123,278 @@ namespace Plugin
 
             }
         }
+
+
+
+
+
+
+        // AUDIO API STUFF
+        // CREDIT TO KoT0XleB / RisottoMan from AutoEvent His code is licensed under MIT.
+
+        // will not work out of the box, requires tuning on your side :)))
+        // some stuff is still not used
+
+        public static ReferenceHub AudioBot = new ReferenceHub();
+        public static AudioPlayerBase PlayAudio(string audioFile, byte volume, bool loop)
+        {
+            if (AudioBot == null) AudioBot = AddDummy();
+
+            StopAudio();
+
+            var path = Path.Combine("[REDACTED]", audioFile);
+
+            AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBot);
+            audioPlayer.Enqueue(path, -1);
+            audioPlayer.LogDebug = false;
+            audioPlayer.BroadcastChannel = VoiceChatChannel.Intercom;
+            audioPlayer.Volume = 20f;
+            audioPlayer.Loop = loop;
+            audioPlayer.Play(0);
+            return audioPlayer;
+        }
+
+
+
+
+        public static AudioPlayerBase PlayPlayerAudio(Player player, string audioFile, byte volume)
+        {
+            if (AudioBot == null) AudioBot = AddDummy();
+
+            StopAudio();
+
+            var path = Path.Combine("[REDACTED]", audioFile);
+
+            AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBot);
+            audioPlayer.Enqueue(path, -1);
+            audioPlayer.LogDebug = false;
+            audioPlayer.BroadcastChannel = VoiceChatChannel.Proximity;
+            audioPlayer.BroadcastTo.Add(player.PlayerId);
+            audioPlayer.Volume = 35f;
+            audioPlayer.Loop = false;
+            audioPlayer.Play(0);
+            return audioPlayer;
+        }
+
+
+        public static AudioPlayerBase PlayPlayerAudio096(Player player, string audioFile, byte volume, ReferenceHub AudioBotT)
+        {
+            //if (AudioBot == null) AudioBot = AddDummy();
+
+            StopAudio();
+
+            var path = Path.Combine("[REDACTED]", audioFile);
+
+            AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBotT);
+            audioPlayer.Enqueue(path, -1);
+            audioPlayer.LogDebug = false;
+            audioPlayer.BroadcastChannel = VoiceChatChannel.Proximity;
+            audioPlayer.BroadcastTo.Add(player.PlayerId);
+            audioPlayer.Volume = 35f;
+            audioPlayer.Loop = false;
+            audioPlayer.Play(0);
+            return audioPlayer;
+        }
+
+
+
+
+        public static void PlayPlayerAudio2(Player player, string audioFile, byte volume)
+        {
+            // if (AudioBot == null) AudioBot = AddDummy();
+
+            //StopAudio();
+          
+
+            var path = Path.Combine("[REDACTED]", audioFile);
+
+            var audioPlayer = AudioPlayerBase.Get(player.ReferenceHub);
+            audioPlayer.Enqueue(path, -1);
+            audioPlayer.LogDebug = false;
+            audioPlayer.BroadcastChannel = VoiceChatChannel.Proximity;
+            audioPlayer.Volume = 85f;
+            audioPlayer.Loop = false;
+            audioPlayer.Play(0);
+        }
+
+        public static void PauseAudio()
+        {
+            if (AudioBot == null) return;
+
+            var audioPlayer = AudioPlayerBase.Get(AudioBot);
+
+            if (audioPlayer.CurrentPlay != null)
+            {
+                audioPlayer.ShouldPlay = false;
+            }
+        }
+
+
+        public static void ResumeAudio()
+        {
+            if (AudioBot == null) return;
+
+            var audioPlayer = AudioPlayerBase.Get(AudioBot);
+
+            if (audioPlayer.CurrentPlay != null)
+            {
+                audioPlayer.ShouldPlay = true;
+            }
+        }
+
+        public static void StopAudio()
+        {
+            if (AudioBot == null) return;
+
+            var audioPlayer = AudioPlayerBase.Get(AudioBot);
+
+            if (audioPlayer.CurrentPlay != null)
+            {
+                audioPlayer.Stoptrack(true);
+                audioPlayer.OnDestroy();
+            }
+        }
+
+
+        public static ReferenceHub AddDummy()
+        {
+            var newPlayer = UnityEngine.Object.Instantiate(NetworkManager.singleton.playerPrefab);
+            var fakeConnection = new FakeConnection(0);
+            var hubPlayer = newPlayer.GetComponent<ReferenceHub>();
+            NetworkServer.AddPlayerForConnection(fakeConnection, newPlayer);
+            hubPlayer.authManager.InstanceMode = CentralAuth.ClientInstanceMode.Unverified;
+            // CharacterClassManager.instance
+            hubPlayer.characterClassManager._godMode = true;
+            hubPlayer.roleManager.ServerSetRole(RoleTypeId.Overwatch, RoleChangeReason.RemoteAdmin, RoleSpawnFlags.None);
+           hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
+            try
+            {
+                if (isSerpentSpawning == true)
+                {
+                  //  hubPlayer.nicknameSync.SetNick("Serpents Hand");
+                }
+                else
+                {
+                 //   hubPlayer.nicknameSync.SetNick("SCP-294");
+                }
+                //    hubPlayer.nicknameSync.SetNick("SCP-294");
+                hubPlayer.nicknameSync.SetNick(" ");
+            }
+            catch (Exception) { }
+
+            Timing.CallDelayed(0.7f, () =>
+            {
+              
+                hubPlayer.roleManager.ServerSetRole(RoleTypeId.Overwatch, RoleChangeReason.None, RoleSpawnFlags.None);
+                hubPlayer.characterClassManager._godMode = true;
+                hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
+               // foreach (var target in ReferenceHub.AllHubs.Where(x => x != ReferenceHub.HostHub))
+                  //  NetworkServer.SendSpawnMessage(hub.networkIdentity, target.connectionToClient);
+            });
+
+
+            try
+            {
+
+                // hubPlayer.nicknameSync.SetNick("SCP-294");
+                //hubPlayer.nicknameSync.SetNick(" ");
+                if (isSerpentSpawning == true)
+                {
+                  //  hubPlayer.nicknameSync.SetNick("Serpents Hand");
+                }
+                else
+                {
+                    //hubPlayer.nicknameSync.SetNick("SCP-294");
+                }
+                hubPlayer.nicknameSync.SetNick(" ");
+            }
+            catch (Exception) { }
+
+            Timing.CallDelayed(1f, () =>
+            {
+
+                    hubPlayer.TryOverridePosition(UnityEngine.Vector3.zero, UnityEngine.Vector3.zero);
+            });
+
+
+            return hubPlayer;
+        }
+
+
+        public static void RemoveDummy()
+        {
+            var audioPlayer = AudioPlayerBase.Get(AudioBot);
+
+            if (audioPlayer.CurrentPlay != null)
+            {
+                audioPlayer.Stoptrack(true);
+                audioPlayer.OnDestroy();
+            }
+
+            AudioBot.OnDestroy();
+            CustomNetworkManager.TypedSingleton.OnServerDisconnect(AudioBot.connectionToClient);
+            UnityEngine.Object.Destroy(AudioBot.gameObject);
+        }
+
+
+        public static void RemoveDummy096(ReferenceHub AudioBotT)
+        {
+            var audioPlayer = AudioPlayerBase.Get(AudioBotT);
+
+            if (audioPlayer.CurrentPlay != null)
+            {
+                audioPlayer.Stoptrack(true);
+                audioPlayer.OnDestroy();
+            }
+
+            AudioBotT.OnDestroy();
+            CustomNetworkManager.TypedSingleton.OnServerDisconnect(AudioBotT.connectionToClient);
+            UnityEngine.Object.Destroy(AudioBotT.gameObject);
+        }
+
+
+
+        public static void PauseAudio096(ReferenceHub AudioBotT)
+        {
+            if (AudioBotT == null) return;
+
+            var audioPlayer = AudioPlayerBase.Get(AudioBotT);
+
+            if (audioPlayer.CurrentPlay != null)
+            {
+                audioPlayer.ShouldPlay = false;
+            }
+        }
+
+
+        public static void ResumeAudio096(ReferenceHub AudioBotT)
+        {
+            if (AudioBotT == null) return;
+
+            var audioPlayer = AudioPlayerBase.Get(AudioBotT);
+
+            if (audioPlayer.CurrentPlay != null)
+            {
+                audioPlayer.ShouldPlay = true;
+            }
+        }
+
+        public static void StopAudio096(ReferenceHub AudioBotT)
+        {
+            if (AudioBotT == null) return;
+
+            var audioPlayer = AudioPlayerBase.Get(AudioBotT);
+
+            if (audioPlayer.CurrentPlay != null)
+            {
+                audioPlayer.Stoptrack(true);
+                audioPlayer.OnDestroy();
+            }
+        }
+
+
+
+
 
         public int CompareTo(object obj)
         {
