@@ -12,7 +12,8 @@ Disclaimer: Builds will not be provided, you can compile yourself OR wait for me
 ### Custom Items
 - SCP 1499.
 - Resurrection Pills (actually hilarous, need to turn up the chance for this lol)
-- Random Class Pills (still figuring out how this'll work, might just turn it into a betrayal pill)
+- The SUPER Pills
+- Ghastly Lantern
 - + More soon.
 
 ### SCP-294
@@ -30,16 +31,17 @@ Disclaimer: Builds will not be provided, you can compile yourself OR wait for me
 - MTF Nu-7 can spawn. They have 10 more hp, guaranteed better gear, and are basically just epsilon-11 on steroids. :D (now disableable in config, not in this repo yet)
 - The Science Team can spawn. (don't ask)
 - Facility Guard Captain class which is a beefed up guard class that is put in place to try and balance out guards for lower players. Notable things are that they start with an mtf prviate keycard.
-- Adds "The Kid", whom spawns with candy and is shorter than everyone else. This was fun during the christmas event so we could have voice effects using the cake :)
+- Adds "The Kid", whom spawns with candy and is shorter than everyone else. This was fun during the christmas event so we could have voice effects using the effect that was used for the cake during that time :)
 - Adds the MTF Boom Boom Boy (would've been called Demolitionist but friends voted otherwise). Self explanatory.
 - Adds the Chaos Specialist Subclass. They get one special SCP item.
-- Adds the Senior Researcher. They get a better card.
+- (Disabled due to the science team.) Adds the Senior Researcher. They get a better card.
 
 ### Other Changes
 - Coins get "randomized" (changed into a random item from a list) on very fine.
 - Chaos will be forced if mtf spawn twice in a row. Mostly fixes some of the issues for **low** player servers. (5-7 plr servers, once there are 2 scps it changes tho)
 - Custom Cassie Messages for multiple different ingame events.
-- CustomInfo/Role names when you hover over someone who is a custom class. (DISABLED DUE TO UNFORSEEN ISSUES)
+- CustomInfo/Role names when you hover over someone who is a custom class. (DISABLED DUE TO DESYNCING)
 - SCP-049-2 instances have their height randomized
+- Music for candy. Files NOT provided
 
 Have fun!
