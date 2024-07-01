@@ -21,7 +21,7 @@ namespace Plugin
     using Hazards;
     using RelativePositioning;
     using Random = UnityEngine.Random;
-
+    
     public class MTFUnits : IComparable
     {
         static int respawn_count = 0;
@@ -117,7 +117,7 @@ namespace Plugin
             // && new System.Random().Next(2) == 1
             Config config = Plugin.Singleton.Config;
             // thanks to my friend seagull101 for the help with system.random, i still have almost no idea what I am doing lol
-            if (respawn_count >= 0 && spawning_team == SpawnableTeamType.NineTailedFox && config.ShouldSerpentsSpawn == true && haveNU7Spawned == false && new System.Random().Next(3) == 1)
+            if (respawn_count >= 0 && spawning_team == SpawnableTeamType.NineTailedFox && config.CanNu7Spawn == true && haveNU7Spawned == false && EventHandlers.isSerpentSpawning == false && new System.Random().Next(3) == 1)
             {
                 IsNu7Spawning = true;
 
@@ -134,7 +134,7 @@ namespace Plugin
                 
                 haveNU7Spawned = true;
 
-                Timing.CallDelayed(0.4f, () =>
+                Timing.CallDelayed(0.1f, () =>
                 {
                     Cassie.Clear();
                     Cassie.Message($"MTFUnit Nu 7 designated pitch_0.5 .G2 .G3 pitch_1 hasentered . allremaining . AWAITINGRECONTAINMENT {scpsleft} SCPSUBJECTS", true, true, false);
