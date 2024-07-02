@@ -772,8 +772,8 @@ namespace Plugin
 
                         switch (UnityEngine.Random.Range(0, 1))
                         {
-                            case 0: AddOrDropItem(player, ItemType.Lantern); return;
-                            case 1: AddOrDropItem(player, ItemType.Flashlight); return;
+                            case 0: AddOrDropItem(player, ItemType.Lantern); break;
+                            case 1: AddOrDropItem(player, ItemType.Flashlight); break;
                         }
 
                     }
@@ -890,7 +890,92 @@ namespace Plugin
         void PlayerChangeRole(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
         {
 
-          
+
+
+            if (player != null)
+            {
+                if (randomNumber > cfg.EventRarity)
+                    return;
+
+                if (reason != RoleChangeReason.RoundStart && reason != RoleChangeReason.LateJoin)
+                    return;
+
+
+                
+                if (RoundEvent == "ArmedDClass")
+                {
+                    Timing.CallDelayed(1.5f, () =>
+                    {
+                        if (newRole == RoleTypeId.ClassD)
+                        {
+                            AddOrDropFirearm(player, ItemType.GunCOM18, true);
+
+
+
+                        }
+                    });
+                }
+
+                if (RoundEvent == "ChaosInvasion")
+                {
+                    Timing.CallDelayed(1.5f, () =>
+                    {
+                        if (newRole == RoleTypeId.FacilityGuard)
+                        {
+                            player.SetRole(RoleTypeId.ChaosRifleman);
+
+
+
+                        }
+                    });
+                }
+                if (RoundEvent == "SpecialOps")
+                {
+                    Timing.CallDelayed(1.5f, () =>
+                    {
+                        if (newRole == RoleTypeId.FacilityGuard)
+                        {
+                            player.SetRole(RoleTypeId.NtfPrivate);
+                        }
+                    });
+                }
+
+
+                if (RoundEvent == "PowerBlackout")
+                {
+                    Timing.CallDelayed(1.5f, () =>
+                    {
+                        if (!player.IsInventoryFull && player.IsHuman == true && newRole != RoleTypeId.Overwatch && newRole != RoleTypeId.Spectator)
+                        {
+
+
+
+
+
+                            switch (UnityEngine.Random.Range(0, 1))
+                            {
+                                case 0: AddOrDropItem(player, ItemType.Lantern); break;
+                                case 1: AddOrDropItem(player, ItemType.Flashlight); break;
+                            }
+
+                        }
+                    });
+                }
+                /*
+                 if (RoundEvent == "UnstablePower")
+                 {
+                     p.SendBroadcast("<color=#228B22>EVENT:</color> Unstable Facility Power. ", 13, Broadcast.BroadcastFlags.Normal, false);
+                 }
+                
+                if (RoundEvent == "NukeDisabled")
+                {
+                    
+                }
+                */
+
+
+
+            }
 
 
             if (player != null && oldRole != null && oldRole.RoleTypeId == RoleTypeId.Scp173 && reason == RoleChangeReason.Died)
@@ -1032,90 +1117,7 @@ namespace Plugin
             }
 
 
-            if (player != null)
-            {
-                if (randomNumber > cfg.EventRarity)
-                    return;
-
-                if (reason != RoleChangeReason.RoundStart && reason != RoleChangeReason.LateJoin)
-                    return;
-
-
-                if (RoundEvent == "ChaosInvasion")
-                {
-                    Timing.CallDelayed(1.5f, () =>
-                    {
-                        if (newRole == RoleTypeId.FacilityGuard)
-                        {
-                            player.SetRole(RoleTypeId.ChaosRifleman);
-
-
-
-                        }
-                    });
-                }
-
-                if (RoundEvent == "ArmedDClass")
-                {
-                    Timing.CallDelayed(1.5f, () =>
-                    {
-                        if (newRole == RoleTypeId.ClassD)
-                        {
-                            AddOrDropFirearm(player, ItemType.GunCOM18, true);
-
-
-
-                        }
-                    });
-                }
-
-                if (RoundEvent == "SpecialOps")
-                {
-                    Timing.CallDelayed(1.5f, () =>
-                    {
-                        if (newRole == RoleTypeId.FacilityGuard)
-                        {
-                            player.SetRole(RoleTypeId.NtfPrivate);
-                        }
-                    });
-                }
-
-               
-                if (RoundEvent == "PowerBlackout")
-                {
-                    Timing.CallDelayed(1.5f, () =>
-                    {
-                        if (!player.IsInventoryFull && player.IsHuman == true && newRole != RoleTypeId.Overwatch && newRole != RoleTypeId.Spectator)
-                    {
-                       
-                            
-                          
-
-
-                            switch (UnityEngine.Random.Range(0, 1))
-                            {
-                                case 0: AddOrDropItem(player, ItemType.Lantern); return;
-                                case 1: AddOrDropItem(player, ItemType.Flashlight); return;
-                            }
-
-                        }
-                   });
-                }
-                /*
-                 if (RoundEvent == "UnstablePower")
-                 {
-                     p.SendBroadcast("<color=#228B22>EVENT:</color> Unstable Facility Power. ", 13, Broadcast.BroadcastFlags.Normal, false);
-                 }
-                
-                if (RoundEvent == "NukeDisabled")
-                {
-                    
-                }
-                */
-
-                
-               
-            }
+            
 
         }
 
@@ -1492,9 +1494,17 @@ namespace Plugin
 
 
         // CUSTOM ITEMS
+
+
+        // PILLS
         public static HashSet<ushort> resurrection_pills = new HashSet<ushort>();
         public static HashSet<ushort> super_pills = new HashSet<ushort>();
+        public static HashSet<ushort> invis_pills = new HashSet<ushort>();
+        public static HashSet<ushort> friend_pills = new HashSet<ushort>();
+        public static HashSet<ushort> scale_pills = new HashSet<ushort>();
         public static HashSet<ushort> scp500s = new HashSet<ushort>();
+
+        // OTHER - ANYTHING ELSE IS AT THE TOP FOR EASY ACCESS FROM OTHER FUNCTIONS
         public static HashSet<ushort> hats = new HashSet<ushort>();
         public static HashSet<ushort> scp1499 = new HashSet<ushort>();
 
@@ -3560,7 +3570,7 @@ namespace Plugin
 
                 Timing.CallDelayed(1.36f, () =>
                 {
-                    plr.ReceiveHint("You swallowed the Resurrection Pills.");
+                    plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-R</color> and summoned a wave of reinforcements.");
                     foreach (var plrr in Player.GetPlayers())
                     {
                         if (plrr.Role == RoleTypeId.Spectator)
@@ -3571,14 +3581,14 @@ namespace Plugin
                                 Timing.CallDelayed(1f, () =>
                                 {
                                     plrr.Position = plr.Position;
-                                    plrr.ReceiveHint($"{plr.DisplayNickname} has respawned you using the resurrection pills!");
+                                    plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!");
                                 });
                             }
                             else
                             {
                                 plrr.Role = plr.Role;
                                 plrr.Position = plr.Position;
-                                plrr.ReceiveHint($"{plr.DisplayNickname} has respawned you using the resurrection pills!");
+                                plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!");
                             }
                         }
                     }
@@ -3591,13 +3601,86 @@ namespace Plugin
 
                 Timing.CallDelayed(1.36f, () =>
                 {
-                    plr.ReceiveHint("You swallowed the Super Pill.");
+                    plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-A</color>");
                     plr.EffectsManager.ChangeState("MovementBoost", 2, 15, true);
                     plr.EffectsManager.ChangeState("Invigorated", 1, 15, true);
                     plr.EffectsManager.ChangeState("DamageReduction", 1, 15, true);
                 });
 
             }
+            else if (item.ItemTypeId == ItemType.SCP500 && invis_pills.Contains(item.ItemSerial))
+            {
+
+
+                Timing.CallDelayed(1.36f, () =>
+                {
+                    plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-I</color> You are now invisible for the next 10s unless you use items or interact with doors.");
+                    plr.EffectsManager.EnableEffect<Invisible>(10, false);
+                });
+
+            }
+            else if (item.ItemTypeId == ItemType.SCP500 && scale_pills.Contains(item.ItemSerial))
+            {
+
+
+                Timing.CallDelayed(1.36f, () =>
+                {
+                    plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-S</color> You are now a (semi) random size.");
+                    switch (UnityEngine.Random.Range(0, 7))
+                    {
+                        case 0: SetScale(plr,1.2f); break;
+                        case 1: SetScale(plr,0.9f); break;
+                        case 2: SetScale(plr, 0.8f); break;
+                        case 3: SetScale(plr, 0.7f); break;
+                        case 4: SetScale(plr, 0.75f); break;
+                        case 5: SetScale(plr, -1f); break;
+                        case 6: SetScale(plr, 0.85f); break;
+                        case 7: SetScale(plr, 1.1f); break;
+                    }
+                });
+
+            }
+            else if (item.ItemTypeId == ItemType.SCP500 && friend_pills.Contains(item.ItemSerial))
+            {
+
+
+                Timing.CallDelayed(1.36f, () =>
+                {
+                    plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-F</color> You are now a (semi) random size.");
+                    foreach (var plrr in Player.GetPlayers())
+                    {
+                        if (plrr.Role == RoleTypeId.Spectator)
+                        {
+                            if (plr.Role == RoleTypeId.Tutorial && fbi.Contains(plr.PlayerId))
+                            {
+                                ChangeToTutorial(plrr, plr.Role);
+                                Timing.CallDelayed(1f, () =>
+                                {
+                                    plrr.Position = plr.Position;
+                                    plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-F</color>!");
+                                });
+                                return;
+                            }
+                            else
+                            {
+                                plrr.Role = plr.Role;
+                                plrr.Position = plr.Position;
+                                plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has brought you in using <color=#C50000>SCP-500-F</color>!");
+                                return;
+                            }
+                        }
+                    }
+
+                });
+
+            }
+
+
+
+
+
+
+
             else if (item.ItemTypeId == ItemType.SCP207 && colas_metal.Contains(item.ItemSerial))
             {
                 //  Log.Debug("SCP-268 was used.");
@@ -3730,259 +3813,214 @@ namespace Plugin
 
                 if (!newItemBase == false && colas_oxygen.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
                     plr.ReceiveHint("You equipped a cup of pure oxygen.", 3);
                 }
                 if (!newItemBase == false && colas_quantam.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
                     plr.ReceiveHint("You equipped a bottle of quantum gas. It's slightly pink... for some reason.", 3);
                 }
                 else if (!newItemBase == false && colas_alpha.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
                     plr.ReceiveHint("You equipped a bottle of (VERY LOUD FLAMINGO BATTLE CRY). It seems very cool.", 3);
                 }
                 else if (!newItemBase == false && colas_metal.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
                     plr.ReceiveHint("You equipped a bottle of metal. It is very heavy.", 3);
                 }
                 else if (!newItemBase == false && colas_cold.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
                     plr.ReceiveHint("You equipped a bottle of ice. Your hands begin to freeze.", 3);
                 }
                 else if (!newItemBase == false && colas_speed.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
                     plr.ReceiveHint("You equipped a bottle of speed juice. The smell is terrible.", 3);
                 }
                 else if (!newItemBase == false && colas_water.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of water. It is just water.", 3);
                 }
                 else if (!newItemBase == false && colas_coffee.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a cup of coffee. You feel the sudden urge to drink it.", 3);
                 }
                 else if (!newItemBase == false && colas_atomkick.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a can of golden atom kick. You feel can feel the speed coming from the can.", 3);
 
                 }
                 else if (!newItemBase == false && colas_nuclearkick.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of Nuclear Kick!", 3);
 
                 }
                 else if (!newItemBase == false && colas_sour_patch_kids_slushy.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
                     plr.ReceiveHint("You equipped a sour patch kids slushy.", 3);
 
                 }
                 else if (!newItemBase == false && colas_invis.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of invisibility.", 3);
 
                 }
                 else if (!newItemBase == false && colas_oil.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a can of oil. You feel that this would be better somewhere else and not in your stomach.", 3);
 
                 }
                 else if (!newItemBase == false && colas_me.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of yourself. Why are you doing this?", 3);
 
                 }
                 else if (!newItemBase == false && colas_tea.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a cup of tea.", 3);
 
                 }
                 else if (!newItemBase == false && colas_horror.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of horror.", 3);
 
                 }
                 else if (!newItemBase == false && colas_borgor.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a cup containing a borgor.", 3);
 
                 }
                 else if (!newItemBase == false && colas_antimatter.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a cup of antimatter.", 3);
 
                 }
                 else if (!newItemBase == false && colas_zombie.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a cup of [REDACTED].", 3);
 
                 }
                 else if (!newItemBase == false && colas_flamingo.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a cup of (FLAMINGO BATTLE CRY).", 3);
 
                 }
                 else if (!newItemBase == false && colas_cherryatomkick.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of Cherry Atom Kick.", 3);
 
                 }
                 else if (!newItemBase == false && colas_bepis.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a can of Bepis.", 3);
 
                 }
                 else if (!newItemBase == false && colas_explosion.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of gunpowd- WAIT NO", 3);
 
                 }
                 else if (!newItemBase == false && colas_saltwater.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of saltwater.", 3);
 
                 }
                 else if (!newItemBase == false && choccymilk.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of choccy milk.", 3);
 
                 }
                 else if (!newItemBase == false && lemonade.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of lemonade.", 3);
 
                 }
                 else if (!newItemBase == false && lava.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of lava.", 3);
 
                 }
                 else if (!newItemBase == false && balls.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of balls.", 3);
 
                 }
                 else if (!newItemBase == false && colas_peanut.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of SCP-173.", 3);
 
                 }
                 else if (!newItemBase == false && colas_gas.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a can of gasoline.", 3);
 
                 }
                 else if (!newItemBase == false && colas_ghost.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a ghostly brew.", 3);
 
                 }
                 else if (!newItemBase == false && colas_scp207.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("COCA COLA ESPUMA", 3);
 
                 }
                 else if (!newItemBase == false && colas_big.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of growing juice.", 3);
 
                 }
                 else if (!newItemBase == false && colas_teleportation.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a teleportation potion.", 3);
 
                 }
                 else if (!newItemBase == false && colas_windex.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of windex.", 3);
 
                 }
                 else if (!newItemBase == false && colas_medusa.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a bottle of medusa.", 3);
 
                 }
                 else if (!newItemBase == false && colas_crazy.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("Crazy?", 3);
 
                 }
                 else if (!newItemBase == false && colas_small.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ClearBroadcasts();
-                    //  plr.SendBroadcast("You equipped a cup of pure oxygen.", 5);
+
                     plr.ReceiveHint("You equipped a potion of smol.", 3);
 
                 }
@@ -3992,10 +4030,11 @@ namespace Plugin
                 {
                    
 
-                     if (new System.Random().Next(5) == 1 && !scp1499.Contains(newItemBase.ItemSerial) && !hats.Contains(newItemBase.ItemSerial))
+                     if (new System.Random().Next(7) == 1 && !scp1499.Contains(newItemBase.ItemSerial) && !hats.Contains(newItemBase.ItemSerial))
                        {
                         scp1499.Add(newItemBase.ItemSerial);
-                        plr.ReceiveHint("You equipped SCP-1499.", 3);
+                        plr.ReceiveHint("You equipped <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 3);
+                        
 
                        }
                     else if (!hats.Contains(newItemBase.ItemSerial) && !scp1499.Contains(newItemBase.ItemSerial))
@@ -4004,11 +4043,17 @@ namespace Plugin
                       }
                       else if (scp1499.Contains(newItemBase.ItemSerial))
                     {
-                       plr.ReceiveHint("You equipped SCP-1499.", 3);
+                       plr.ReceiveHint("You equipped <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 3);
                     }
 
 
                 }
+
+                else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.Lantern && !ghostLantern.Contains(newItemBase.ItemSerial))
+                {
+                normalLantern.Add(newItemBase.ItemSerial);
+                }
+
 
                 else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP1576)
                 {
@@ -4030,76 +4075,428 @@ namespace Plugin
 
                 }
 
+                
+
+               if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && resurrection_pills.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ReceiveHint("You equipped <color=#C50000>SCP-500-R</color> \nConsuming it will respawn any spectators at your position and as your class.", 3);
+                }
+
+                if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && super_pills.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ReceiveHint("You equipped <color=#C50000>SCP-500-A</color> \nConsuming it will give you a variety of effects.", 3);
+
+                }
+
+                if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && invis_pills.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ReceiveHint("You equipped <color=#C50000>SCP-500-I</color> \nConsuming it will make you invisible for 10s until it runs out or you use items or interact with objects.", 3);
+                }
+
+                if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && scale_pills.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ReceiveHint("You equipped <color=#C50000>SCP-500-S</color> \nConsuming it will set you to a semi-random size.", 3);
+
+                }
+
+                if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && friend_pills.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ReceiveHint("You equipped <color=#C50000>SCP-500-F</color> \nConsuming it will bring you a friend! (if there is a spectator availible.)", 3);
+
+                }
+
                 else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.Lantern && RoundEvent != "PowerBlackout")
                 {
+
+
                    
-
-                    if (new System.Random().Next(5) == 1 && !ghostLantern.Contains(newItemBase.ItemSerial) && !normalLantern.Contains(newItemBase.ItemSerial))
+                    if (ghostLantern.Contains(newItemBase.ItemSerial))
                     {
-                        ghostLantern.Add(newItemBase.ItemSerial);
-                        plr.ReceiveHint("You equipped the Ghastly Lantern. You can now phase through doors, at a cost...", 3);
-
-                    }
-                    else if (!normalLantern.Contains(newItemBase.ItemSerial) && !ghostLantern.Contains(newItemBase.ItemSerial))
-                    {
-                        hats.Add(newItemBase.ItemSerial);
-                    }
-                    else if (ghostLantern.Contains(newItemBase.ItemSerial))
-                    {
-                        plr.ReceiveHint("You equipped the Ghastly Lantern. You can now phase through doors, at a cost...", 3);
+                        plr.ReceiveHint("You equipped the <color=#4B5320>Ghastly Lantern</color>. \nYou can now phase through doors, at a cost...", 5);
                     }
 
 
                 }
 
-                Int32 Random = new System.Random().Next(8);
-              
-
-                
-                if ((Random == 6 || Random == 1) && !newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && !super_pills.Contains(newItemBase.ItemSerial) && !scp500s.Contains(newItemBase.ItemSerial) && !resurrection_pills.Contains(newItemBase.ItemSerial) && newItemBase.ItemTypeId == ItemType.SCP500)
-                {
-                    plr.ClearBroadcasts();
-
-                    if (new System.Random().Next(5) == 1 && !resurrection_pills.Contains(newItemBase.ItemSerial) && !scp500s.Contains(newItemBase.ItemSerial))
-                    {
-                        resurrection_pills.Add(newItemBase.ItemSerial);
-                        plr.ReceiveHint("You equipped the Resurrection Pill.", 3);
-
-                    }
-                    else if (resurrection_pills.Contains(newItemBase.ItemSerial))
-                    {
-                        plr.ReceiveHint("You equipped the Resurrection Pill.", 3);
-                    }
-                }
-                 
-                if ((Random == 5 || Random == 3) && !newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && !super_pills.Contains(newItemBase.ItemSerial) && !scp500s.Contains(newItemBase.ItemSerial) &&!resurrection_pills.Contains(newItemBase.ItemSerial) && newItemBase.ItemTypeId == ItemType.SCP500)
-                {
-                    plr.ClearBroadcasts();
-
-                    if (new System.Random().Next(10) == 3 && !super_pills.Contains(newItemBase.ItemSerial) && !scp500s.Contains(newItemBase.ItemSerial))
-                    {
-                        super_pills.Add(newItemBase.ItemSerial);
-                        plr.ReceiveHint("You equipped the Super Pill.", 3);
-
-                    }
-                  
-                    else if (super_pills.Contains(newItemBase.ItemSerial))
-                    {
-                        plr.ReceiveHint("You equipped the Super Pill.", 3);
-                    }
-
-
-                }
-
-                if ((Random == 4 || Random == 7 || Random == 2 || Random == 8) && !newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && !super_pills.Contains(newItemBase.ItemSerial) && !scp500s.Contains(newItemBase.ItemSerial) && !resurrection_pills.Contains(newItemBase.ItemSerial) && newItemBase.ItemTypeId == ItemType.SCP500)
-                {
-                    scp500s.Add(newItemBase.ItemSerial);
-
-                }
             }
         }
 
 
+        [PluginEvent(ServerEventType.PlayerSearchedPickup)]
+        void OnSearchedPickup(Player plr, ItemPickupBase pickup)
+        {
+            if (cfg.Debug == true)
+            {
+                Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) searched pickup &6{pickup.NetworkInfo.ItemId}&r");
+            }
+            
+
+
+            Int32 Random = new System.Random().Next(1,12);
+            
+            // Pickup Randomization Logic :D
+
+
+            /*
+            if ((Random == 6)  && pickup.NetworkInfo.ItemId == ItemType.SCP500 && !super_pills.Contains(pickup.NetworkInfo.Serial) && !scp500s.Contains(pickup.NetworkInfo.Serial) && !scale_pills.Contains(pickup.NetworkInfo.Serial) && !friend_pills.Contains(pickup.NetworkInfo.Serial) && !invis_pills.Contains(pickup.NetworkInfo.Serial) && !resurrection_pills.Contains(pickup.NetworkInfo.Serial) && pickup.NetworkInfo.ItemId == ItemType.SCP500)
+            {
+              
+                if (!resurrection_pills.Contains(pickup.NetworkInfo.Serial) && !scp500s.Contains(pickup.NetworkInfo.Serial))
+                {
+                    resurrection_pills.Add(pickup.NetworkInfo.Serial);
+                    
+
+                }
+
+            }
+            else if ((Random == 9) && pickup.NetworkInfo.ItemId == ItemType.SCP500 && !super_pills.Contains(pickup.NetworkInfo.Serial) && !scp500s.Contains(pickup.NetworkInfo.Serial) && !scale_pills.Contains(pickup.NetworkInfo.Serial) && !friend_pills.Contains(pickup.NetworkInfo.Serial) && !invis_pills.Contains(pickup.NetworkInfo.Serial) && !resurrection_pills.Contains(pickup.NetworkInfo.Serial) && pickup.NetworkInfo.ItemId == ItemType.SCP500)
+            {
+
+                if (!scale_pills.Contains(pickup.NetworkInfo.Serial) && !scp500s.Contains(pickup.NetworkInfo.Serial))
+                {
+                    scale_pills.Add(pickup.NetworkInfo.Serial);
+
+
+                }
+
+            }
+            else if ((Random == 11 || Random == 12) && pickup.NetworkInfo.ItemId == ItemType.SCP500 && !super_pills.Contains(pickup.NetworkInfo.Serial) && !scp500s.Contains(pickup.NetworkInfo.Serial) && !scale_pills.Contains(pickup.NetworkInfo.Serial) && !friend_pills.Contains(pickup.NetworkInfo.Serial) && !invis_pills.Contains(pickup.NetworkInfo.Serial) && !resurrection_pills.Contains(pickup.NetworkInfo.Serial) && pickup.NetworkInfo.ItemId == ItemType.SCP500)
+            {
+
+                if (!invis_pills.Contains(pickup.NetworkInfo.Serial) && !scp500s.Contains(pickup.NetworkInfo.Serial))
+                {
+                    invis_pills.Add(pickup.NetworkInfo.Serial);
+
+
+                }
+
+            }
+            else if ((Random == 5 || Random == 3) && pickup.NetworkInfo.ItemId == ItemType.SCP500 && !super_pills.Contains(pickup.NetworkInfo.Serial) && !scp500s.Contains(pickup.NetworkInfo.Serial) && !resurrection_pills.Contains(pickup.NetworkInfo.Serial) && pickup.NetworkInfo.ItemId == ItemType.SCP500)
+            {
+
+
+                if (!super_pills.Contains(pickup.NetworkInfo.Serial) && !scp500s.Contains(pickup.NetworkInfo.Serial))
+                {
+                    super_pills.Add(pickup.NetworkInfo.Serial);
+                
+
+                }
+
+
+
+
+            }
+            else if ((Random == 5 || Random == 3) && pickup.NetworkInfo.ItemId == ItemType.SCP500 && !super_pills.Contains(pickup.NetworkInfo.Serial) && !scp500s.Contains(pickup.NetworkInfo.Serial) && !resurrection_pills.Contains(pickup.NetworkInfo.Serial) && pickup.NetworkInfo.ItemId == ItemType.SCP500)
+            {
+
+
+                if (!super_pills.Contains(pickup.NetworkInfo.Serial) && !scp500s.Contains(pickup.NetworkInfo.Serial))
+                {
+                    super_pills.Add(pickup.NetworkInfo.Serial);
+
+
+                }
+
+
+
+
+            }
+            */
+
+            if (Random > 2 && pickup.NetworkInfo.ItemId == ItemType.SCP500 && !scp500s.Contains(pickup.NetworkInfo.Serial) && !scale_pills.Contains(pickup.NetworkInfo.Serial) && !friend_pills.Contains(pickup.NetworkInfo.Serial) && !invis_pills.Contains(pickup.NetworkInfo.Serial) && !resurrection_pills.Contains(pickup.NetworkInfo.Serial) && !super_pills.Contains(pickup.NetworkInfo.Serial)) {
+                switch (UnityEngine.Random.Range(0, 7))
+                {
+                    case 0: scale_pills.Add(pickup.NetworkInfo.Serial); break;
+                    case 1: invis_pills.Add(pickup.NetworkInfo.Serial); break;
+                    case 2: resurrection_pills.Add(pickup.NetworkInfo.Serial); break;
+                    case 3: super_pills.Add(pickup.NetworkInfo.Serial); break;
+                    case 4: friend_pills.Add(pickup.NetworkInfo.Serial); break;
+                    case 5: scp500s.Add(pickup.NetworkInfo.Serial); break;
+                    case 6: scp500s.Add(pickup.NetworkInfo.Serial); break;
+                    case 7: scp500s.Add(pickup.NetworkInfo.Serial); break;
+                }
+            }
+            else if (pickup.NetworkInfo.ItemId == ItemType.SCP500 && !scale_pills.Contains(pickup.NetworkInfo.Serial) && !friend_pills.Contains(pickup.NetworkInfo.Serial) && !invis_pills.Contains(pickup.NetworkInfo.Serial) && !resurrection_pills.Contains(pickup.NetworkInfo.Serial) && !super_pills.Contains(pickup.NetworkInfo.Serial))
+            {
+                scp500s.Add(pickup.NetworkInfo.Serial);
+
+            }
+
+
+
+            if (pickup.NetworkInfo.ItemId == ItemType.Lantern && RoundEvent != "PowerBlackout")
+            {
+
+
+                if (new System.Random().Next(5) == 1 && !ghostLantern.Contains(pickup.NetworkInfo.Serial) && !normalLantern.Contains(pickup.NetworkInfo.Serial))
+                {
+                    ghostLantern.Add(pickup.NetworkInfo.Serial);
+                  //  plr.ReceiveHint("You equipped the <color=#4B5320> Ghastly Lantern</color>. You can now phase through doors, at a cost...", 3);
+
+                }
+                else if (!normalLantern.Contains(pickup.NetworkInfo.Serial) && !ghostLantern.Contains(pickup.NetworkInfo.Serial))
+                {
+                    hats.Add(pickup.NetworkInfo.Serial);
+                }
+                else if (ghostLantern.Contains(pickup.NetworkInfo.Serial))
+                {
+                  //  plr.ReceiveHint("You equipped the <color=#4B5320> Ghastly Lantern</color>. You can now phase through doors, at a cost...", 3);
+                }
+
+
+            }
+
+            // Pickup notifs for custom items
+
+            if (super_pills.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up <color=#C50000>SCP-500-A</color> \nConsuming it will give you a variety of effects.", 3);
+            }
+            if (resurrection_pills.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up <color=#C50000>SCP-500-R</color> \nConsuming it will respawn any spectators at your position and as your class.", 3);
+            }
+            if (invis_pills.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up <color=#C50000>SCP-500-I</color> \nConsuming it will make you invisible for 10s until it runs out or you use items or interact with objects.", 3);
+            }
+            if (scale_pills.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up <color=#C50000>SCP-500-S</color> \nConsuming it will set you to a semi-random size.", 3);
+            }
+            if (friend_pills.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up <color=#C50000>SCP-500-S</color> \nConsuming it will bring you a friend! (if there is a spectator availible.)", 3);
+            }
+            if (ghostLantern.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up the <color=#4B5320>Ghastly Lantern</color>. \nWhile equipped, it will let you phase through most doors.", 5);
+            }
+            if (scp1499.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 3);
+            }
+
+
+
+
+
+            // Custom Items for drinks
+
+            if (colas_oxygen.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up a cup of pure oxygen.", 3);
+            }
+            if (colas_quantam.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up a bottle of quantum gas.", 3);
+            }
+            else if (colas_alpha.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up a bottle of (VERY LOUD FLAMINGO BATTLE CRY).", 3);
+            }
+            else if (colas_metal.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up a bottle of metal. It is very heavy.", 3);
+            }
+            else if (colas_cold.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up a bottle of ice.", 3);
+            }
+            else if (colas_speed.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up a bottle of speed juice.", 3);
+            }
+            else if (colas_water.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of water.", 3);
+            }
+            else if (colas_coffee.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a cup of coffee.", 3);
+            }
+            else if (colas_atomkick.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a can of golden atom kick.", 3);
+
+            }
+            else if (colas_nuclearkick.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of Nuclear Kick!", 3);
+
+            }
+            else if (colas_sour_patch_kids_slushy.Contains(pickup.NetworkInfo.Serial))
+            {
+                plr.ReceiveHint("You picked up a sour patch kids slushy.", 3);
+
+            }
+            else if (colas_invis.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of invisibility.", 3);
+
+            }
+            else if (colas_oil.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a can of oil.", 3);
+
+            }
+            else if (colas_me.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of yourself. Why are you doing this?", 3);
+
+            }
+            else if (colas_tea.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a cup of tea.", 3);
+
+            }
+            else if (colas_horror.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of horror.", 3);
+
+            }
+            else if (colas_borgor.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a cup containing a borgor.", 3);
+
+            }
+            else if (colas_antimatter.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a cup of antimatter.", 3);
+
+            }
+            else if (colas_zombie.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a cup of [REDACTED].", 3);
+
+            }
+            else if (colas_flamingo.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked a cup of (FLAMINGO BATTLE CRY).", 3);
+
+            }
+            else if (colas_cherryatomkick.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked a bottle of Cherry Atom Kick.", 3);
+
+            }
+            else if (colas_bepis.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked a can of Bepis.", 3);
+
+            }
+            else if (colas_explosion.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of gunpowd- WAIT NO", 3);
+
+            }
+            else if (colas_saltwater.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of saltwater.", 3);
+
+            }
+            else if (choccymilk.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of choccy milk.", 3);
+
+            }
+            else if (lemonade.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of lemonade.", 3);
+
+            }
+            else if (lava.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of lava.", 3);
+
+            }
+            else if (balls.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of balls.", 3);
+
+            }
+            else if (colas_peanut.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of SCP-173.", 3);
+
+            }
+            else if (colas_gas.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a can of gasoline.", 3);
+
+            }
+            else if (colas_ghost.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a ghostly brew.", 3);
+
+            }
+            else if (colas_scp207.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of cola.", 3);
+
+            }
+            else if (colas_big.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of growing juice.", 3);
+
+            }
+            else if (colas_teleportation.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a teleportation potion.", 3);
+
+            }
+            else if (colas_windex.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of windex.", 3);
+
+            }
+            else if (colas_medusa.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of medusa.", 3);
+
+            }
+            else if (colas_crazy.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You picked up a bottle of <color=C50000>DO NOT DRINK</color>", 3);
+
+            }
+            else if (colas_small.Contains(pickup.NetworkInfo.Serial))
+            {
+
+                plr.ReceiveHint("You equipped a potion of smol.", 3);
+
+            }
+        }
 
 
 
@@ -4228,7 +4625,7 @@ namespace Plugin
                         //}    
 
                         if (Player.TryGet(sender, out player)) ;
-                        SetScale(player, (float)int.Parse(arguments.First()));
+                        SetScale(player, float.Parse(arguments.First()));
 
 
                         response = "set player scale";
@@ -5008,6 +5405,7 @@ namespace Plugin
         }
 
 
+     
 
 
         public int CompareTo(object obj)
