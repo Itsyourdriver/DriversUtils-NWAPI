@@ -1,6 +1,7 @@
 using MapGeneration;
 using PlayerRoles;
 using PluginAPI.Core.Zones.Heavy.Rooms;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -13,6 +14,19 @@ namespace Plugin
 
         [Description("Debug (parts for now) of the plugin incase certain events arent firing.")]
         public bool Debug { get; set; } = false;
+
+        [Description("Display strings. Format: Role, display string.")]
+        public Dictionary<RoleTypeId, string> DisplayStrings { get; set; } = new Dictionary<RoleTypeId, string>()
+        {
+            { RoleTypeId.Scp106, "<color=#D51D1D>SCP-106 [%healthpercent%%] Vigor: null %distance%</color>" },
+            { RoleTypeId.Scp049, "<color=#D51D1D>SCP-049 [%healthpercent%% Zombies: %zombies%] %distance%</color>" },
+            { RoleTypeId.Scp079, "<color=#D51D1D>SCP-079 [%generators%%engaging%/3] Lvl: %079level% Exp: %079experience% Energy: %079energy%</color>" },
+            { RoleTypeId.Scp096, "<color=#D51D1D>SCP-096 [%healthpercent%%] %distance%</color>" },
+            { RoleTypeId.Scp173, "<color=#D51D1D>SCP-173 [%healthpercent%%] %distance%</color>" },
+            { RoleTypeId.Scp939, "<color=#D51D1D>SCP-939 [%healthpercent%%] %distance%</color>" },
+            { RoleTypeId.Scp3114, "<color=#D51D1D>SCP-3114 [%healthpercent%%] %distance%</color>" },
+        };
+        public List<string> Events { get; set; } =  new List<String> { "ChaosInvasion","PowerBlackout","Foggy","SpecialOps", "ArmedDClass" };
 
         [Description("Whether or not CASSIE should announce when serpents hand spawn.")]
         public bool ShouldCassie { get; set; } = true;
@@ -65,8 +79,9 @@ namespace Plugin
         [Description("Should we load item commands? Not implemented yet.")]
         public bool CommandsEnabled { get; set; } = true;
 
+        [Description("Invalue - Rarity of events out of 100.")]
+        public int EventRarity { get; set; } = 15;
 
-
-
+        
     }
 }
