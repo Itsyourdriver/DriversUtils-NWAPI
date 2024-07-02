@@ -45,3 +45,5 @@ Disclaimer: Builds will not be provided, you can compile yourself OR wait for me
 - Music for candy. Files NOT provided
 
 Have fun!
+
+Note: Some entries in the .info command contain text written by users on the SCP wikidot. 
