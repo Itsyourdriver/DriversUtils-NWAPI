@@ -11,9 +11,9 @@ Disclaimer: Builds will not be provided, you can compile yourself OR wait for me
 
 ### Custom Items
 - SCP 1499.
-- Resurrection Pills (actually hilarous, need to turn up the chance for this lol)
-- The SUPER Pills
-- Ghastly Lantern
+- Multiple Versions of SCP-500
+- The Ghastly Lantern
+- Alternative Types of grenades. (Prototype, Peanut-Infused)
 - + More soon.
 
 ### SCP-294
@@ -28,7 +28,7 @@ Disclaimer: Builds will not be provided, you can compile yourself OR wait for me
 - finally .findally or .findallies (or the other aliases i forgot about) allows you to see the current room of serpents hand for better cooperation because they usually don't have a way to communicate unless they find eachother.
 
 ### Subclasses
-- MTF Nu-7 can spawn. They have 10 more hp, guaranteed better gear, and are basically just epsilon-11 on steroids. :D (now disableable in config, not in this repo yet)
+- MTF Nu-7 can spawn. They have 10 more hp, guaranteed better gear, and are basically just epsilon-11 on steroids. (now disableable in config, not in this repo yet)
 - The Science Team can spawn. (don't ask)
 - Facility Guard Captain class which is a beefed up guard class that is put in place to try and balance out guards for lower players. Notable things are that they start with an mtf prviate keycard.
 - Adds "The Kid", whom spawns with candy and is shorter than everyone else. This was fun during the christmas event so we could have voice effects using the effect that was used for the cake during that time :)
