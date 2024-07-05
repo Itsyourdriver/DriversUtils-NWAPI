@@ -80,7 +80,7 @@ namespace Plugin
         public bool CommandsEnabled { get; set; } = true;
 
         [Description("Invalue - Rarity of events out of 100.")]
-        public int EventRarity { get; set; } = 15;
+        public int EventRarity { get; set; } = 100;
 
         
     }
