@@ -5,9 +5,9 @@ Disclaimer: Builds will not be provided, you can compile yourself OR wait for me
 
 # Dependinces 
 - Requires https://github.com/brayden-dowson/TheRiptide/ 's Utility.dll
-- Ruel
-- 
-- I'm not using them, but you may expect errors due to slocloader-nw.dll as I left it in my references. If you need it please go look for them in the NWApi Discord Server or on github.
+- [Ruel](https://github.com/Ruemena/RueI)
+- [slocLoader](https://github.com/Axwabo/slocLoader/tree/main)
+- [SCPSLAudioApi](https://github.com/CedModV2/SCPSLAudioApi/tree/master)
 
 # Features
 
