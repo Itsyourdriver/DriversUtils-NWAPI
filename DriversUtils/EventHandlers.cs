@@ -55,6 +55,8 @@ namespace Plugin
     using static UnityEngine.GraphicsBuffer;
     using CommandSystem.Commands.RemoteAdmin.Warhead;
     using static UnityEngine.Random;
+    using System.Reflection.Emit;
+    using UnityEngine.SceneManagement;
 
     public class EventHandlers : IComparable
     {
@@ -66,7 +68,7 @@ namespace Plugin
         SpawnableTeamType spawning_team = SpawnableTeamType.None;
         public static bool isSerpentSpawning = false;
         public static bool isScienceTeamSpawning = false;
-
+        public static bool canswap = true;
         private List<Scp079Generator> _generators = new List<Scp079Generator>();
         private ReferenceHub TempDummyy = null;
         private AudioPlayerBase audioPlayerr = null;
@@ -75,15 +77,23 @@ namespace Plugin
         private HashSet<Player> _PlayersWithArmor = new HashSet<Player>();
 
         private CoroutineHandle _displayCoroutine;
+        private CoroutineHandle _buttonCorountine;
         public static HashSet<ushort> ghostLantern = new HashSet<ushort>();
         public static HashSet<ushort> normalLantern = new HashSet<ushort>();
 
+
+        // Custom Items that need to be accessed everwhere (should really make a custom enum or smthn for this lmao)
         public static HashSet<ushort> THEButton = new HashSet<ushort>();
         public static HashSet<ushort> doublenade = new HashSet<ushort>();
         public static HashSet<ushort> peanutnade = new HashSet<ushort>();
+        public static HashSet<ushort> freezenade = new HashSet<ushort>();
         public static HashSet<ushort> grenades = new HashSet<ushort>();
 
-        string RoundEvent;
+
+        System.Random random = new System.Random();
+        
+
+        public static string RoundEvent;
         string LastRoundEvent;
         bool buttonused = false;
 
@@ -129,6 +139,7 @@ namespace Plugin
 
                     if (RoundEvent == "PowerBlackout")
                     {
+                        Facility.TurnOffAllLights();
                         Cassie.GlitchyMessage("Facility power system failure", 1f, 1f);
                     }
                     else
@@ -137,18 +148,21 @@ namespace Plugin
                     }
                     foreach (var p in Player.GetPlayers())
                     {
-                        if (p.IsHuman && p.Role != RoleTypeId.Overwatch && p.Role != RoleTypeId.Tutorial && p.Role != RoleTypeId.Spectator)
+                        if (p.Role != RoleTypeId.Overwatch && p.Role != RoleTypeId.Tutorial && p.Role != RoleTypeId.Spectator)
                         {
 
 
-
+                            if (RoundEvent == "EveryoneIsSmall")
+                            {
+                                p.SendBroadcast("<color=#228B22>EVENT:</color> Everyone is small!", 13, Broadcast.BroadcastFlags.Normal, false);
+                            }
                             if (RoundEvent == "ChaosInvasion")
                             {
                                 p.SendBroadcast("<color=#228B22>EVENT:</color> Chaos Invasion.", 13, Broadcast.BroadcastFlags.Normal, false);
                             }
                             if (RoundEvent == "PowerBlackout")
                             {
-                                Facility.TurnOffAllLights();
+                             
                                 p.SendBroadcast("<color=#228B22>EVENT:</color> Facility Power Blackout. Activate a generator to return facility power.", 13, Broadcast.BroadcastFlags.Normal, false);
                             }
                             /*
@@ -166,7 +180,6 @@ namespace Plugin
                             if (RoundEvent == "ArmedDClass")
                             {
                                 p.SendBroadcast("<color=#228B22>EVENT:</color> The Class-D Prisoners have taken up arms!", 13, Broadcast.BroadcastFlags.Normal, false);
-                                Warhead.WarheadUnlocked = true;
 
                             }
                             if (RoundEvent == "Foggy")
@@ -189,10 +202,12 @@ namespace Plugin
 
             _displayCoroutine = Timing.RunCoroutine(ShowDisplay());
 
-            List<String> RoomList = new List<String> { "EZ_Crossing (3)", "EZ_upstairs", "EZ_Smallrooms2", "EZ_PCs", "EZ_GateA", "EZ_GateB", "HCZ_049", "HCZ_Tesla", "LCZ_Cafe (15)", "LCZ_Plants", "LCZ_372 (18)" };
-            System.Random random = new System.Random();
-            String RandomRoom = RoomList.RandomItem();
-            Log.Debug(RandomRoom);
+            if (_buttonCorountine.IsRunning)
+                Timing.KillCoroutines(_displayCoroutine);
+
+            
+
+          
             //RoomIdentifier.AllRoomIdentifiers.TryGetValue(Random.Range(1, RoomIdentifier.AllRoomIdentifiers.Count));
             //HashSet<RoomIdentifier> AllRooms = RoomIdentifier.AllRoomIdentifiers;
             // int rndmNumber = Random.Next(AllRooms.size());
@@ -202,32 +217,11 @@ namespace Plugin
           
            
 
-            if (new System.Random().Next(30) == 1)
+           if (new System.Random().Next(30) == 1)
             {
-                Timing.CallDelayed(Random.Range(60f, 300f), () =>
-                   {
-                       ItemBase itemBase = ReferenceHub.HostHub.inventory.ServerAddItem(ItemType.SCP1576);
 
-
-                       ItemPickupBase itemPickup = itemBase.ServerDropItem();
-                       itemPickup.transform.position = new Vector3((float)(RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoom).transform.position.x), (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoom).transform.position.y + 2, (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoom).transform.position.z);
-                       itemPickup.transform.rotation = UnityEngine.Quaternion.Euler(0, 0, 0);
-                       itemPickup.transform.localScale = new Vector3(1f, 1f, 1f);
-                       List<Player> Playerss = Player.GetPlayers();
-                       Log.Warning("The Button has spawned.");
-                       foreach (var allplrs in Playerss)
-                       {
-                           if (allplrs.Role != RoleTypeId.Overwatch)
-                           {
-                               allplrs.SendBroadcast("<color=#C50000>THE BUTTON</color> has spawned.", 3);
-
-
-                           }
-                       }
-                       THEButton.Add(itemBase.ItemSerial);
-
-
-                   });
+                _buttonCorountine = Timing.RunCoroutine(SpawnButton());
+               
             }
         }
 
@@ -243,6 +237,9 @@ namespace Plugin
         {
             // player.ReferenceHub.roleManager.ServerSetRole(RoleTypeId.Tutorial, RoleChangeReason.Escaped, RoleSpawnFlags.None);
             Config config = Plugin.Singleton.Config;
+
+            Timing.CallDelayed(0.1f, () =>
+            {
             player.ReferenceHub.inventory.UserInventory.Items.Clear();
             player.Role = PlayerRoles.RoleTypeId.Tutorial;
             fbi.Add(player.PlayerId);
@@ -275,10 +272,10 @@ namespace Plugin
 
                 player.AddAmmo(ItemType.Ammo44cal, 24);
                 AddOrDropFirearm(player, ItemType.GunRevolver, true);
-                // player.CustomInfo = $"<color=#FF96DE>{player.DisplayNickname}</color>" + "\n<color=#FF96DE>SERPENTS HAND CAPTAIN</color>";
-                //  player.PlayerInfo.IsNicknameHidden = true;
-                //  player.PlayerInfo.IsUnitNameHidden = true;
-                //  player.PlayerInfo.IsRoleHidden = true;
+                player.CustomInfo = $"<color=#FF96DE>{player.DisplayNickname}</color>" + "\n<color=#FF96DE>SERPENTS HAND CAPTAIN</color>";
+                player.PlayerInfo.IsNicknameHidden = true;
+                player.PlayerInfo.IsUnitNameHidden = true;
+                player.PlayerInfo.IsRoleHidden = true;
 
 
                 player.SendBroadcast(config.SerpentsHandCaptainText, 15);
@@ -321,23 +318,18 @@ namespace Plugin
 
                 // lets do weapons now
 
-                //     player.AddAmmo(ItemType.Ammo44cal, 24);
-                //    AddOrDropFirearm(player, ItemType.GunRevolver, true);
                 AddOrDropFirearm(player, ItemType.GunCOM18, true);
-                //  player.CustomInfo = $"<color=#FF96DE>{player.DisplayNickname}</color>" + "\n<color=#FF96DE>SERPENTS HAND AGENT</color>";
-                //  player.PlayerInfo.IsNicknameHidden = true;
-                //   player.PlayerInfo.IsUnitNameHidden = true;
-                //   player.PlayerInfo.IsRoleHidden = true;
+                  player.CustomInfo = $"<color=#FF96DE>{player.DisplayNickname}</color>" + "\n<color=#FF96DE>SERPENTS HAND AGENT</color>";
+                  player.PlayerInfo.IsNicknameHidden = true;
+                  player.PlayerInfo.IsUnitNameHidden = true;
+                  player.PlayerInfo.IsRoleHidden = true;
 
             }
 
 
             Player playertoTP = Player.Get(player.ReferenceHub);
             playertoTP.Position = new UnityEngine.Vector3(0.06f, 1000.96f, 0.33f);
-
-            // might add config for this in the future, dunno yet
-            // fyi add +1000 to ur y coord if you wanna tp someone to somewhere on surface, learned that from axwabo. 
-
+            });
         }
 
 
@@ -374,6 +366,7 @@ namespace Plugin
 
             Timing.CallDelayed(0.3f, () =>
             {
+                player.Health = 100;
                 player.ReferenceHub.inventory.UserInventory.Items.Clear();
                 sci.Add(player.PlayerId);
 
@@ -387,8 +380,9 @@ namespace Plugin
 
 
 
-                player.AddAmmo(ItemType.Ammo762x39, 120);
-                AddOrDropFirearm(player, ItemType.GunAK, true);
+                player.AddAmmo(ItemType.Ammo556x45, 80);
+                player.AddAmmo(ItemType.Ammo9x19, 40);
+                AddOrDropFirearm(player, ItemType.GunE11SR, true);
                 // credit to riptide for this code, i didnt feel like doing this system myself for the time being
 
 
@@ -405,11 +399,16 @@ namespace Plugin
                     case 8: AddOrDropItem(player, ItemType.SCP244b); break;
                     case 9: AddOrDropItem(player, ItemType.SCP1853); break;
                 }
-                //Player playertoTP = Player.Get(player.ReferenceHub);
-                //  playertoTP.Position = new UnityEngine.Vector3(63.01f, 991.65f, -50.04f);
+                Player playertoTP = Player.Get(player.ReferenceHub);
+                playertoTP.Position = new UnityEngine.Vector3(63.01f, 991.65f, -50.04f);
 
                 // might add config for this in the future, dunno yet
                 // fyi add +1000 to ur y coord if you wanna tp someone to somewhere on surface, learned that from axwabo. 
+
+                player.CustomInfo = $"<color=#FAFF86>{player.DisplayNickname}\nTHE SCIENCE TEAM</color>";
+                player.PlayerInfo.IsNicknameHidden = true;
+                player.PlayerInfo.IsUnitNameHidden = true;
+                player.PlayerInfo.IsRoleHidden = true;
             });
 
 
@@ -417,6 +416,57 @@ namespace Plugin
 
 
         Config cfg = Plugin.Singleton.Config;
+
+
+        private IEnumerator<float> SpawnButton()
+        {
+
+            yield return Timing.WaitForSeconds(Random.Range(60f, 300f));
+            {
+                try
+                {
+                    // Log.Debug(RandomRoom);
+                    if (!RoundSummary.singleton._roundEnded && Round.IsRoundStarted)
+                    {
+
+                        List<String> RoomList = new List<String> { "EZ_Crossing (3)", "EZ_upstairs", "EZ_Smallrooms2", "EZ_PCs", "EZ_GateA", "EZ_GateB", "HCZ_049", "HCZ_Tesla", "LCZ_Cafe (15)", "LCZ_Plants", "LCZ_372 (18)" };
+                        String RandomRoom = RoomList.RandomItem();
+
+
+                        ItemBase itemBase = ReferenceHub.HostHub.inventory.ServerAddItem(ItemType.SCP1576);
+
+
+                    ItemPickupBase itemPickup = itemBase.ServerDropItem();
+                    itemPickup.transform.position = new Vector3((float)(RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoom).transform.position.x), (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoom).transform.position.y + 2, (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoom).transform.position.z);
+                    itemPickup.transform.rotation = UnityEngine.Quaternion.Euler(0, 0, 0);
+                    itemPickup.transform.localScale = new Vector3(1f, 1f, 1f);
+                    List<Player> Playerss = Player.GetPlayers();
+                    Log.Warning("The Button has spawned.");
+                    foreach (var allplrs in Playerss)
+                    {
+                        if (allplrs.Role != RoleTypeId.Overwatch)
+                        {
+                            allplrs.SendBroadcast("<color=#C50000>THE BUTTON</color> has spawned.", 3);
+
+
+                        }
+                    }
+                    THEButton.Add(itemBase.ItemSerial);
+                   
+
+                }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex.ToString());
+                }
+
+
+            
+
+        }
+        }
+        
         private IEnumerator<float> ShowDisplay()
         {
 
@@ -427,6 +477,7 @@ namespace Plugin
                 {
                     foreach (var player in Player.GetPlayers().Where(p => p != null && p.Room != null))// && p.CurrentItem == ItemType.SCP207 || p.CurrentItem == ItemType.AntiSCP207))
                     {
+                       
 
                         if (player.IsSCP)
                         {
@@ -439,10 +490,12 @@ namespace Plugin
 
 
                                     player.EffectsManager.ChangeState("FogControl", 255, 1.25f, false);
+                                 
+
+                                        
 
 
-
-                                }
+                                    }
 
                             }
 
@@ -452,7 +505,7 @@ namespace Plugin
 
                             foreach (var scp in Player.GetPlayers().Where(p => p?.Role.GetTeam() == Team.SCPs && cfg.DisplayStrings.ContainsKey(p.Role)))
                             {
-                                text += (player == scp && true ? "<color=#D51D1D>You --></color>" + " " : "") + ProcessStringVariables(cfg.DisplayStrings[scp.Role], player, scp) + "\n";
+                                text += (player == scp && true ? "<color=#50C878>You --></color>" + " " : "") + ProcessStringVariables(cfg.DisplayStrings[scp.Role], player, scp) + "\n";
                             }
 
                             text += $"<voffset={30}em> </voffset></align>";
@@ -461,49 +514,64 @@ namespace Plugin
 
 
 
+                        
                         if (player.IsHuman && player.Role != RoleTypeId.Overwatch)
                         {
 
-
-
+                           // ReferenceHub PlayersAudioBot;
                             if (!ItemType.SCP207.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId))
                             {
 
 
                                 if (player.Room.name == "EZ_Smallrooms2" || player.Room.name == "LCZ_TCross (11)")
                                 {
-                                    player.ReceiveHint("You may be able to use SCP-294. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)", 1.25f);
+                                    player.ReceiveHint("You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)", 1.25f);
                                 }
 
                                 if (player.Room.name == "LCZ_372 (18)")
                                 {
-                                    player.ReceiveHint("You may be able to use SCP-1025. (.scp1025)", 1.25f);
+                                    player.ReceiveHint("You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)", 1.25f);
+                                }
+                                if (player.Room.name == "Outside")
+                                {
+                                   // player.ReceiveHint(cfg.KillsHint, 1.25f);
+                                    //🔪 |  %plrkills% pls work lol
                                 }
                             }
 
-                            if (player.Room.name == "LCZ_914 (14)" && ambience914.Contains(player.PlayerId))
+                            /*
+                            if (player.Room.name == "LCZ_914 (14)" && !player.TemporaryData.Contains("scp914_ambience") || player.Room.name != "LCZ_914 (14)" && player.TemporaryData.Contains("scp914_ambience"))
                             {
+                                PlayersAudioBot = AddDummy();
+                                if (player.Room.name == "LCZ_914 (14)" && !player.TemporaryData.Contains("scp914_ambience"))
+                                {
 
-                                // audioPlayerr.BroadcastTo.Add(player.PlayerId);
+                                    player.TemporaryData.Add("scp914_ambience", this);
 
-                                //   player.ReceiveHint("914", 1.25f);
+                                    //PlayersAudioBot = AddDummy();
+
+                                    //     PlayersAudioBot = TemporaryBot;
+                                    PlayPlayerAudio096_Loop(player, "ninefourteen.ogg", (byte)65f, PlayersAudioBot);
+                                   // player.EffectsManager.EnableEffect<SoundtrackMute>(0, false);
+                                }
+
+                                if (player.Room.name != "LCZ_914 (14)" && player.TemporaryData.Contains("scp914_ambience"))
+                                {
+
+                                    player.TemporaryData.Remove("scp914_ambience");
+
+                                    //player.EffectsManager.DisableEffect<SoundtrackMute>();
+                                    Log.Debug($"{PlayersAudioBot.name}");
+                                    //StopAudio096(PlayersAudioBot);
+                                    StopAudio096(PlayersAudioBot);
+                                    RemoveDummy096(PlayersAudioBot);
+                                    Log.Debug($"{PlayersAudioBot.name}");
+                                }
+
                             }
+                            */
 
-                            if (player.Room.name != "LCZ_914 (14)" && !ambience914.Contains(player.PlayerId))
-                            {
-                                //   audioPlayerr.BroadcastTo.Remove(player.PlayerId);
 
-                                //   ambience914.Remove(player.PlayerId);
-                                //  player.ReceiveHint("914 is no more", 1.25f);
-
-                            }
-
-                            if (player.Room.name == "LCZ_914 (14)" && !ambience914.Contains(player.PlayerId))
-                            {
-                                //    audioPlayerr.BroadcastTo.Add(player.PlayerId);
-                                // ambience914.Add(player.PlayerId);
-                                //   player.ReceiveHint("914", 1.25f);
-                            }
 
                             if (RoundEvent == "Foggy")
                             {
@@ -558,7 +626,7 @@ namespace Plugin
                         .Replace("%079experience", tier.RelativeExp.ToString());
                     break;
                 case Scp106Role scp106:
-                  //  scp106.SubroutineModule.TryGetSubroutine(out Scp106Vigor vigor);
+                 //   scp106.SubroutineModule.TryGetSubroutine(out Scp106Vigor vigor);
                     //raw = raw.Replace("%106vigor%", Math.Floor(vigor.VigorAmount * 100).ToString());
                     break;
 
@@ -640,92 +708,88 @@ namespace Plugin
         public bool waswave2mtf = false;
 
         [PluginEvent(ServerEventType.TeamRespawn)]
-        void OnRespawnWave(SpawnableTeamType team, List<Player> players, int max)
+        bool OnRespawnWave(SpawnableTeamType team, List<Player> players, int max)
         {
-            //    Log.Info($"Spawned team &6{team}&r");
             spawning_team = team;
             respawn_count++;
-            // && new System.Random().Next(2) == 1
             Config config = Plugin.Singleton.Config;
-
-
-            // thanks to my friend seagull101 for the help with system.random, i still have almost no idea what I am doing lol
-            if (respawn_count == 1 && spawning_team == SpawnableTeamType.NineTailedFox)
-            {
-                waswave1mtf = true;
-            }
-
-            if (respawn_count == 2 && spawning_team == SpawnableTeamType.NineTailedFox)
-            {
-                waswave2mtf = true;
-
-                Timing.CallDelayed(2f, () =>
-                {
-                    RespawnTokensManager.ForceTeamDominance(SpawnableTeamType.ChaosInsurgency, 85);
-                });
-
-
-            }
-
-
             if (respawn_count >= 2 && spawning_team == SpawnableTeamType.ChaosInsurgency && config.ShouldSerpentsSpawn == true && new System.Random().Next(4) == 1)
             {
-                //int randn = Random.RandomRange(1, 4);
-                //int randn = 2;
-                // if (randn == 2 || randn == 3 || randn == 4 || randn == 1)
-                //     {
                 if (haveSerpentsSpawned == false)
                 {
-                    isSerpentSpawning = true;
+                   // isSerpentSpawning = true;
 
                     if (config.ShouldSerpentsHandSpawnMore == false)
                     {
                         haveSerpentsSpawned = true;
-                        isSerpentSpawning = false;
+                      //  isSerpentSpawning = false;
                     }
-                    //  if (UnityEngine.Random.value < 0.10 && spawning_team == SpawnableTeamType.ChaosInsurgency)
-                    //  {
+
                     if (config.ShouldCassie == true)
                     {
                         Cassie.Message(config.CassieMessage, true, config.CassieNoise, config.CassieText);
                     }
 
                     //  PlayAudio("SerpentsHand.ogg", (byte)45f, false);
-
+                    /*
                     Timing.CallDelayed(5f, () =>
                    {
                        isSerpentSpawning = false;
                    });
+                    */
 
-                    //       }
-                    //    !player.TemporaryData.Contains("custom_class"))
+                    foreach (var p in Player.GetPlayers())
+                    {
+                        if (p.Role == RoleTypeId.Spectator)
+                        {
+                            ChangeToTutorial(p, RoleTypeId.Tutorial);
+                            p.TemporaryData.Add("custom_class", this);
+                        }
+                    }
 
-                    //   }
+                    return false;
                 }
-            
+                else
+                {
+                    return true;
+                }
 
                
             }
-
-
-            if (respawn_count >= 2 && spawning_team == SpawnableTeamType.NineTailedFox && config.ShouldScienceTeamSpawn == true && new System.Random().Next(7) == 1 && isSerpentSpawning == false)
+            else if (respawn_count >= 2 && spawning_team == SpawnableTeamType.NineTailedFox && config.ShouldScienceTeamSpawn == true && new System.Random().Next(7) == 1 && isSerpentSpawning == false)
             {
 
                 if (havetheScienceTeamSpawned == false)
                 {
-                    isScienceTeamSpawning = true;
+                   // isScienceTeamSpawning = true;
 
-                    // if (config.Can == false)
-                    //  {
-                    //      haveSerpentsSpawned = true;
-                    ////      isSerpentSpawning = false;
-                    //  }
-                    //  if (UnityEngine.Random.value < 0.10 && spawning_team == SpawnableTeamType.ChaosInsurgency)
-                    //  {
+                    if (respawn_count == 1 && spawning_team == SpawnableTeamType.NineTailedFox)
+                    {
+                        waswave1mtf = true;
+                    }
+                    if (respawn_count == 2 && spawning_team == SpawnableTeamType.NineTailedFox)
+                    {
+                        waswave2mtf = true;
+
+                        Timing.CallDelayed(2f, () =>
+                        {
+                            RespawnTokensManager.ForceTeamDominance(SpawnableTeamType.ChaosInsurgency, 85);
+                        });
 
 
+                    }
 
-                    Timing.CallDelayed(0.1f, () =>
+
+                    foreach (var p in Player.GetPlayers())
+                    {
+                        if (p.Role == RoleTypeId.Spectator)
+                        {
+                            ChangeToScienceTeam(p, RoleTypeId.Scientist);
+                            p.TemporaryData.Add("custom_class", this);
+                        }
+                    }
+
+                        Timing.CallDelayed(0.1f, () =>
                     {
                         Cassie.Clear();
                         if (config.ShouldCassie == true && spawning_team == SpawnableTeamType.NineTailedFox)
@@ -742,20 +806,46 @@ namespace Plugin
                         }
                     });
 
-                  
 
+                    /*
                     //  PlayAudio("SerpentsHand.ogg", (byte)45f, false);
-
+                    
                     Timing.CallDelayed(5f, () =>
                     {
                         isScienceTeamSpawning = false;
                     });
-
+                    */
                     //       }
                     //    !player.TemporaryData.Contains("custom_class"))
 
                     //   }
+                    return false;
                 }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+
+                if (respawn_count == 1 && spawning_team == SpawnableTeamType.NineTailedFox)
+                {
+                    waswave1mtf = true;
+                }
+                if (respawn_count == 2 && spawning_team == SpawnableTeamType.NineTailedFox)
+                {
+                    waswave2mtf = true;
+
+                    Timing.CallDelayed(2f, () =>
+                    {
+                        RespawnTokensManager.ForceTeamDominance(SpawnableTeamType.ChaosInsurgency, 85);
+                    });
+
+
+                }
+
+                return true;
             }
         }
 
@@ -790,6 +880,7 @@ namespace Plugin
                 if (spawning_team == SpawnableTeamType.ChaosInsurgency && role.GetTeam() == Team.ChaosInsurgency && !player.TemporaryData.Contains("custom_class"))
                 {
 
+                    /*
                     // ewww formatting went bye bye, this is probably really inefficient but it seems to fix my original problem where players would infinitely be set to tutorial or have like thousands of each ammo type
                     Timing.CallDelayed(0.3f, () =>
                     {
@@ -812,6 +903,7 @@ namespace Plugin
                             // Log.Debug("Serpents hand spawned.");
                         }
                     });
+                    */
                 }
             }
 
@@ -820,7 +912,7 @@ namespace Plugin
             {
                 if (spawning_team == SpawnableTeamType.NineTailedFox && role.GetTeam() == Team.FoundationForces && role.GetTeam() != Team.Scientists && spawning_team != SpawnableTeamType.ChaosInsurgency)
                 {
-
+                    /*
                     // ewww formatting went bye bye, this is probably really inefficient but it seems to fix my original problem where players would infinitely be set to tutorial or have like thousands of each ammo type
                     Timing.CallDelayed(0.5f, () =>
                     {
@@ -833,6 +925,7 @@ namespace Plugin
 
                         
                     });
+                    */
                 }
             }
 
@@ -842,13 +935,13 @@ namespace Plugin
             {
                 if (spawning_team == SpawnableTeamType.ChaosInsurgency && role.GetTeam() == Team.ChaosInsurgency && !player.TemporaryData.Contains("custom_class"))
                 {
-
+                    /*
                     // ewww formatting went bye bye, this is probably really inefficient but it seems to fix my original problem where players would infinitely be set to tutorial or have like thousands of each ammo type
                     Timing.CallDelayed(0.3f, () =>
                     {
                         if (player.Role != RoleTypeId.Tutorial)
                         {
-                            ChangeToTutorial(player, role);
+                           // ChangeToTutorial(player, role);
                         }
 
 
@@ -856,7 +949,7 @@ namespace Plugin
                         if (player.Role == RoleTypeId.Tutorial)
                         {
 
-                            player.TemporaryData.Add("custom_class", this);
+                           // player.TemporaryData.Add("custom_class", this);
                             // player.SendBroadcast("", 10);
                             //   player.TemporaryData.Add("custom_class", this);
                             //  AddOrDropItem(player, ItemType.KeycardFacilityManager);
@@ -865,6 +958,7 @@ namespace Plugin
                             // Log.Debug("Serpents hand spawned.");
                         }
                     });
+                    */
                 }
             }
 
@@ -878,7 +972,7 @@ namespace Plugin
                    // player.ReceiveHint("ComputerBuff: You have bonus abilities availible. Open your console (press ~ to open it) and run the command .pcbuff for more info.", 10f);
                 });
             }
-
+            
 
         }
 
@@ -920,7 +1014,7 @@ namespace Plugin
 
 
             //  public bool doesSubclassMTFexist = false; 
-            [PluginEvent(ServerEventType.PlayerChangeRole)]
+        [PluginEvent(ServerEventType.PlayerChangeRole)]
         void PlayerChangeRole(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
         {
 
@@ -928,6 +1022,18 @@ namespace Plugin
 
             if (player != null)
             {
+                if (newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Overwatch || newRole != RoleTypeId.Filmmaker)
+                {
+                    if (player.CustomInfo != null)
+                    {
+                        
+                        player.PlayerInfo.IsRoleHidden = true;
+                        player.PlayerInfo.IsNicknameHidden = true;
+                        player.PlayerInfo.IsUnitNameHidden = true;
+                        player.CustomInfo = null;
+                    }
+                }
+                
                 if (randomNumber > cfg.EventRarity)
                     return;
 
@@ -949,7 +1055,16 @@ namespace Plugin
                         }
                     });
                 }
-
+                if (RoundEvent == "EveryoneIsSmall")
+                {
+                    Timing.CallDelayed(1.5f, () =>
+                    {
+                        if (newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Filmmaker && newRole != RoleTypeId.Overwatch)
+                        {
+                            SetScale(player, 0.5f);
+                        }
+                    });
+                }
                 if (RoundEvent == "ChaosInvasion")
                 {
                     Timing.CallDelayed(1.5f, () =>
@@ -1032,21 +1147,38 @@ namespace Plugin
 
                     Timing.CallDelayed(0.2f, () =>
                     {
-                        player.SendBroadcast("You are a MTF Boom Boom Boy. You have access to EXPLOSIVES!", 10);
+                        player.SendBroadcast("You are a <color=#00B7EB>Nine-Tailed Fox Demolitionist</color>. Check your inventory.", 10);
                         player.AddItem(ItemType.GrenadeHE);
                         player.AddItem(ItemType.GrenadeHE);
-                        // player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>Nine Tailed Fox Boom Boom Boy</color>";
+                         
                      //   player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}\nNine Tailed Fox Boom Boom Boy</color>";
-                       // player.PlayerInfo.IsRoleHidden = true;
-                       // player.PlayerInfo.IsNicknameHidden = true;
-                       // player.PlayerInfo.IsUnitNameHidden = true;
-                       // player.PlayerInfo.IsRoleHidden = true;
+                        player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX DEMOLITIONIST</color>";
+                        player.PlayerInfo.IsRoleHidden = true;
+                        player.PlayerInfo.IsNicknameHidden = true;
+                        player.PlayerInfo.IsUnitNameHidden = true;
+                        player.PlayerInfo.IsRoleHidden = true;
                       //  player.ReceiveHint(player.CustomInfo, 10);
                     });
 
 
                }
             }
+
+
+                if (RoundEvent == "EveryoneIsSmall")
+                {
+                    Timing.CallDelayed(0.3f, () =>
+                    {
+                        if (newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Filmmaker && newRole != RoleTypeId.Overwatch)
+                        {
+                            SetScale(player, 0.5f);
+                        }
+                    });
+                }
+
+
+
+
 
 
 
@@ -1061,14 +1193,14 @@ namespace Plugin
 
                     Timing.CallDelayed(0.2f, () =>
                     {
-                        player.SendBroadcast("You are a Chaos Specialist. You have access to ???.", 10);
+                        player.SendBroadcast("You are a <color=#4B5320>Chaos Specialist</color>. You have access to ???.", 10);
 
-                       // player.CustomInfo = $"<color=#228B22>{player.DisplayNickname}</color>" + "\n<color=#228B22>CHAOS SPECIALIST</color>";
-                       // player.CustomInfo.Replace(player.CustomInfo, $"<color=#228B22>{player.DisplayNickname}</color>" + "\n<color=#228B22>CHAOS SPECIALIST</color>");
-                        //player.CustomInfo = $"<color=#228B22>{player.DisplayNickname}\nChaos Specialist</color>";
-                     //   player.PlayerInfo.IsNicknameHidden = true;
-                      //  player.PlayerInfo.IsUnitNameHidden = true;
-                     //   player.PlayerInfo.IsRoleHidden = true;
+                        player.CustomInfo = $"<color=#228b22>{player.DisplayNickname}</color>" + "\n<color=#228b22>CHAOS SPECIALIST</color>";
+                        player.PlayerInfo.IsRoleHidden = true;
+                        player.PlayerInfo.IsNicknameHidden = true;
+                        player.PlayerInfo.IsUnitNameHidden = true;
+                        player.PlayerInfo.IsRoleHidden = true;
+
                         switch (UnityEngine.Random.Range(0, 8))
                         {
                             case 0: AddOrDropItem(player, ItemType.SCP2176); break;
@@ -1082,37 +1214,65 @@ namespace Plugin
                             case 8: AddOrDropItem(player, ItemType.SCP244b); break;
                         }
 
-                      //  player.ReceiveHint(player.CustomInfo, 10);
                     });
 
 
                 }
             }
            //
-           // if (player != null && newRole == RoleTypeId.Scientist)
-          //  {
+           if (player != null && oldRole.RoleTypeId != RoleTypeId.Spectator && newRole == RoleTypeId.Scientist && isScienceTeamSpawning == false)
+           {
 
-           //     if ((Random.Range(1, 10) == 3))
-            //    {
+               if ((Random.Range(1, 10) == 3))
+                {
                     
 
-              //      Timing.CallDelayed(0.1f, () =>
-              //      {
-               //        player.SendBroadcast("You are a Senior Researcher.", 10);
-              //       //  player.CustomInfo = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
-                      //  player.PlayerInfo.IsNicknameHidden = true;
-                     //   player.PlayerInfo.IsUnitNameHidden = true;
-                     //   player.PlayerInfo.IsRoleHidden = true;
-              //          player.ClearInventory();
-                //        player.AddItem(ItemType.KeycardResearchCoordinator);
-                //        player.AddItem(ItemType.Radio);
-                //        player.AddItem(ItemType.Medkit);
-                 //   });
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                       player.SendBroadcast("You are a <color=#FAFF86>Senior Researcher</color>. Check your inventory.", 10);
+                        player.CustomInfo = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
+                        player.PlayerInfo.IsNicknameHidden = true;
+                        player.PlayerInfo.IsUnitNameHidden = true;
+                        player.PlayerInfo.IsRoleHidden = true;
+                        foreach (var items in player.Items)
+                        {
+                            if (items.ItemTypeId is ItemType.KeycardScientist || items.ItemTypeId is ItemType.Medkit || items.ItemTypeId is ItemType.Radio)
+                            {
+                                player.RemoveItem(items);
+                            }
+                        }
+                       player.AddItem(ItemType.KeycardResearchCoordinator);
+                       player.AddItem(ItemType.Radio);
+                       player.AddItem(ItemType.Medkit);
+                    });
 
 
-              //  }
-           // }
+               }
+            }
+            if (player != null && newRole == RoleTypeId.NtfPrivate)
+            {
 
+                if ((Random.Range(1, 10) == 2))
+                {
+
+
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                        player.SendBroadcast("You are a <color=#00B7EB>Nine-Tailed Fox Medic</color>. Check your inventory.", 10);
+                        player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
+                        player.PlayerInfo.IsRoleHidden = true;
+                        player.PlayerInfo.IsNicknameHidden = true;
+                        player.PlayerInfo.IsUnitNameHidden = true;
+                        player.PlayerInfo.IsRoleHidden = true;
+                        player.AddItem(ItemType.Medkit);
+                        player.AddItem(ItemType.Painkillers);
+                    });
+
+
+                }
+            }
+
+         
             if (player != null && fbi.Contains(player.PlayerId) && player.PlayerId == captainplayer.PlayerId)
             {
                 fbi.Remove(player.PlayerId);
@@ -1161,10 +1321,10 @@ namespace Plugin
             Config config = Plugin.Singleton.Config;
             if (player != null)
             {
-                player.PlayerInfo.IsUnitNameHidden = false;
-                player.PlayerInfo.IsNicknameHidden = false;
-                player.PlayerInfo.IsRoleHidden = false;
-                player.CustomInfo = string.Empty;
+               // player.PlayerInfo.IsUnitNameHidden = false;
+                //player.PlayerInfo.IsNicknameHidden = false;
+                //player.PlayerInfo.IsRoleHidden = false;
+                //player.CustomInfo = string.Empty;
             }
 
 
@@ -1232,6 +1392,7 @@ namespace Plugin
         [PluginEvent(ServerEventType.PlayerLeft)]
         void OnPlayerLeave(Player player)
         {
+            /*
             if (player != null)
             {
                 player.PlayerInfo.IsRoleHidden = false;
@@ -1239,6 +1400,8 @@ namespace Plugin
                 player.PlayerInfo.IsRoleHidden = false;
                 player.CustomInfo = string.Empty;
             }
+            */
+
             if (player != null && fbi.Contains(player.PlayerId) && player.PlayerId == captainplayer.PlayerId)
             {
                 fbi.Remove(player.PlayerId);
@@ -1250,7 +1413,7 @@ namespace Plugin
                 //  player.DisplayNickname = player.Nickname;
                 fbi.Remove(player.PlayerId);
                 player.TemporaryData.Remove("custom_class");
-                player.DisplayNickname = null;
+                //player.DisplayNickname = null;
             }
             if (player != null && sci.Contains(player.PlayerId))
             {
@@ -1313,7 +1476,46 @@ namespace Plugin
             {
                 return false;
             }
-            else return true;
+            else
+            {
+                if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                {
+                    byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                        if (plr != null && plr.Role == role)
+                        {
+                            plr.EffectsManager.EnableEffect<CustomPlayerEffects.Scp207>(0, false);
+                            plr.EffectsManager.ChangeState("Scp207", num, 0, false);
+                        }
+                    });
+                }
+                else if ((plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp1853 plrEffect) && plrEffect.IsEnabled))
+                {
+                    byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp1853>().Intensity;
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                    if (plr != null && plr.Role == role)
+                    {
+                        plr.EffectsManager.EnableEffect<CustomPlayerEffects.Scp1853>(0, false);
+                        plr.EffectsManager.ChangeState("Scp1853", num, 0, false);
+                    }
+                    });
+                }
+                else if ((plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.AntiScp207 antiCola) && antiCola.IsEnabled))
+                {
+                    byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.AntiScp207>().Intensity;
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                        if (plr != null && plr.Role == role)
+                        {
+                            plr.EffectsManager.EnableEffect<CustomPlayerEffects.AntiScp207>(0, false);
+                            plr.EffectsManager.ChangeState("AntiScp207", num, 0, false);
+                        }
+                    });
+                }
+                return true;
+            } 
         }
 
         [PluginEvent(ServerEventType.LczDecontaminationStart)]
@@ -1535,6 +1737,7 @@ namespace Plugin
         public static HashSet<ushort> lemonade = new HashSet<ushort>();
         public static HashSet<ushort> lava = new HashSet<ushort>();
         public static HashSet<ushort> balls = new HashSet<ushort>();
+        public static HashSet<ushort> colas_beer = new HashSet<ushort>();
 
 
 
@@ -1547,6 +1750,7 @@ namespace Plugin
         public static HashSet<ushort> invis_pills = new HashSet<ushort>();
         public static HashSet<ushort> friend_pills = new HashSet<ushort>();
         public static HashSet<ushort> scale_pills = new HashSet<ushort>();
+        public static HashSet<ushort> seeing_adrenaline = new HashSet<ushort>();
         public static HashSet<ushort> scp500s = new HashSet<ushort>();
 
         // OTHER - ANYTHING ELSE IS AT THE TOP FOR EASY ACCESS FROM OTHER FUNCTIONS
@@ -1577,7 +1781,7 @@ namespace Plugin
                 {
                     if (player.Room != null && arguments.Count != 0 && arguments.First().ToLower() == "list" || arguments.First().ToLower() == "help" || arguments.First().ToLower() == "drinks")
                     {
-                        player.SendConsoleMessage("List of SCP-294 Drinks: oxygen, speed, SCP-207, Coffee, Espresso, GoldenAtomKick, NuclearKick, godmode, nuclearkick, Invisibility, scp268, Me, Tea, Horror, PocketDimension, Borgor, Cheeserburger, Antimatter, Nuke, 049, Zombie, CherryAtomKick, HealthPotion, grenade, pinkcandy, Boom, SCP-173, Peanut, Saltwater, Ocean, Teleportation, Teleport, Escape, Windex, Medusa, SCP-330, Candy, SeveredHands, BEPIS, Small, Big, grow, LeafLover, Water, Slushy, Ghost, Cold, Ice, Death, Metal, Steel, RazorBlade, Oil, Freedom, Bose-Einstein, Condensate, QuantumGas, white, slime, scp1853, scp-1853, choccymilk, lava, lemonade","white");
+                        player.SendConsoleMessage("List of SCP-294 Drinks: oxygen, speed, SCP-207, Coffee, Espresso, GoldenAtomKick, NuclearKick, godmode, nuclearkick, Invisibility, scp268, Me, Tea, Horror, PocketDimension, Borgor, Cheeserburger, Antimatter, Nuke, 049, Zombie, CherryAtomKick, HealthPotion, grenade, pinkcandy, Boom, SCP-173, Peanut, Saltwater, Ocean, Teleportation, Teleport, Escape, Windex, Medusa, SCP-330, Candy, SeveredHands, BEPIS, Small, Big, grow, LeafLover, Water, Slushy, Ghost, Cold, Ice, Death, Metal, Steel, RazorBlade, Oil, Freedom, Bose-Einstein, Condensate, QuantumGas, Beer, Vodka, slime, scp1853, scp-1853, choccymilk, lava, lemonade","white");
                         player.SendConsoleMessage("DUPLICATE ENTRIES ARE INCLUDED. SOME MAY BE CASE-SENSITIVE; MAKE SURE TO DOUBLE CHECK CAPS / LOWERCASE.","white");
                     }
                     if (player.Room != null && ItemType.Coin.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room.name == "EZ_Smallrooms2" && arguments.First().ToLower() != "list" || player.Room.name == "LCZ_TCross (11)")
@@ -1588,19 +1792,24 @@ namespace Plugin
                             
 
                        
-                        if (arguments.First().ToLower() == "alphaflamingo" || arguments.First().ToLower() == "alpha")
+                        if (arguments.First().ToLower() == "beer" || arguments.First().ToLower() == "vodka" || arguments.First().ToLower() == "addiction")
                         {
                             // Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a cup of (VERY LOUD FLAMINGO BATTLE CRY).", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
-                            colas_alpha.Add(thiscola.ItemSerial);
+                            colas_beer.Add(thiscola.ItemSerial);
 
-                            
+                            ReferenceHub TempDummy = AddDummy();
+                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
+                            Timing.CallDelayed(9f, () =>
+                            {
+                                RemoveDummy096(TempDummy);
+                            });
 
                         }
                         if (arguments.First().ToLower() == "oil" || arguments.First().ToLower() == "freedom")
@@ -1609,7 +1818,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a can of oil.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a can of oil.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
@@ -1628,7 +1837,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
 
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a bottle of choccy milk.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a bottle of choccy milk.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
@@ -1647,7 +1856,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
 
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a bottle of lemonade.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a bottle of lemonade.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
@@ -1666,7 +1875,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
 
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a bottle of lava.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a bottle of lava.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
@@ -1685,7 +1894,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
 
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a bottle of balls.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a bottle of balls.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
@@ -1704,7 +1913,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a cup of metal.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a cup of metal.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
@@ -1724,7 +1933,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a cup of ice.", 5);
+                            player.SendBroadcast($"You exchanged a coin with<color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a cup of ice.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
                             PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f, TempDummy);
@@ -1741,7 +1950,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a cup of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
@@ -1758,7 +1967,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a cup of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
@@ -1775,7 +1984,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise pitched up to high levels and dispensed you a cup of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise pitched up to high levels and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
@@ -1792,7 +2001,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a cup of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_coffee.Add(thiscola.ItemSerial);
@@ -1809,7 +2018,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a glittering sound and dispensed you a can of Golden Atom Kick.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a glittering sound and dispensed you a can of Golden Atom Kick.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
                             colas_atomkick.Add(thiscola.ItemSerial);
@@ -1826,7 +2035,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a small noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a small noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_nuclearkick.Add(thiscola.ItemSerial);
@@ -1843,7 +2052,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a noise of fabric being cut and dispensed you a cup of SCP-268.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a noise of fabric being cut and dispensed you a cup of SCP-268.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_invis.Add(thiscola.ItemSerial);
@@ -1859,7 +2068,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud rumbling noise and dispensed you a cup of yourself.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud rumbling noise and dispensed you a cup of yourself.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_me.Add(thiscola.ItemSerial);
@@ -1875,7 +2084,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a cup of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_tea.Add(thiscola.ItemSerial);
@@ -1892,7 +2101,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a crunchy noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a crunchy noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_horror.Add(thiscola.ItemSerial);
@@ -1908,7 +2117,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_borgor.Add(thiscola.ItemSerial);
@@ -1925,7 +2134,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_antimatter.Add(thiscola.ItemSerial);
@@ -1942,7 +2151,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_zombie.Add(thiscola.ItemSerial);
@@ -1958,7 +2167,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_cherryatomkick.Add(thiscola.ItemSerial);
@@ -1975,7 +2184,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
                             colas_explosion.Add(thiscola.ItemSerial);
@@ -1992,7 +2201,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a crunchy noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a crunchy noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_peanut.Add(thiscola.ItemSerial);
@@ -2009,7 +2218,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_saltwater.Add(thiscola.ItemSerial);
@@ -2026,7 +2235,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_gas.Add(thiscola.ItemSerial);
@@ -2042,7 +2251,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_teleportation.Add(thiscola.ItemSerial);
@@ -2059,7 +2268,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a glimmering noise and dispensed you a bottle of Windex.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a glimmering noise and dispensed you a bottle of Windex.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_windex.Add(thiscola.ItemSerial);
@@ -2075,7 +2284,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a glimmering noise and dispensed you a bottle of Medusa.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a glimmering noise and dispensed you a bottle of Medusa.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_medusa.Add(thiscola.ItemSerial);
@@ -2092,7 +2301,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a glimmering noise and dispensed you a bottle of Sour Patch Kids Slushy.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a glimmering noise and dispensed you a bottle of Sour Patch Kids Slushy.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_sour_patch_kids_slushy.Add(thiscola.ItemSerial);
@@ -2109,7 +2318,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine began to say Crazy? I was crazy once, they locked me in a room, a rubber room, a rubber room with rats, and rats make me crazy. In a robotic voice and dispensed you a drink.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine began to say Crazy? I was crazy once, they locked me in a room, a rubber room, a rubber room with rats, and rats make me crazy. In a robotic voice and dispensed you a drink.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_crazy.Add(thiscola.ItemSerial);
@@ -2125,7 +2334,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a high-pitched noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a high-pitched noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_small.Add(thiscola.ItemSerial);
@@ -2141,7 +2350,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a odd noise and dispensed you a can of Bepis.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a odd noise and dispensed you a can of Bepis.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_bepis.Add(thiscola.ItemSerial);
@@ -2157,7 +2366,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a high-pitched noise and dispensed you a bottle of cola.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a high-pitched noise and dispensed you a bottle of cola.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_scp207.Add(thiscola.ItemSerial);
@@ -2173,7 +2382,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a weird noise and dispensed a vile of SCP-1853.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a weird noise and dispensed a vile of SCP-1853.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP1853);
                             greenjuice.Add(thiscola.ItemSerial);
@@ -2189,7 +2398,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_water.Add(thiscola.ItemSerial);
@@ -2205,7 +2414,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a weird noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a weird noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_flamingo.Add(thiscola.ItemSerial);
@@ -2221,7 +2430,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made a loud noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_big.Add(thiscola.ItemSerial);
@@ -2237,7 +2446,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with SCP-294, the machine made the sound of gas being released and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made the sound of gas being released and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
                             colas_quantam.Add(thiscola.ItemSerial);
@@ -2283,6 +2492,9 @@ namespace Plugin
                 Log.Info("ERROR READ ME on player death! Custom Roles will be the same player next Round !!!");
             }
         }
+
+
+
 
         [PluginEvent(ServerEventType.PlayerUseItem)]
         void OnPlayerStartedUsingItem(Player plr, UsableItem item)
@@ -3457,25 +3669,24 @@ namespace Plugin
             }
             if (item.ItemTypeId == ItemType.SCP207 && lemonade.Contains(item.ItemSerial))
             {
-                //  Log.Debug("SCP-268 was used.");
+
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-
-                  
-                    
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                      plr.ReceiveHint("You drank a cup of lemonade. Refreshing!", 3);
-
-
-
-
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
-                    //  plr.IsGodModeEnabled = true;
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
-
                 });
-                // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
+            }
+            if (item.ItemTypeId == ItemType.SCP207 && colas_beer.Contains(item.ItemSerial))
+            {
+
+
+                Timing.CallDelayed(3.4f, () =>
+                {
+                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    plr.EffectsManager.EnableEffect<Burned>(0);
+                    plr.ReceiveHint("You drank the entire bottle.", 3);
+                });
             }
             if (item.ItemTypeId == ItemType.SCP207 && lava.Contains(item.ItemSerial))
             {
@@ -3719,7 +3930,18 @@ namespace Plugin
                 });
 
             }
+            else if (item.ItemTypeId == ItemType.Adrenaline && seeing_adrenaline.Contains(item.ItemSerial))
+            {
 
+
+                Timing.CallDelayed(1.36f, () =>
+                {
+                    plr.ReceiveHint("You injected the <color=#C50000>Prototype-32-X</color> You are able to see much farther for the next 15s.");
+                    plr.EffectsManager.ChangeState("FogControl", 0, 15f, false);
+
+                });
+
+            }
 
 
 
@@ -3871,6 +4093,10 @@ namespace Plugin
                 else if (!newItemBase == false && colas_metal.Contains(newItemBase.ItemSerial))
                 {
                     plr.ReceiveHint("You equipped a bottle of metal. It is very heavy.", 3);
+                }
+                else if (!newItemBase == false && colas_beer.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ReceiveHint("You equipped a bottle of beer.", 3);
                 }
                 else if (!newItemBase == false && colas_cold.Contains(newItemBase.ItemSerial))
                 {
@@ -4039,6 +4265,12 @@ namespace Plugin
                     plr.ReceiveHint("You equipped a bottle of growing juice.", 3);
 
                 }
+                else if (!newItemBase == false && colas_beer.Contains(newItemBase.ItemSerial))
+                {
+
+                    plr.ReceiveHint("You equipped a bottle of beer. Don't drink too much.", 3);
+
+                }
                 else if (!newItemBase == false && colas_teleportation.Contains(newItemBase.ItemSerial))
                 {
 
@@ -4092,6 +4324,12 @@ namespace Plugin
                     }
 
 
+                }
+
+                else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.Adrenaline)
+                {
+                   
+          
                 }
 
                 else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.Lantern && !ghostLantern.Contains(newItemBase.ItemSerial) && !normalLantern.Contains(newItemBase.ItemSerial))
@@ -4178,7 +4416,7 @@ namespace Plugin
                     plr.ReceiveHint("You equipped <color=#C50000>SCP-500</color>", 3);
 
                 }
-                if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.GrenadeHE && !doublenade.Contains(newItemBase.ItemSerial) && !peanutnade.Contains(newItemBase.ItemSerial) && !grenades.Contains(newItemBase.ItemSerial))
+                if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.GrenadeHE && !doublenade.Contains(newItemBase.ItemSerial) && !peanutnade.Contains(newItemBase.ItemSerial) && !grenades.Contains(newItemBase.ItemSerial) && !freezenade.Contains(newItemBase.ItemSerial))
                 {
 
                     Int32 GrenadeRandomizer = UnityEngine.Random.Range(1, 12);
@@ -4205,6 +4443,10 @@ namespace Plugin
                 else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.GrenadeHE && peanutnade.Contains(newItemBase.ItemSerial))
                 {
                     plr.ReceiveHint("You equipped a <color=#C50000>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 3);
+                }
+                else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.GrenadeHE && freezenade.Contains(newItemBase.ItemSerial) && peanutnade.Contains(newItemBase.ItemSerial))
+                {
+                    plr.ReceiveHint("You equipped a <color=#C50000>Ice-Infused Grenade</color> \nThis grenade will do very little damage however it will slow down <b>whoever</b> it hits.", 3);
                 }
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.Lantern && RoundEvent != "PowerBlackout")
                 {
@@ -4397,6 +4639,11 @@ namespace Plugin
             if (peanutnade.Contains(pickup.NetworkInfo.Serial) && pickup.NetworkInfo.ItemId == ItemType.GrenadeHE && !doublenade.Contains(pickup.NetworkInfo.Serial) && !grenades.Contains(pickup.NetworkInfo.Serial))
             {
                 plr.ReceiveHint("You picked up a <color=#4B5320>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 4);
+            }
+            if (peanutnade.Contains(pickup.NetworkInfo.Serial) && pickup.NetworkInfo.ItemId == ItemType.GrenadeHE && !doublenade.Contains(pickup.NetworkInfo.Serial) && freezenade.Contains(pickup.NetworkInfo.Serial) && !grenades.Contains(pickup.NetworkInfo.Serial))
+            {
+                //plr.ReceiveHint("You picked up a <color=#C50000>Ice-Infused Grenade</color> \nThis grenade will do very little damage however it will slow down <b>whoever</b> it hits.", 3);
+                //freezenade.Add(pickup.NetworkInfo.Serial);
             }
             if (pickup.NetworkInfo.ItemId == ItemType.SCP500 && resurrection_pills.Contains(pickup.NetworkInfo.Serial))
             {
@@ -4768,16 +5015,76 @@ namespace Plugin
             public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
             {
                 Player player;
-                if (Player.TryGet(sender, out player))
+                if (Player.TryGet(sender, out player) && RoundEvent != "EveryoneIsSmall")
                 {
                     SetScale(player, 1.0f);
-                    response = "success, your scale should be fixed. If issues persist, please rejoin the game.";
+                    response = "success, your scale should be fixed. Have fun ^_^ \nNote: If desync issues persist, please rejoin the game.";
                     return true;
                 }
-                response = "failed";
+                response = "failed. Either you are somehow set to null or the current event is EveryoneIsSmall";
                 return false;
             }
         }
+
+        [CommandHandler(typeof(ClientCommandHandler))]
+        public class nickname : ICommand
+        {
+            public string Command { get; } = "nickname";
+
+            public string[] Aliases { get; } = new string[] {"nick","setnick","setnickname","setname"};
+
+            public string Description { get; } = "Don't abuse this, thanks!";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+                Player player;
+                if (Player.TryGet(sender, out player) && arguments.Count != 0)
+                {
+                    if (arguments.First().ToLower() == "reset")
+                    {
+                        player.DisplayNickname = null;
+                    }
+                    else
+                    {
+                        player.DisplayNickname = String.Join(" ", arguments);
+                    }
+                   
+                    response = "Success! If you want to reset it, run it like this: .nickname reset";
+                    return true;
+                }
+                response = "Failed";
+                return false;
+            }
+        }
+
+
+
+
+        [CommandHandler(typeof(ClientCommandHandler))]
+        public class kill : ICommand
+        {
+            public string Command { get; } = "kill";
+
+            public string[] Aliases { get; } = new string[] { };
+
+            public string Description { get; } = "There is nothing we can do.";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+                Player player;
+                if (Player.TryGet(sender, out player) && player.Role != RoleTypeId.Spectator && !player.IsSCP)
+                {
+                    player.Kill("Suicide");
+                    response = "Goodbye!";
+                    return true;
+                }
+                response = "you can't do that, try it again later nerd.";
+                return false;
+            }
+        }
+
+
+        
 
 
         [CommandHandler(typeof(RemoteAdminCommandHandler))]
@@ -4825,13 +5132,81 @@ namespace Plugin
             }
         }
 
+        [CommandHandler(typeof(RemoteAdminCommandHandler))]
+        public class spawnBot : ICommand
+        {
+            public string Command { get; } = "spawnbot";
+
+            public string[] Aliases { get; } = new string[] { };
+
+            public string Description { get; } = "Spawn a bot for testing certain code";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+
+
+                Player player;
+
+                if (Player.TryGet(sender, out player))
+                {
+                    
+
+                    var newPlayer = UnityEngine.Object.Instantiate(NetworkManager.singleton.playerPrefab);
+                    var fakeConnection = new FakeConnection(0);
+                    var hubPlayer = newPlayer.GetComponent<ReferenceHub>();
+                    NetworkServer.AddPlayerForConnection(fakeConnection, newPlayer);
+                    hubPlayer.authManager.InstanceMode = CentralAuth.ClientInstanceMode.Unverified;
+                    hubPlayer.roleManager.ServerSetRole(RoleTypeId.Tutorial, RoleChangeReason.RemoteAdmin, RoleSpawnFlags.None);
+                    hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 1f, 1f);
+
+                    try
+                    {
+                        hubPlayer.nicknameSync.SetNick("This is a bot");
+                        hubPlayer.TryOverridePosition(player.Position, player.Rotation);
+                    }
+                    catch (Exception) { }
+
+                    Timing.CallDelayed(0.7f, () =>
+                    {
+                        hubPlayer.roleManager.ServerSetRole(RoleTypeId.Tutorial, RoleChangeReason.None, RoleSpawnFlags.None);
+                     
+                    });
+
+
+                    try
+                    {
+                        hubPlayer.nicknameSync.SetNick("This is a bot");
+
+                    }
+                    catch (Exception) { }
+
+                    Timing.CallDelayed(1f, () =>
+                    {
+                        hubPlayer.TryOverridePosition(player.Position, player.Rotation);
+                        hubPlayer.nicknameSync.CustomPlayerInfo = $"<color=#FF96DE>{hubPlayer.nicknameSync.CombinedName}</color>" + "\n<color=#FF96DE>SERPENTS HAND CAPTAIN</color>";
+
+                    });
+
+
+
+
+                    response = "set player scale";
+                    return true;
+                }
+                else { 
+
+
+
+
+                
+                response = "failed";
+                return false;
+                }
+            }
+        }
+
+
         static bool coolDowned2 = true;
-
-
-        //        public List<ItemType> list = new List<ItemType>
-        //if (ItemType.Coin.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room.name == "EZ_Smallrooms2" || player.Room.name == "LCZ_TCross (11)")
-
-
 
         [CommandHandler(typeof(ClientCommandHandler))]
         public class scp1025 : ICommand
@@ -4856,11 +5231,14 @@ namespace Plugin
                         //  player.EffectsManager.EnableEffect<CustomPlayerEffects>
                         // StatusEffectBase Randomeffect = player.ReferenceHub.playerEffectsController.AllEffects.RandomItem();
                         // player.EffectsManager.EnableEffect<Randomeffect>()
-                        StatusEffectBase effect = player.ReferenceHub.playerEffectsController.AllEffects.RandomItem();
-                        effect.ServerSetState(1, 9999, false);
-                        player.SendBroadcast($"You read the next page of SCP-1025 and got the effect {effect.name}.", 5);
+                          List<String> list = new List<String> {"CardiacArrest","Hypothermia", "Decontaminating", "Invigorated", "Poisoned", "Scp207", "MovementBoost", "Hypothermia", "Scp1853", "AntiScp207", "DamageReduction" };
+                        //StatusEffectBase effect = player.ReferenceHub.playerEffectsController.AllEffects.RandomItem();
+                        string effect = list.RandomItem();
+                        player.ReferenceHub.playerEffectsController.ChangeState(effect, 1, 0, false);
+                       // ef
+                          player.SendBroadcast($"You opened <color=#C50000>SCP-1025</color> and read the page {effect}.", 5);
 
-                       // player.TemporaryData.Add("coolDown",player);
+                        // player.TemporaryData.Add("coolDown",player);
 
 
                         ReferenceHub TempDummy = AddDummy();
@@ -5254,6 +5632,26 @@ namespace Plugin
         }
 
 
+        public static AudioPlayerBase PlayPlayerAudio096_Loop(Player player, string audioFile, byte volume, ReferenceHub AudioBotT)
+        {
+            //if (AudioBot == null) AudioBot = AddDummy();
+
+            StopAudio();
+
+            var path = Path.Combine("", audioFile);
+
+            AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBotT);
+            audioPlayer.Enqueue(path, -1);
+            audioPlayer.LogDebug = false;
+            audioPlayer.BroadcastChannel = VoiceChatChannel.Proximity;
+            audioPlayer.BroadcastTo.Add(player.PlayerId);
+            audioPlayer.Volume = 25f;
+            audioPlayer.Loop = false;
+            audioPlayer.Play(0);
+            return audioPlayer;
+        }
+
+   
 
 
         public static AudioPlayerBase AddListener(Player player, string audioFile, byte volume, ReferenceHub AudioBotT)
@@ -5380,8 +5778,8 @@ namespace Plugin
             {
               
                 hubPlayer.roleManager.ServerSetRole(RoleTypeId.Overwatch, RoleChangeReason.None, RoleSpawnFlags.None);
-                hubPlayer.characterClassManager._godMode = true;
-                hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
+               hubPlayer.characterClassManager._godMode = true;
+               hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
                // foreach (var target in ReferenceHub.AllHubs.Where(x => x != ReferenceHub.HostHub))
                   //  NetworkServer.SendSpawnMessage(hub.networkIdentity, target.connectionToClient);
             });
@@ -5587,8 +5985,7 @@ namespace Plugin
         }
 
 
-         static bool CanPush = true;
-
+        
 
 
 
