@@ -4,7 +4,7 @@ A SCPSL NorthwoodAPI (NWAPI) plugin purpose built for a private server.
 Disclaimer: Builds will not be provided, you can compile yourself OR wait for me to release a less jank version in the future.
 
 # Dependinces 
-- Requires https://github.com/brayden-dowson/TheRiptide/ 's Utility.dll
+- https://github.com/brayden-dowson/TheRiptide/ 's Utility.dll
 - [Ruel](https://github.com/Ruemena/RueI)
 - [slocLoader](https://github.com/Axwabo/slocLoader/tree/main)
 - [SCPSLAudioApi](https://github.com/CedModV2/SCPSLAudioApi/tree/master)
