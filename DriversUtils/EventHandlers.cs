@@ -57,7 +57,16 @@ namespace Plugin
     using static UnityEngine.Random;
     using System.Reflection.Emit;
     using UnityEngine.SceneManagement;
+    using RueI;
+    using RueI.Displays;
+    using RueI.Extensions;
+    using StringBuilder = RueI.Extensions.HintBuilding;
+    using RueI.Elements;
+    using RueI.Displays.Scheduling;
+    using static System.Net.Mime.MediaTypeNames;
+    using JetBrains.Annotations;
 
+    // woo I love converting 6k lines of code over to new things (i'm gonna have to do it again when labapi drops :D)
     public class EventHandlers : IComparable
     {
         int respawn_count = 0;
@@ -81,6 +90,7 @@ namespace Plugin
         public static HashSet<ushort> ghostLantern = new HashSet<ushort>();
         public static HashSet<ushort> normalLantern = new HashSet<ushort>();
 
+        public static Dictionary<Player,int> PlayerKills = new Dictionary<Player, int>();
 
         // Custom Items that need to be accessed everwhere (should really make a custom enum or smthn for this lmao)
         public static HashSet<ushort> THEButton = new HashSet<ushort>();
@@ -89,7 +99,7 @@ namespace Plugin
         public static HashSet<ushort> freezenade = new HashSet<ushort>();
         public static HashSet<ushort> grenades = new HashSet<ushort>();
 
-
+        
         System.Random random = new System.Random();
         
 
@@ -111,6 +121,20 @@ namespace Plugin
             generatorsActivated = 0;
             // PlayAudio64("ninefourteen.ogg", (byte)65F, true, TempDummyy);
             // audioPlayerr = AudioPlayerBase.Get(TempDummyy);
+            foreach (var p in Player.GetPlayers())
+            {
+                if (!PlayerKills.TryGetValue(p, out int test))
+                {
+                    PlayerKills.Add(p, 0);
+
+                }
+                else
+                {
+                    PlayerKills[p] = 0;
+                }
+            }       
+
+
 
             if (randomNumber <= cfg.EventRarity)
             {
@@ -150,7 +174,7 @@ namespace Plugin
                     {
                         if (p.Role != RoleTypeId.Overwatch && p.Role != RoleTypeId.Tutorial && p.Role != RoleTypeId.Spectator)
                         {
-
+                           
 
                             if (RoundEvent == "EveryoneIsSmall")
                             {
@@ -478,7 +502,7 @@ namespace Plugin
                     foreach (var player in Player.GetPlayers().Where(p => p != null && p.Room != null))// && p.CurrentItem == ItemType.SCP207 || p.CurrentItem == ItemType.AntiSCP207))
                     {
                        
-
+                        
                         if (player.IsSCP)
                         {
 
@@ -509,12 +533,26 @@ namespace Plugin
                             }
 
                             text += $"<voffset={30}em> </voffset></align>";
-                            player.ReceiveHint(text, 1.25f);
+                            // player.ReceiveHint(text, 1.25f);
+                            //text += $"</align>";
+
+                            DisplayCore.Get(player.ReferenceHub).SetElemTemp(text, 850f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                         }
 
 
 
                         
+
+                        if (player.IsHuman || player.IsSCP || player.Role == RoleTypeId.Tutorial)
+                        {
+                            if (player.Role == RoleTypeId.ClassD)
+                            {
+                                //DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FF9966><pos=512><align=left><b><size=75%>🔪 | {PlayerKills[player]} </size></b></align></color>", 150f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                            }
+                            
+                        }
+                       
+
                         if (player.IsHuman && player.Role != RoleTypeId.Overwatch)
                         {
 
@@ -525,12 +563,14 @@ namespace Plugin
 
                                 if (player.Room.name == "EZ_Smallrooms2" || player.Room.name == "LCZ_TCross (11)")
                                 {
-                                    player.ReceiveHint("You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)", 1.25f);
+                                  //  player.ReceiveHint("You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)", 1.25f);
+                                    DisplayCore.Get(player.ReferenceHub).SetElemTemp("<b>You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                                 }
 
                                 if (player.Room.name == "LCZ_372 (18)")
                                 {
-                                    player.ReceiveHint("You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)", 1.25f);
+                                    //player.ReceiveHint("You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)", 1.25f);
+                                    DisplayCore.Get(player.ReferenceHub).SetElemTemp("<b>You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                                 }
                                 if (player.Room.name == "Outside")
                                 {
@@ -611,6 +651,26 @@ namespace Plugin
         }
 
 
+
+        [PluginEvent(ServerEventType.PlayerJoined)]
+        void OnPlayerJoin(Player player)
+        {
+            if (player.IpAddress == "127.0.0.1" || player.IpAddress == "localhost")
+            {
+                return;
+
+            }
+            else
+            {
+                if (!PlayerKills.TryGetValue(player, out int test))
+                {
+                    PlayerKills.Add(player, 0);
+
+                }
+                
+                
+            }
+        }
 
 
         private string ProcessStringVariables(string raw, Player observer, Player target)
@@ -702,6 +762,8 @@ namespace Plugin
             randomNumber = Random.Range(1, 100);
             Log.Debug(randomNumber.ToString());
             RoundEvent = "";
+
+
         }
 
         public bool waswave1mtf = false;
@@ -1013,7 +1075,7 @@ namespace Plugin
 
 
 
-            //  public bool doesSubclassMTFexist = false; 
+        //  public bool doesSubclassMTFexist = false; 
         [PluginEvent(ServerEventType.PlayerChangeRole)]
         void PlayerChangeRole(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
         {
@@ -1022,18 +1084,19 @@ namespace Plugin
 
             if (player != null)
             {
+
                 if (newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Overwatch || newRole != RoleTypeId.Filmmaker)
                 {
                     if (player.CustomInfo != null)
                     {
-                        
+
                         player.PlayerInfo.IsRoleHidden = true;
                         player.PlayerInfo.IsNicknameHidden = true;
                         player.PlayerInfo.IsUnitNameHidden = true;
                         player.CustomInfo = null;
                     }
                 }
-                
+
                 if (randomNumber > cfg.EventRarity)
                     return;
 
@@ -1041,7 +1104,7 @@ namespace Plugin
                     return;
 
 
-                
+
                 if (RoundEvent == "ArmedDClass")
                 {
                     Timing.CallDelayed(1.5f, () =>
@@ -1090,26 +1153,7 @@ namespace Plugin
                 }
 
 
-                if (RoundEvent == "PowerBlackout")
-                {
-                    Timing.CallDelayed(1.5f, () =>
-                    {
-                        if (!player.IsInventoryFull && player.IsHuman == true && newRole != RoleTypeId.Overwatch && newRole != RoleTypeId.Spectator)
-                        {
 
-
-
-
-
-                            switch (UnityEngine.Random.Range(0, 1))
-                            {
-                                case 0: AddOrDropItem(player, ItemType.Lantern); break;
-                                case 1: AddOrDropItem(player, ItemType.Flashlight); break;
-                            }
-
-                        }
-                    });
-                }
                 /*
                  if (RoundEvent == "UnstablePower")
                  {
@@ -1124,6 +1168,30 @@ namespace Plugin
 
 
 
+            
+
+        }
+
+
+            if (RoundEvent == "PowerBlackout")
+            {
+                Timing.CallDelayed(1.5f, () =>
+                {
+                    if (!player.IsInventoryFull && player.IsHuman == true && newRole != RoleTypeId.Overwatch && newRole != RoleTypeId.Spectator)
+                    {
+
+
+
+
+                        
+                        switch (UnityEngine.Random.Range(0, 1))
+                        {
+                            case 0: AddOrDropItem(player, ItemType.Lantern); break;
+                            case 1: AddOrDropItem(player, ItemType.Flashlight); break;
+                        }
+                        
+                    }
+                });
             }
 
 
@@ -1321,14 +1389,27 @@ namespace Plugin
             Config config = Plugin.Singleton.Config;
             if (player != null)
             {
-               // player.PlayerInfo.IsUnitNameHidden = false;
+                // player.PlayerInfo.IsUnitNameHidden = false;
                 //player.PlayerInfo.IsNicknameHidden = false;
                 //player.PlayerInfo.IsRoleHidden = false;
                 //player.CustomInfo = string.Empty;
+
+                if (PlayerKills.TryGetValue(attacker, out int test))
+                {
+                    PlayerKills[attacker]++;
+
+                }
+                else
+                {
+                    //PlayerKills[attacker]++;
+                    // NULL
+                }
+
+                DisplayCore.Get(attacker.ReferenceHub).SetElemTemp($"<b>{PlayerKills[attacker]} kills this round.</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+
             }
 
-
-          
+           
 
 
             if (player != null)
@@ -1366,7 +1447,9 @@ namespace Plugin
                 }
                 if (alive_count == 1)
                 {
-                target.ReceiveHint(config.LastOneAliveHint, 10);
+                //target.ReceiveHint(config.LastOneAliveHint, 10);
+
+                DisplayCore.Get(player.ReferenceHub).SetElemTemp(config.LastOneAliveHint, 200f, TimeSpan.FromSeconds(10), new TimedElemRef<SetElement>());
             }
                     
 
@@ -1401,6 +1484,16 @@ namespace Plugin
                 player.CustomInfo = string.Empty;
             }
             */
+            if (player.IpAddress == "127.0.0.1" || player.IpAddress == "localhost")
+            {
+                return;
+
+            }
+            else
+            {
+                PlayerKills.Remove(player);
+
+            }
 
             if (player != null && fbi.Contains(player.PlayerId) && player.PlayerId == captainplayer.PlayerId)
             {
@@ -1447,6 +1540,24 @@ namespace Plugin
 
 
 
+        [PluginEvent(ServerEventType.PlayerCoinFlip)]
+        void OnCoinFlip(Player player, bool isTails)
+        {
+            Timing.CallDelayed(1.4f, () =>
+            {
+                if (isTails)
+                {
+                   // player.ReceiveHint("The coin landed on <color=green>tails</color>.", 1.5f);
+                    DisplayCore.Get(player.ReferenceHub).SetElemTemp("The coin landed on <color=green>tails</color>.", 400f, TimeSpan.FromSeconds(1.5), new TimedElemRef<SetElement>());
+                }
+                else
+                {
+                   // player.ReceiveHint("The coin landed on <color=green>heads</color>.", 1.5f);
+                    DisplayCore.Get(player.ReferenceHub).SetElemTemp("The coin landed on <color=green>heads</color>.", 400f, TimeSpan.FromSeconds(1.5), new TimedElemRef<SetElement>());
+                }
+            });
+        }
+
 
         [PluginEvent(ServerEventType.Scp096AddingTarget)]
         public bool New096Target(Scp096AddingTargetEvent args)
@@ -1455,7 +1566,11 @@ namespace Plugin
             {
                 return false;
             }
-            else return true;
+            else
+            {
+                DisplayCore.Get(args.Target.ReferenceHub).SetElemTemp(cfg.targetmessage, 400f, TimeSpan.FromSeconds(5), new TimedElemRef<SetElement>());
+                return true;
+            }
         }
 
         [PluginEvent(ServerEventType.Scp173NewObserver)]
@@ -1566,6 +1681,7 @@ namespace Plugin
             fbi.Clear();
             captainplayer = null;
             sci.Clear();
+
         }
 
 
@@ -4310,17 +4426,18 @@ namespace Plugin
                      if (new System.Random().Next(7) == 1 && !scp1499.Contains(newItemBase.ItemSerial) && !hats.Contains(newItemBase.ItemSerial))
                        {
                         scp1499.Add(newItemBase.ItemSerial);
-                        plr.ReceiveHint("You equipped <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 3);
-                        
+                        //plr.ReceiveHint("You equipped <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 3);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
-                       }
+                    }
                     else if (!hats.Contains(newItemBase.ItemSerial) && !scp1499.Contains(newItemBase.ItemSerial))
                         {
                           hats.Add(newItemBase.ItemSerial);
                       }
                       else if (scp1499.Contains(newItemBase.ItemSerial))
                     {
-                       plr.ReceiveHint("You equipped <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 3);
+                     //  plr.ReceiveHint("You equipped <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 3);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     }
 
 
@@ -4346,11 +4463,11 @@ namespace Plugin
                     Player randomPlr = Playerss.RandomItem();
                     if (THEButton.Contains(newItemBase.ItemSerial))
                     {
-                        plr.ReceiveHint("You equipped <color=#C50000>THE BUTTON</color>. Use it for a suprise!", 3);
+                        // plr.ReceiveHint("You equipped <color=#C50000>THE BUTTON</color>. Use it for a suprise!", 3);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>THE BUTTON</color>. Use it for a suprise!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                        // List<Player> Playerss = Player.GetPlayers();
 
-                       // List<Player> Playerss = Player.GetPlayers();
 
-                        
 
 
                     }
@@ -4380,7 +4497,9 @@ namespace Plugin
 
 
                         scp500s.Add(newItemBase.ItemSerial);
-                        plr.ReceiveHint("You equipped a <color=#C50000>SCP-500</color>", 3);
+                       // plr.ReceiveHint("You equipped a <color=#C50000>SCP-500</color>", 3);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTempFunctional("You equipped a <color=#C50000>SCP-500</color>", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                        DisplayCore.Get(plr.ReferenceHub).Update();
                     }
 
                 }
@@ -4390,31 +4509,37 @@ namespace Plugin
 
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && resurrection_pills.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ReceiveHint("You equipped <color=#C50000>SCP-500-R</color> \nConsuming it will respawn any spectators at your position and as your class.", 3);
+                    //plr.ReceiveHint("You equipped <color=#C50000>SCP-500-R</color> \nConsuming it will respawn any spectators at your position and as your class.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>SCP-500-R</color> \nConsuming it will respawn any spectators at your position and as your class.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 }
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && super_pills.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ReceiveHint("You equipped <color=#C50000>SCP-500-A</color> \nConsuming it will give you a variety of effects.", 3);
+                   // plr.ReceiveHint("You equipped <color=#C50000>SCP-500-A</color> \nConsuming it will give you a variety of effects.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>SCP-500-A</color> \nConsuming it will give you a variety of effects.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                 }
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && invis_pills.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ReceiveHint("You equipped <color=#C50000>SCP-500-I</color> \nConsuming it will make you invisible for 10s until it runs out or you use items or interact with objects.", 3);
+
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>SCP-500-I</color> \nConsuming it will make you invisible for 10s until it runs out or you use items or interact with objects.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                    //plr.ReceiveHint("You equipped <color=#C50000>SCP-500-I</color> \nConsuming it will make you invisible for 10s until it runs out or you use items or interact with objects.", 3);
                 }
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && scale_pills.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ReceiveHint("You equipped <color=#C50000>SCP-500-S</color> \nConsuming it will set you to a semi-random size.", 3);
+                    //plr.ReceiveHint("You equipped <color=#C50000>SCP-500-S</color> \nConsuming it will set you to a semi-random size.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>SCP-500-S</color> \nConsuming it will set you to a semi-random size.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                 }
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && friend_pills.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ReceiveHint("You equipped <color=#C50000>SCP-500-F</color> \nConsuming it will bring you a friend! (if there is a spectator availible.)", 3);
+                  //  plr.ReceiveHint("You equipped <color=#C50000>SCP-500-F</color> \nConsuming it will bring you a friend! (if there is a spectator availible.)", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>SCP-500-F</color> \nConsuming it will bring you a friend! (if there is a spectator availible.)", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                 }
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && scp500s.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ReceiveHint("You equipped <color=#C50000>SCP-500</color>", 3);
-
+                    // plr.ReceiveHint("You equipped <color=#C50000>SCP-500</color>", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>SCP-500</color>", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 }
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.GrenadeHE && !doublenade.Contains(newItemBase.ItemSerial) && !peanutnade.Contains(newItemBase.ItemSerial) && !grenades.Contains(newItemBase.ItemSerial) && !freezenade.Contains(newItemBase.ItemSerial))
                 {
@@ -4424,12 +4549,14 @@ namespace Plugin
                     if (GrenadeRandomizer == 2)
                     {
                         doublenade.Add(newItemBase.ItemSerial);
-                        plr.ReceiveHint("You equipped a <color=#C50000>Prototype Grenade</color> \nThis grenade will create a 2nd grenade that will explode 2s after the first explosion.", 3);
+                        //plr.ReceiveHint("You equipped a <color=#C50000>Prototype Grenade</color> \nThis grenade will create a 2nd grenade that will explode 2s after the first explosion.", 3);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTempFunctional("You equipped a <color=#C50000>Prototype Grenade</color> \nThis grenade will create a 2nd grenade that will explode 2s after the first explosion.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     }
                     else if (GrenadeRandomizer == 3)
                     {
                         peanutnade.Add(newItemBase.ItemSerial);
-                        plr.ReceiveHint("You equipped a <color=#C50000>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 3);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped a <color=#C50000>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                        //plr.ReceiveHint("You equipped a <color=#C50000>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 3);
                     }
                     else
                     {
@@ -4438,15 +4565,18 @@ namespace Plugin
                 }
                 else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.GrenadeHE && doublenade.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ReceiveHint("You equipped a <color=#C50000>Prototype Grenade</color> \nThis grenade will explode a 2nd time after the first one.", 3);
+                    //  plr.ReceiveHint("You equipped a <color=#C50000>Prototype Grenade</color> \nThis grenade will explode a 2nd time after the first one.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped a <color=#C50000>Prototype Grenade</color> \nThis grenade will explode a 2nd time after the first one.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 }
                 else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.GrenadeHE && peanutnade.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ReceiveHint("You equipped a <color=#C50000>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 3);
+                    //plr.ReceiveHint("You equipped a <color=#C50000>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped a <color=#C50000>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 }
                 else if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.GrenadeHE && freezenade.Contains(newItemBase.ItemSerial) && peanutnade.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ReceiveHint("You equipped a <color=#C50000>Ice-Infused Grenade</color> \nThis grenade will do very little damage however it will slow down <b>whoever</b> it hits.", 3);
+                   //plr.ReceiveHint("You equipped a <color=#C50000>Ice-Infused Grenade</color> \nThis grenade will do very little damage however it will slow down <b>whoever</b> it hits.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped a <color=#C50000>Ice-Infused Grenade</color> \nThis grenade will do very little damage however it will slow down <b>whoever</b> it hits.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 }
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.Lantern && RoundEvent != "PowerBlackout")
                 {
@@ -4455,7 +4585,8 @@ namespace Plugin
 
                     if (ghostLantern.Contains(newItemBase.ItemSerial))
                     {
-                        plr.ReceiveHint("You equipped the <color=#4B5320>Ghastly Lantern</color>. \nYou can now phase through doors, at a cost...", 5);
+                        //plr.ReceiveHint("You equipped the <color=#4B5320>Ghastly Lantern</color>. \nYou can now phase through doors, at a cost...", 5);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped the <color=#4B5320>Ghastly Lantern</color>. \nYou can now phase through doors, at a cost...", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     }
 
 
@@ -4623,8 +4754,8 @@ namespace Plugin
 
             if (pickup.NetworkInfo.ItemId == ItemType.SCP500 && super_pills.Contains(pickup.NetworkInfo.Serial))
             {
-                plr.ReceiveHint("You picked up <color=#C50000>SCP-500-A</color> \nConsuming it will give you a variety of effects.", 3);
-
+                //plr.ReceiveHint("You picked up <color=#C50000>SCP-500-A</color> \nConsuming it will give you a variety of effects.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up <color=#C50000>SCP-500-A</color> \nConsuming it will give you a variety of effects.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 /*
                 if (!super_pills.Contains(pickup.NetworkInfo.Serial))
                 {
@@ -4634,11 +4765,13 @@ namespace Plugin
             }
             if (doublenade.Contains(pickup.NetworkInfo.Serial) && pickup.NetworkInfo.ItemId == ItemType.GrenadeHE && !peanutnade.Contains(pickup.NetworkInfo.Serial) && !grenades.Contains(pickup.NetworkInfo.Serial)) 
             {
-                plr.ReceiveHint("You picked up a <color=#4B5320>Prototype Grenade</color> \nThis grenade will explode a 2nd time after the first one.", 3);
+                //plr.ReceiveHint("You picked up a <color=#4B5320>Prototype Grenade</color> \nThis grenade will explode a 2nd time after the first one.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up a <color=#4B5320>Prototype Grenade</color> \nThis grenade will explode a 2nd time after the first one.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
             }
             if (peanutnade.Contains(pickup.NetworkInfo.Serial) && pickup.NetworkInfo.ItemId == ItemType.GrenadeHE && !doublenade.Contains(pickup.NetworkInfo.Serial) && !grenades.Contains(pickup.NetworkInfo.Serial))
             {
-                plr.ReceiveHint("You picked up a <color=#4B5320>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 4);
+               // plr.ReceiveHint("You picked up a <color=#4B5320>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 4);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up a <color=#4B5320>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
             }
             if (peanutnade.Contains(pickup.NetworkInfo.Serial) && pickup.NetworkInfo.ItemId == ItemType.GrenadeHE && !doublenade.Contains(pickup.NetworkInfo.Serial) && freezenade.Contains(pickup.NetworkInfo.Serial) && !grenades.Contains(pickup.NetworkInfo.Serial))
             {
@@ -4647,8 +4780,8 @@ namespace Plugin
             }
             if (pickup.NetworkInfo.ItemId == ItemType.SCP500 && resurrection_pills.Contains(pickup.NetworkInfo.Serial))
             {
-                plr.ReceiveHint("You picked up <color=#C50000>SCP-500-R</color> \nConsuming it will respawn any spectators at your position and as your class.", 3);
-
+                //plr.ReceiveHint("You picked up <color=#C50000>SCP-500-R</color> \nConsuming it will respawn any spectators at your position and as your class.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up <color=#C50000>SCP-500-R</color> \nConsuming it will respawn any spectators at your position and as your class.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                 /*
                 if (!resurrection_pills.Contains(pickup.NetworkInfo.Serial))
@@ -4659,18 +4792,20 @@ namespace Plugin
             }
             if (pickup.NetworkInfo.ItemId == ItemType.SCP500 && invis_pills.Contains(pickup.NetworkInfo.Serial)) //  && !scp500s.Contains(pickup.NetworkInfo.Serial)
             {
-                plr.ReceiveHint("You picked up <color=#C50000>SCP-500-I</color> \nConsuming it will make you invisible for 10s until it runs out or you use items or interact with objects.", 3);
-
+              //  plr.ReceiveHint("You picked up <color=#C50000>SCP-500-I</color> \nConsuming it will make you invisible for 10s until it runs out or you use items or interact with objects.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up <color=#C50000>SCP-500-I</color> \nConsuming it will make you invisible for 10s until it runs out or you use items or interact with objects.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 /*
                 if (!invis_pills.Contains(pickup.NetworkInfo.Serial))
                 {
                     invis_pills.Add(pickup.NetworkInfo.Serial);
                 }
               */
-                }
+            }
             if (pickup.NetworkInfo.ItemId == ItemType.SCP500 && scale_pills.Contains(pickup.NetworkInfo.Serial ))
             {
-                plr.ReceiveHint("You picked up <color=#C50000>SCP-500-S</color> \nConsuming it will set you to a semi-random size.", 3);
+                // plr.ReceiveHint("You picked up <color=#C50000>SCP-500-S</color> \nConsuming it will set you to a semi-random size.", 3);
+
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up <color=#C50000>SCP-500-S</color> \nConsuming it will set you to a semi-random size.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 /*
                 if (!scale_pills.Contains(pickup.NetworkInfo.Serial))
                 {
@@ -4678,24 +4813,27 @@ namespace Plugin
                     
                     }
                 */
-                }
+            }
             if (pickup.NetworkInfo.ItemId == ItemType.SCP500 && friend_pills.Contains(pickup.NetworkInfo.Serial))
             {
-                plr.ReceiveHint("You picked up <color=#C50000>SCP-500-F</color> \nConsuming it will bring you a friend! (if there is a spectator availible.)", 3);
+               // plr.ReceiveHint("You picked up <color=#C50000>SCP-500-F</color> \nConsuming it will bring you a friend! (if there is a spectator availible.)", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up <color=#C50000>SCP-500-F</color> \nConsuming it will bring you a friend! (if there is a spectator availible.)", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 /*
                 if (friend_pills.Contains(pickup.NetworkInfo.Serial))
                 {
                     friend_pills.Add(pickup.NetworkInfo.Serial);
                 }
                 */
-                }
+            }
             if (pickup.NetworkInfo.ItemId == ItemType.Lantern && ghostLantern.Contains(pickup.NetworkInfo.Serial) && !normalLantern.Contains(pickup.NetworkInfo.Serial))
             {
-                plr.ReceiveHint("You picked up the <color=#4B5320>Ghastly Lantern</color>. \nWhile held, it will let you phase through most doors.", 5);
+        //        plr.ReceiveHint("You picked up the <color=#4B5320>Ghastly Lantern</color>. \nWhile held, it will let you phase through most doors.", 5);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up the <color=#4B5320>Ghastly Lantern</color>. \nWhile held, it will let you phase through most doors.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
             }
             if (pickup.NetworkInfo.ItemId == ItemType.SCP268 && scp1499.Contains(pickup.NetworkInfo.Serial) && !hats.Contains(pickup.NetworkInfo.Serial))
             {
-                plr.ReceiveHint("You picked up <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 3);
+                // plr.ReceiveHint("You picked up <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
             }
             if (pickup.NetworkInfo.ItemId == ItemType.GrenadeHE && doublenade.Contains(pickup.NetworkInfo.Serial) && !grenades.Contains(pickup.NetworkInfo.Serial))
             {
@@ -4705,13 +4843,14 @@ namespace Plugin
 
             if (pickup.NetworkInfo.ItemId == ItemType.SCP500 && scp500s.Contains(pickup.NetworkInfo.Serial))
             {
-                plr.ReceiveHint("You picked up <color=#C50000>SCP-500</color>.", 3);
+               // plr.ReceiveHint("You picked up <color=#C50000>SCP-500</color>.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up <color=#C50000>SCP-500</color>.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
             }
 
 
             
             // Custom Items for drinks
-
+            // not converting to ruei bc lazy :D
             if (colas_oxygen.Contains(pickup.NetworkInfo.Serial))
             {
                 plr.ReceiveHint("You picked up a cup of pure oxygen.", 3);
@@ -5985,7 +6124,6 @@ namespace Plugin
         }
 
 
-        
 
 
 
