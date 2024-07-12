@@ -63,8 +63,8 @@ namespace Plugin
     using StringBuilder = RueI.Extensions.HintBuilding;
     using RueI.Elements;
     using RueI.Displays.Scheduling;
+    using PlayerRoles.Spectating;
     using static System.Net.Mime.MediaTypeNames;
-    using JetBrains.Annotations;
 
     // woo I love converting 6k lines of code over to new things (i'm gonna have to do it again when labapi drops :D)
     public class EventHandlers : IComparable
@@ -79,8 +79,8 @@ namespace Plugin
         public static bool isScienceTeamSpawning = false;
         public static bool canswap = true;
         private List<Scp079Generator> _generators = new List<Scp079Generator>();
-        private ReferenceHub TempDummyy = null;
-        private AudioPlayerBase audioPlayerr = null;
+       // private ReferenceHub TempDummyy = null;
+       // private AudioPlayerBase audioPlayerr = null;
         int randomNumber;
         int generatorsActivated = 0;
         private HashSet<Player> _PlayersWithArmor = new HashSet<Player>();
@@ -91,7 +91,7 @@ namespace Plugin
         public static HashSet<ushort> normalLantern = new HashSet<ushort>();
 
         public static Dictionary<Player,int> PlayerKills = new Dictionary<Player, int>();
-
+        public static Dictionary<Player, int> PlayerSpectators = new Dictionary<Player, int>();
         // Custom Items that need to be accessed everwhere (should really make a custom enum or smthn for this lmao)
         public static HashSet<ushort> THEButton = new HashSet<ushort>();
         public static HashSet<ushort> doublenade = new HashSet<ushort>();
@@ -126,11 +126,12 @@ namespace Plugin
                 if (!PlayerKills.TryGetValue(p, out int test))
                 {
                     PlayerKills.Add(p, 0);
-
+                    PlayerSpectators.Add(p, 0);
                 }
                 else
                 {
                     PlayerKills[p] = 0;
+                    PlayerSpectators[p] = 0;
                 }
             }       
 
@@ -499,7 +500,7 @@ namespace Plugin
                 yield return Timing.WaitForSeconds(1f);
                 try
                 {
-                    foreach (var player in Player.GetPlayers().Where(p => p != null && p.Room != null))// && p.CurrentItem == ItemType.SCP207 || p.CurrentItem == ItemType.AntiSCP207))
+                    foreach (var player in Player.GetPlayers().Where(p => p != null))// && p.CurrentItem == ItemType.SCP207 || p.CurrentItem == ItemType.AntiSCP207))
                     {
                        
                         
@@ -541,23 +542,91 @@ namespace Plugin
 
 
 
-                        
+                        int specCount = 0;
 
-                        if (player.IsHuman || player.IsSCP || player.Role == RoleTypeId.Tutorial)
+                        specCount = 0;
+                       
+                            // Player.GetPlayers().First(x => x.ReferenceHub.IsSpectatedBy(player.ReferenceHub));
+                            PlayerSpectators[player] = 0;
+                            foreach (var x in Player.GetPlayers().Where(p => p?.Role == RoleTypeId.Spectator && player != p))
+                            {
+                                specCount++;
+                                if (specCount != 0)
+                                {
+                                    if (player.ReferenceHub.IsSpectatedBy(x.ReferenceHub))
+                                    {
+                                     PlayerSpectators[player]++;
+                                    }
+                                    
+                                }
+                               
+                            }
+                            
+                        
+                       
+
+
+
+                        if (player.Role != RoleTypeId.Spectator && player.Role != RoleTypeId.Overwatch && player.Role != RoleTypeId.Filmmaker)
                         {
                             if (player.Role == RoleTypeId.ClassD)
                             {
-                                //DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FF9966><pos=512><align=left><b><size=75%>🔪 | {PlayerKills[player]} </size></b></align></color>", 150f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FF9966><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FF9966><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
-                            
+                            else if (player.IsSCP)
+                            {
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#C50000><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#C50000><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                            }
+                            else if (player.IsTutorial)
+                            {
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FF1493><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FF1493><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                            }
+                            else if (player.Role == RoleTypeId.Scientist)
+                            {
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FAFF86><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FAFF86><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                            }
+                            else if (player.Role == RoleTypeId.FacilityGuard)
+                            {
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#727472><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#727472><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                            }
+                            else if (player.IsChaos)
+                            {
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#228B22><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#228B22><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                            }
+                            else if (player.IsNTF)
+                            {
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#00B7EB><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#00B7EB><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                            }
                         }
                        
 
                         if (player.IsHuman && player.Role != RoleTypeId.Overwatch)
                         {
 
-                           // ReferenceHub PlayersAudioBot;
-                            if (!ItemType.SCP207.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId))
+
+
+                            if (ItemType.Lantern.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && ghostLantern.Contains(player.CurrentItem.ItemSerial) && player.Room.name != "HCZ_079" && player.Room != null)
+                            {
+                                player.EffectsManager.ChangeState("Ghostly", 1, 1.25f, false);
+
+                                if (RoundEvent != "Foggy")
+                                {
+                                    player.EffectsManager.ChangeState("FogControl", 255, 1.25f, false);
+                                }
+
+                                player.EffectsManager.ChangeState("Sinkhole", 1, 1.25f, false);
+                                player.EffectsManager.ChangeState("Poisoned", 1, 1.25f, false);
+                            }
+
+                            // ReferenceHub PlayersAudioBot;
+                            if (!ItemType.SCP207.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room != null)
                             {
 
 
@@ -628,18 +697,7 @@ namespace Plugin
 
                             }
 
-                            if (ItemType.Lantern.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && ghostLantern.Contains(player.CurrentItem.ItemSerial) && player.Room.name != "HCZ_079")
-                            {
-                                player.EffectsManager.ChangeState("Ghostly", 1, 1.25f, false);
-
-                                if (RoundEvent != "Foggy")
-                                {
-                                    player.EffectsManager.ChangeState("FogControl", 255, 1.25f, false);
-                                }
-
-                                player.EffectsManager.ChangeState("Sinkhole", 1, 1.25f, false);
-                                player.EffectsManager.ChangeState("Poisoned", 1, 1.25f, false);
-                            }
+                           
                         }
                     }
                 }
@@ -665,7 +723,7 @@ namespace Plugin
                 if (!PlayerKills.TryGetValue(player, out int test))
                 {
                     PlayerKills.Add(player, 0);
-
+                    PlayerSpectators.Add(player, 0);
                 }
                 
                 
@@ -775,6 +833,17 @@ namespace Plugin
             spawning_team = team;
             respawn_count++;
             Config config = Plugin.Singleton.Config;
+
+            int SpecCount = 0;
+
+            SpecCount = 0;
+            foreach (var p in Player.GetPlayers())
+            {
+                if (p.Role == RoleTypeId.Spectator)
+                {
+                    SpecCount ++;
+                }
+            }
             if (respawn_count >= 2 && spawning_team == SpawnableTeamType.ChaosInsurgency && config.ShouldSerpentsSpawn == true && new System.Random().Next(4) == 1)
             {
                 if (haveSerpentsSpawned == false)
@@ -787,7 +856,9 @@ namespace Plugin
                       //  isSerpentSpawning = false;
                     }
 
-                    if (config.ShouldCassie == true)
+                    
+
+                    if (config.ShouldCassie == true && SpecCount >= 1)
                     {
                         Cassie.Message(config.CassieMessage, true, config.CassieNoise, config.CassieText);
                     }
@@ -799,7 +870,7 @@ namespace Plugin
                        isSerpentSpawning = false;
                    });
                     */
-
+                    
                     foreach (var p in Player.GetPlayers())
                     {
                         if (p.Role == RoleTypeId.Spectator)
@@ -854,7 +925,7 @@ namespace Plugin
                         Timing.CallDelayed(0.1f, () =>
                     {
                         Cassie.Clear();
-                        if (config.ShouldCassie == true && spawning_team == SpawnableTeamType.NineTailedFox)
+                        if (config.ShouldCassie == true && spawning_team == SpawnableTeamType.NineTailedFox && SpecCount >= 1)
                         {
                             if (new System.Random().Next(2) == 1)
                             {
@@ -1394,10 +1465,10 @@ namespace Plugin
                 //player.PlayerInfo.IsRoleHidden = false;
                 //player.CustomInfo = string.Empty;
 
-                if (PlayerKills.TryGetValue(attacker, out int test))
+                if (attacker != null && PlayerKills.TryGetValue(attacker, out int test))
                 {
                     PlayerKills[attacker]++;
-
+                    DisplayCore.Get(attacker.ReferenceHub).SetElemTemp($"<b>{PlayerKills[attacker]} kills this round.</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                 }
                 else
                 {
@@ -1405,7 +1476,7 @@ namespace Plugin
                     // NULL
                 }
 
-                DisplayCore.Get(attacker.ReferenceHub).SetElemTemp($"<b>{PlayerKills[attacker]} kills this round.</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+               
 
             }
 
@@ -1492,7 +1563,7 @@ namespace Plugin
             else
             {
                 PlayerKills.Remove(player);
-
+                PlayerSpectators.Remove(player);
             }
 
             if (player != null && fbi.Contains(player.PlayerId) && player.PlayerId == captainplayer.PlayerId)
@@ -3877,7 +3948,9 @@ namespace Plugin
                    // plr.CurrentItem = null;
                     List<Player> Playerss = Player.GetPlayers();
 
-                        plr.ReceiveHint("You pressed <color=#C50000>THE BUTTON</color>. Your fate is being decided...");
+                      //  plr.ReceiveHint("You pressed <color=#C50000>THE BUTTON</color>. Your fate is being decided...");
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You pressed <color=#C50000>THE BUTTON</color>. Your fate is being decided...", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+
                     if (new System.Random().Next(2) == 1)
                     {
 
@@ -3942,7 +4015,9 @@ namespace Plugin
 
                 Timing.CallDelayed(1.36f, () =>
                 {
-                    plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-R</color> and summoned a wave of reinforcements.");
+//                    plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-R</color> and summoned a wave of reinforcements.");
+
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You swallowed <color=#C50000>SCP-500-R</color> and summoned a wave of reinforcements.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     foreach (var plrr in Player.GetPlayers())
                     {
                         if (plrr.Role == RoleTypeId.Spectator)
@@ -3953,14 +4028,18 @@ namespace Plugin
                                 Timing.CallDelayed(1f, () =>
                                 {
                                     plrr.Position = plr.Position;
-                                    plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!");
+                                 //   plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!");
+                                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+
                                 });
                             }
                             else
                             {
                                 plrr.Role = plr.Role;
                                 plrr.Position = plr.Position;
-                                plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!");
+                               // plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!");
+
+                                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                             }
                         }
                     }
@@ -3973,7 +4052,8 @@ namespace Plugin
 
                 Timing.CallDelayed(1.36f, () =>
                 {
-                    plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-A</color>");
+                    // plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-A</color>");
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You swallowed <color=#C50000>SCP-500-A</color>", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     plr.EffectsManager.ChangeState("MovementBoost", 2, 15, true);
                     plr.EffectsManager.ChangeState("Invigorated", 1, 15, true);
                     plr.EffectsManager.ChangeState("DamageReduction", 1, 15, true);
@@ -3986,7 +4066,9 @@ namespace Plugin
 
                 Timing.CallDelayed(1.36f, () =>
                 {
-                    plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-I</color> You are now invisible for the next 10s unless you use items or interact with doors.");
+                    //  plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-I</color> You are now invisible for the next 10s unless you use items or interact with doors.");
+
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You swallowed <color=#C50000>SCP-500-I</color> You are now invisible for the next 10s unless you use items or interact with doors.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     plr.EffectsManager.EnableEffect<Invisible>(10, false);
                 });
 
@@ -3997,7 +4079,8 @@ namespace Plugin
 
                 Timing.CallDelayed(1.36f, () =>
                 {
-                    plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-S</color> You are now a (semi) random size.");
+                    // plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-S</color> You are now a (semi) random size.");
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You swallowed <color=#C50000>SCP-500-S</color> You are now a (semi) random size.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     switch (UnityEngine.Random.Range(0, 7))
                     {
                         case 0: SetScale(plr,1.2f); break;
@@ -4018,7 +4101,8 @@ namespace Plugin
 
                 Timing.CallDelayed(1.36f, () =>
                 {
-                    plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-F</color> You should have a friend with you at any second!.");
+                    // plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-F</color> You should have a friend with you at any second!.");
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You swallowed <color=#C50000>SCP-500-F</color> You should have a friend with you at any second!.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     foreach (var plrr in Player.GetPlayers())
                     {
                         if (plrr.Role == RoleTypeId.Spectator)
@@ -4029,7 +4113,8 @@ namespace Plugin
                                 Timing.CallDelayed(1f, () =>
                                 {
                                     plrr.Position = plr.Position;
-                                    plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-F</color>!");
+                                    //plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-F</color>!");
+                                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-F</color>!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                                 });
                                 return;
                             }
@@ -4037,7 +4122,7 @@ namespace Plugin
                             {
                                 plrr.Role = plr.Role;
                                 plrr.Position = plr.Position;
-                                plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has brought you in using <color=#C50000>SCP-500-F</color>!");
+                                DisplayCore.Get(plr.ReferenceHub).SetElemTemp($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-F</color>!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                                 return;
                             }
                         }
@@ -4052,7 +4137,7 @@ namespace Plugin
 
                 Timing.CallDelayed(1.36f, () =>
                 {
-                    plr.ReceiveHint("You injected the <color=#C50000>Prototype-32-X</color> You are able to see much farther for the next 15s.");
+                 //   plr.ReceiveHint("You injected the <color=#C50000>Prototype-32-X</color> You are able to see much farther for the next 15s.");
                     plr.EffectsManager.ChangeState("FogControl", 0, 15f, false);
 
                 });
@@ -6122,8 +6207,6 @@ namespace Plugin
                 audioPlayer.OnDestroy();
             }
         }
-
-
 
 
 
