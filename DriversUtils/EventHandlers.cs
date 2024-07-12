@@ -65,6 +65,7 @@ namespace Plugin
     using RueI.Displays.Scheduling;
     using PlayerRoles.Spectating;
     using static System.Net.Mime.MediaTypeNames;
+    using CentralAuth;
 
     // woo I love converting 6k lines of code over to new things (i'm gonna have to do it again when labapi drops :D)
     public class EventHandlers : IComparable
@@ -225,10 +226,10 @@ namespace Plugin
             if (_displayCoroutine.IsRunning)
                 Timing.KillCoroutines(_displayCoroutine);
 
-            _displayCoroutine = Timing.RunCoroutine(ShowDisplay());
+                _displayCoroutine = Timing.RunCoroutine(ShowDisplay());
 
             if (_buttonCorountine.IsRunning)
-                Timing.KillCoroutines(_displayCoroutine);
+                Timing.KillCoroutines(_buttonCorountine);
 
             
 
@@ -241,7 +242,7 @@ namespace Plugin
 
           
            
-
+            
            if (new System.Random().Next(30) == 1)
             {
 
@@ -297,11 +298,12 @@ namespace Plugin
 
                 player.AddAmmo(ItemType.Ammo44cal, 24);
                 AddOrDropFirearm(player, ItemType.GunRevolver, true);
-                player.CustomInfo = $"<color=#FF96DE>{player.DisplayNickname}</color>" + "\n<color=#FF96DE>SERPENTS HAND CAPTAIN</color>";
+                    /*
+                player.CustomInfo = $"<color=#FF1493>{player.Nickname}</color>" + "\n<color=#FF1493>SERPENTS HAND CAPTAIN</color>";
                 player.PlayerInfo.IsNicknameHidden = true;
                 player.PlayerInfo.IsUnitNameHidden = true;
                 player.PlayerInfo.IsRoleHidden = true;
-
+                    */
 
                 player.SendBroadcast(config.SerpentsHandCaptainText, 15);
 
@@ -344,15 +346,16 @@ namespace Plugin
                 // lets do weapons now
 
                 AddOrDropFirearm(player, ItemType.GunCOM18, true);
-                  player.CustomInfo = $"<color=#FF96DE>{player.DisplayNickname}</color>" + "\n<color=#FF96DE>SERPENTS HAND AGENT</color>";
+                    /*
+                  player.CustomInfo = $"<color=#FF1493>{player.DisplayNickname}</color>" + "\n<color=#FF1493>SERPENTS HAND AGENT</color>";
                   player.PlayerInfo.IsNicknameHidden = true;
                   player.PlayerInfo.IsUnitNameHidden = true;
                   player.PlayerInfo.IsRoleHidden = true;
+                    */
+                }
 
-            }
 
-
-            Player playertoTP = Player.Get(player.ReferenceHub);
+                Player playertoTP = Player.Get(player.ReferenceHub);
             playertoTP.Position = new UnityEngine.Vector3(0.06f, 1000.96f, 0.33f);
             });
         }
@@ -429,11 +432,12 @@ namespace Plugin
 
                 // might add config for this in the future, dunno yet
                 // fyi add +1000 to ur y coord if you wanna tp someone to somewhere on surface, learned that from axwabo. 
-
+                /*
                 player.CustomInfo = $"<color=#FAFF86>{player.DisplayNickname}\nTHE SCIENCE TEAM</color>";
                 player.PlayerInfo.IsNicknameHidden = true;
                 player.PlayerInfo.IsUnitNameHidden = true;
                 player.PlayerInfo.IsRoleHidden = true;
+                */
             });
 
 
@@ -502,10 +506,9 @@ namespace Plugin
                 {
                     foreach (var player in Player.GetPlayers().Where(p => p != null))// && p.CurrentItem == ItemType.SCP207 || p.CurrentItem == ItemType.AntiSCP207))
                     {
-                       
-                        
-                        if (player.IsSCP)
-                        {
+                        DisplayCore core = DisplayCore.Get(player.ReferenceHub);
+
+                        if (player.IsReady) {
 
                             if (RoundEvent == "Foggy")
                             {
@@ -515,14 +518,19 @@ namespace Plugin
 
 
                                     player.EffectsManager.ChangeState("FogControl", 255, 1.25f, false);
-                                 
-
-                                        
 
 
-                                    }
+
+
+
+                                }
 
                             }
+
+                        if (player.IsSCP)
+                        {
+
+                            
 
                             string text = $"<align=right>";
 
@@ -537,7 +545,7 @@ namespace Plugin
                             // player.ReceiveHint(text, 1.25f);
                             //text += $"</align>";
 
-                            DisplayCore.Get(player.ReferenceHub).SetElemTemp(text, 850f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                            /*DisplayCore.Get(player.ReferenceHub)*/core.SetElemTemp(text, 850f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                         }
 
 
@@ -547,7 +555,7 @@ namespace Plugin
                         specCount = 0;
                        
                             // Player.GetPlayers().First(x => x.ReferenceHub.IsSpectatedBy(player.ReferenceHub));
-                            PlayerSpectators[player] = 0;
+                          //  PlayerSpectators[player] = 0;
                             foreach (var x in Player.GetPlayers().Where(p => p?.Role == RoleTypeId.Spectator && player != p))
                             {
                                 specCount++;
@@ -555,7 +563,7 @@ namespace Plugin
                                 {
                                     if (player.ReferenceHub.IsSpectatedBy(x.ReferenceHub))
                                     {
-                                     PlayerSpectators[player]++;
+                                   //  PlayerSpectators[player]++;
                                     }
                                     
                                 }
@@ -566,52 +574,63 @@ namespace Plugin
                        
 
 
-
-                        if (player.Role != RoleTypeId.Spectator && player.Role != RoleTypeId.Overwatch && player.Role != RoleTypeId.Filmmaker)
-                        {
+                            
+                        
                             if (player.Role == RoleTypeId.ClassD)
                             {
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FF9966><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FF9966><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                               /*DisplayCore.Get(player.ReferenceHub)*/core.SetElemTemp($"<color=#FF9966><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/core.SetElemTemp($"<color=#FF9966><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.IsSCP)
                             {
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#C50000><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#C50000><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#C50000><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#C50000><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.IsTutorial)
                             {
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FF1493><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FF1493><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#FF1493><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#FF1493><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.Role == RoleTypeId.Scientist)
                             {
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FAFF86><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#FAFF86><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#FAFF86><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#FAFF86><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.Role == RoleTypeId.FacilityGuard)
                             {
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#727472><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#727472><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#727472><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#727472><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.IsChaos)
                             {
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#228B22><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#228B22><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#228B22><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#228B22><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.IsNTF)
                             {
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#00B7EB><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                DisplayCore.Get(player.ReferenceHub).SetElemTemp($"<color=#00B7EB><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#00B7EB><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                core.SetElemTemp($"<color=#00B7EB><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
-                        }
+                        
                        
 
-                        if (player.IsHuman && player.Role != RoleTypeId.Overwatch)
+                        if (player.IsHuman || player.Role == RoleTypeId.Tutorial)
                         {
 
 
-
+/*
                             if (ItemType.Lantern.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && ghostLantern.Contains(player.CurrentItem.ItemSerial) && player.Room.name != "HCZ_079" && player.Room != null)
                             {
                                 player.EffectsManager.ChangeState("Ghostly", 1, 1.25f, false);
@@ -624,27 +643,24 @@ namespace Plugin
                                 player.EffectsManager.ChangeState("Sinkhole", 1, 1.25f, false);
                                 player.EffectsManager.ChangeState("Poisoned", 1, 1.25f, false);
                             }
-
+*/
                             // ReferenceHub PlayersAudioBot;
-                            if (!ItemType.SCP207.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room != null)
+                            if (/*!ItemType.SCP207.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) &&*/ player.Room != null)
                             {
 
 
                                 if (player.Room.name == "EZ_Smallrooms2" || player.Room.name == "LCZ_TCross (11)")
                                 {
-                                  //  player.ReceiveHint("You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)", 1.25f);
-                                    DisplayCore.Get(player.ReferenceHub).SetElemTemp("<b>You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                        //  player.ReceiveHint("You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)", 1.25f);
+                                        /*DisplayCore.Get(player.ReferenceHub)*/
+                                        core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                                 }
 
                                 if (player.Room.name == "LCZ_372 (18)")
                                 {
-                                    //player.ReceiveHint("You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)", 1.25f);
-                                    DisplayCore.Get(player.ReferenceHub).SetElemTemp("<b>You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                }
-                                if (player.Room.name == "Outside")
-                                {
-                                   // player.ReceiveHint(cfg.KillsHint, 1.25f);
-                                    //🔪 |  %plrkills% pls work lol
+                                        //player.ReceiveHint("You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)", 1.25f);
+                                        /*DisplayCore.Get(player.ReferenceHub)*/
+                                        core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                                 }
                             }
 
@@ -679,28 +695,10 @@ namespace Plugin
 
                             }
                             */
-
-
-
-                            if (RoundEvent == "Foggy")
-                            {
-
-                                if (player.Role != RoleTypeId.Overwatch && player.Role != RoleTypeId.Spectator)
-                                {
-
-
-                                    player.EffectsManager.ChangeState("FogControl", 255, 1.25f, false);
-
-
-
-                                }
-
-                            }
-
-                           
                         }
                     }
                 }
+               }
                 catch (Exception ex)
                 {
                     Log.Error(ex.ToString());
@@ -713,21 +711,19 @@ namespace Plugin
         [PluginEvent(ServerEventType.PlayerJoined)]
         void OnPlayerJoin(Player player)
         {
-            if (player.IpAddress == "127.0.0.1" || player.IpAddress == "localhost")
+            Timing.CallDelayed(1.1f, () =>
             {
-                return;
 
-            }
-            else
-            {
-                if (!PlayerKills.TryGetValue(player, out int test))
-                {
-                    PlayerKills.Add(player, 0);
-                    PlayerSpectators.Add(player, 0);
-                }
-                
-                
-            }
+            while (true) { 
+                    if (player.IsReady)
+                        if (!PlayerKills.TryGetValue(player, out int test))
+                        {
+                            PlayerKills.Add(player, 0);
+                            PlayerSpectators.Add(player, 0);
+                        }
+                        break;
+                   }
+            });
         }
 
 
@@ -1289,14 +1285,17 @@ namespace Plugin
                         player.SendBroadcast("You are a <color=#00B7EB>Nine-Tailed Fox Demolitionist</color>. Check your inventory.", 10);
                         player.AddItem(ItemType.GrenadeHE);
                         player.AddItem(ItemType.GrenadeHE);
-                         
-                     //   player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}\nNine Tailed Fox Boom Boom Boy</color>";
-                        player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX DEMOLITIONIST</color>";
+
+                        //   player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}\nNine Tailed Fox Boom Boom Boy</color>";
+                        /*
+                           player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX DEMOLITIONIST</color>";
                         player.PlayerInfo.IsRoleHidden = true;
                         player.PlayerInfo.IsNicknameHidden = true;
                         player.PlayerInfo.IsUnitNameHidden = true;
                         player.PlayerInfo.IsRoleHidden = true;
+                        */
                       //  player.ReceiveHint(player.CustomInfo, 10);
+
                     });
 
 
@@ -1333,13 +1332,13 @@ namespace Plugin
                     Timing.CallDelayed(0.2f, () =>
                     {
                         player.SendBroadcast("You are a <color=#4B5320>Chaos Specialist</color>. You have access to ???.", 10);
-
+                        /*
                         player.CustomInfo = $"<color=#228b22>{player.DisplayNickname}</color>" + "\n<color=#228b22>CHAOS SPECIALIST</color>";
                         player.PlayerInfo.IsRoleHidden = true;
                         player.PlayerInfo.IsNicknameHidden = true;
                         player.PlayerInfo.IsUnitNameHidden = true;
                         player.PlayerInfo.IsRoleHidden = true;
-
+                        */
                         switch (UnityEngine.Random.Range(0, 8))
                         {
                             case 0: AddOrDropItem(player, ItemType.SCP2176); break;
@@ -1369,10 +1368,12 @@ namespace Plugin
                     Timing.CallDelayed(0.2f, () =>
                     {
                        player.SendBroadcast("You are a <color=#FAFF86>Senior Researcher</color>. Check your inventory.", 10);
+                        /*
                         player.CustomInfo = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
                         player.PlayerInfo.IsNicknameHidden = true;
                         player.PlayerInfo.IsUnitNameHidden = true;
                         player.PlayerInfo.IsRoleHidden = true;
+                        */
                         foreach (var items in player.Items)
                         {
                             if (items.ItemTypeId is ItemType.KeycardScientist || items.ItemTypeId is ItemType.Medkit || items.ItemTypeId is ItemType.Radio)
@@ -1398,11 +1399,13 @@ namespace Plugin
                     Timing.CallDelayed(0.2f, () =>
                     {
                         player.SendBroadcast("You are a <color=#00B7EB>Nine-Tailed Fox Medic</color>. Check your inventory.", 10);
+                        /*
                         player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
                         player.PlayerInfo.IsRoleHidden = true;
                         player.PlayerInfo.IsNicknameHidden = true;
                         player.PlayerInfo.IsUnitNameHidden = true;
                         player.PlayerInfo.IsRoleHidden = true;
+                        */
                         player.AddItem(ItemType.Medkit);
                         player.AddItem(ItemType.Painkillers);
                     });
@@ -1472,7 +1475,7 @@ namespace Plugin
                 }
                 else
                 {
-                    //PlayerKills[attacker]++;
+                  //  PlayerKills[attacker]++;
                     // NULL
                 }
 
@@ -1555,6 +1558,7 @@ namespace Plugin
                 player.CustomInfo = string.Empty;
             }
             */
+            /*
             if (player.IpAddress == "127.0.0.1" || player.IpAddress == "localhost")
             {
                 return;
@@ -1562,9 +1566,14 @@ namespace Plugin
             }
             else
             {
+            */
+            if (player != null)
+            {
                 PlayerKills.Remove(player);
                 PlayerSpectators.Remove(player);
             }
+                
+            //}
 
             if (player != null && fbi.Contains(player.PlayerId) && player.PlayerId == captainplayer.PlayerId)
             {
@@ -5721,7 +5730,7 @@ namespace Plugin
                     }
                     else if (arguments.First().ToLower() == "v-s-r")
                     {
-                        player.SendConsoleMessage("(I can't use anything related to violation or vsr for some reason, it stops this cmd from working) Would we be able to (if I wanted to) become a public, verified server on the SL server list? No! infact, this command that you are using breaks one of the VSR rules! but don't worry, I'm having this server stay private just for you and everyone else.","white");
+                        player.SendConsoleMessage("(I can't use anything related to violation or vsr for some reason, it stops this cmd from working) Would we be able to (if I wanted to) become a public, verified server on the SL server list? No! infact, this command that you are using (probably) breaks one of the VSR rules! but don't worry, I'm having this server stay private just for you and everyone else.","white");
                     }
                     else if (arguments.First().ToLower() == "mtf")
                     {
