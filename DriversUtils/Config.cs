@@ -89,7 +89,7 @@ namespace Plugin
         public string targetmessage { get; set; } = "<b><color=red>You have become a target for SCP-096!</color></b>";
 
         [Description("Directory For Audio Files")]
-        public string AudioDirectory { get; set; } = "C:\\Users\\defin\\AppData\\Roaming\\SCP Secret Laboratory\\PluginAPI\\plugins\\7777\\DriversUtils\\Music";
+        public string AudioDirectory { get; set; } = "";
 
 
 
