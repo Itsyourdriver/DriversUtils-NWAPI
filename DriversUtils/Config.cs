@@ -26,7 +26,7 @@ namespace Plugin
             { RoleTypeId.Scp939, "<color=#D51D1D>SCP-939 [%healthpercent%%] %distance%</color>" },
             { RoleTypeId.Scp3114, "<color=#D51D1D>SCP-3114 [%healthpercent%%] %distance%</color>" },
         };
-        public List<string> Events { get; set; } =  new List<String> { "ChaosInvasion","PowerBlackout","Foggy","SpecialOps", "ArmedDClass" };
+        public List<string> Events { get; set; } =  new List<String> { "ChaosInvasion", "PowerBlackout", "Foggy", "SpecialOps", "ArmedDClass", "EveryoneIsSmall", "Nextbots" };
 
         [Description("Whether or not CASSIE should announce when serpents hand spawn.")]
         public bool ShouldCassie { get; set; } = true;
@@ -74,7 +74,7 @@ namespace Plugin
         public string KidText { get; set; } = "You are the kid. You start with candy and are shorter than everyone else!";
 
         [Description("Text sent to players who find themselves being the last alive.")]
-        public string LastOneAliveHint { get; set; } = "<color=red>You are the last one alive!</color>";
+        public string LastOneAliveHint { get; set; } = "<b><color=red>You are the last one alive!</color></b>";
 
         [Description("Should we load item commands? Not implemented yet.")]
         public bool CommandsEnabled { get; set; } = true;
@@ -82,6 +82,16 @@ namespace Plugin
         [Description("Invalue - Rarity of events out of 100.")]
         public int EventRarity { get; set; } = 100;
 
-        
+        [Description("UI Hint Testing (Dev-Only)")]
+        public string KillsHint { get; set; } = "<b><align=left><pos=150>hi</pos></align></b>";
+
+        [Description("Hint that's shown when you see scp-096")]
+        public string targetmessage { get; set; } = "<b><color=red>You have become a target for SCP-096!</color></b>";
+
+        [Description("Directory For Audio Files")]
+        public string AudioDirectory { get; set; } = "C:\\Users\\defin\\AppData\\Roaming\\SCP Secret Laboratory\\PluginAPI\\plugins\\7777\\DriversUtils\\Music";
+
+
+
     }
 }
