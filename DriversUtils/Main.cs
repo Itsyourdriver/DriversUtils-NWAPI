@@ -26,7 +26,8 @@ using slocLoader;
 using slocLoader.Objects;
 using static TheRiptide.Utility;
 using Log = PluginAPI.Core.Log;
-using slocLoader.ObjectCreation;
+using RueI;
+
 
 namespace Plugin
 {
@@ -37,10 +38,18 @@ namespace Plugin
       //  public static Plugin Singleton { get; private set; }
 
         public static Plugin Singleton;
+        
         private Player player = null;
 
         [PluginConfig]
         public Config Config;
+       // public static Config CassieSettings;
+       
+        
+
+
+
+
 
 
         [PluginEntryPoint("DriversUtils", "1.0.0", "This plugin adds custom features to scpsl.", "itsyourdriver")]
@@ -50,25 +59,28 @@ namespace Plugin
                 return;
 
 
-            Log.Info("Loading Item Commands...");
+//            Log.Info("Loading Item Commands...");
             //    Singleton = this;
 
 
             Singleton = this;
-            Log.Info("Loading eventhandlers...");
+            Log.Info("Loading DriversUtils...");
             EventManager.RegisterEvents<Plugin>(this);
             EventManager.RegisterEvents<EventHandlers>(this);
             EventManager.RegisterEvents<MTFUnits>(this);
             EventManager.RegisterEvents<Coin914>(this);
             EventManager.RegisterEvents<TheKid>(this);
-            Log.Debug("Event Handlers Loaded...");
-           // Log.Debug("Serpents Hand Loaded...");
+            Log.Debug("Finished loading and initializing DriversUtils. Thank you for downloading!");
+            RueIMain.EnsureInit();
+            //  Log.Debug("RueI Loaded and Initialized");
 
 
+            
         }
-        
+
 
         
+
 
 
         static int guard_captain = -1;
@@ -89,7 +101,7 @@ namespace Plugin
 
             try
             {
-                Timing.CallDelayed(0.5f, () =>
+                Timing.CallDelayed(0.2f, () =>
                 {
                     if (config.Debug == true)
                     {
@@ -121,17 +133,17 @@ namespace Plugin
                             player.AddItem(ItemType.KeycardMTFPrivate);
                             player.AddItem(ItemType.GrenadeFlash);
                             player.AddItem(ItemType.Medkit);
-                            player.AddItem(ItemType.GrenadeHE);
+                        //    player.AddItem(ItemType.GrenadeHE);
                            
                             Timing.CallDelayed(0.2f, () =>
                             {
                                 player.AddItem(ItemType.Radio);
                             });
                             //player.DisplayNickname = "Facility Guard Captain | " + player.Nickname;
-                            player.CustomInfo = $"<color=#727472>{player.DisplayNickname}</color>" + "\n<color=#727472>FACILITY GUARD CAPTAIN</color>";
-                            player.PlayerInfo.IsRoleHidden = true;
-                            player.PlayerInfo.IsNicknameHidden = true;
-                            player.PlayerInfo.IsUnitNameHidden = true;
+                         //   player.CustomInfo = $"<color=#727472>{player.DisplayNickname}</color>" + "\n<color=#727472>FACILITY GUARD CAPTAIN</color>";
+                          //  player.PlayerInfo.IsRoleHidden = true;
+                           // player.PlayerInfo.IsNicknameHidden = true;
+                          //  player.PlayerInfo.IsUnitNameHidden = true;
                             // player.GameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 0.5f);
                             // Log.Info("set player's scale, they may get dcd");
                             if (config.Debug == true)
@@ -149,10 +161,11 @@ namespace Plugin
                     }
 
                 });
-               // UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
+                UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
                 Timing.CallDelayed(7f, () =>
                 {
-                    //slocLoader.API.SpawnObjectsFromFile("C:/Users/defin/SLoc/test.sloc",, offset, Quaternion.Euler(0, 0, 0));
+                  //  slocLoader.API.SpawnObjectsFromFile("C:/Users/defin/SLoc/test.sloc",, offset, Quaternion.Euler(0, 0, 0));
+                  //  slocLoader.API.AddTriggerAction()
                     //  ObjectsSource.From()
                    // ObjectsSource obj = ObjectsSource.FromFile("C:/object");
 
