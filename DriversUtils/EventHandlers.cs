@@ -29,7 +29,6 @@ namespace Plugin
     using MapGeneration;
     using Interactables.Interobjects.DoorUtils;
     using PlayerRoles.FirstPersonControl;
-    using PlayerRoles.PlayableScps.Scp106;
     using CommandSystem.Commands.RemoteAdmin;
     using PlayerRoles.PlayableScps.Scp079;
     using PluginAPI.Roles;
@@ -66,6 +65,7 @@ namespace Plugin
     using PlayerRoles.Spectating;
     using static System.Net.Mime.MediaTypeNames;
     using CentralAuth;
+    using CommandSystem.Commands.Console;
 
     // woo I love converting 6k lines of code over to new things (i'm gonna have to do it again when labapi drops :D)
     public class EventHandlers : IComparable
@@ -80,8 +80,8 @@ namespace Plugin
         public static bool isScienceTeamSpawning = false;
         public static bool canswap = true;
         private List<Scp079Generator> _generators = new List<Scp079Generator>();
-       // private ReferenceHub TempDummyy = null;
-       // private AudioPlayerBase audioPlayerr = null;
+        // private ReferenceHub TempDummyy = null;
+        // private AudioPlayerBase audioPlayerr = null;
         int randomNumber;
         int generatorsActivated = 0;
         private HashSet<Player> _PlayersWithArmor = new HashSet<Player>();
@@ -91,7 +91,9 @@ namespace Plugin
         public static HashSet<ushort> ghostLantern = new HashSet<ushort>();
         public static HashSet<ushort> normalLantern = new HashSet<ushort>();
 
-        public static Dictionary<Player,int> PlayerKills = new Dictionary<Player, int>();
+
+
+        public static Dictionary<Player, int> PlayerKills = new Dictionary<Player, int>();
         public static Dictionary<Player, int> PlayerSpectators = new Dictionary<Player, int>();
         // Custom Items that need to be accessed everwhere (should really make a custom enum or smthn for this lmao)
         public static HashSet<ushort> THEButton = new HashSet<ushort>();
@@ -100,9 +102,9 @@ namespace Plugin
         public static HashSet<ushort> freezenade = new HashSet<ushort>();
         public static HashSet<ushort> grenades = new HashSet<ushort>();
 
-        
+
         System.Random random = new System.Random();
-        
+
 
         public static string RoundEvent;
         string LastRoundEvent;
@@ -118,7 +120,7 @@ namespace Plugin
             isSerpentSpawning = false;
             // TempDummyy = AddDummy2();
 
-          //  RoundEvent = "";
+            //  RoundEvent = "";
             generatorsActivated = 0;
             // PlayAudio64("ninefourteen.ogg", (byte)65F, true, TempDummyy);
             // audioPlayerr = AudioPlayerBase.Get(TempDummyy);
@@ -134,7 +136,7 @@ namespace Plugin
                     PlayerKills[p] = 0;
                     PlayerSpectators[p] = 0;
                 }
-            }       
+            }
 
 
 
@@ -157,6 +159,8 @@ namespace Plugin
                 }
 
                 LastRoundEvent = RoundEvent;
+
+
                 Timing.CallDelayed(5f, () =>
                 {
 
@@ -176,7 +180,7 @@ namespace Plugin
                     {
                         if (p.Role != RoleTypeId.Overwatch && p.Role != RoleTypeId.Tutorial && p.Role != RoleTypeId.Spectator)
                         {
-                           
+
 
                             if (RoundEvent == "EveryoneIsSmall")
                             {
@@ -188,7 +192,7 @@ namespace Plugin
                             }
                             if (RoundEvent == "PowerBlackout")
                             {
-                             
+
                                 p.SendBroadcast("<color=#228B22>EVENT:</color> Facility Power Blackout. Activate a generator to return facility power.", 13, Broadcast.BroadcastFlags.Normal, false);
                             }
                             /*
@@ -215,6 +219,17 @@ namespace Plugin
                             if (RoundEvent == "SpecialOps")
                             {
                                 p.SendBroadcast("<color=#228B22>EVENT:</color> Mobile Task Force Unit Epsilon-11 have been deployed to replace on-site security.", 13, Broadcast.BroadcastFlags.Normal, false);
+                                
+                            }
+                            if (RoundEvent == "Nextbots")
+                            {
+                                p.SendBroadcast("<color=#228B22>EVENT:</color> The SCPs are now nextbots!", 13, Broadcast.BroadcastFlags.Normal, false);
+
+                                if (p.IsSCP)
+                                {
+                                    SetScale(p, new Vector3(1f, 1f, 0.1f));
+                                }
+                                
                             }
                         }
                     }
@@ -226,30 +241,33 @@ namespace Plugin
             if (_displayCoroutine.IsRunning)
                 Timing.KillCoroutines(_displayCoroutine);
 
-                _displayCoroutine = Timing.RunCoroutine(ShowDisplay());
+            _displayCoroutine = Timing.RunCoroutine(ShowDisplay());
 
             if (_buttonCorountine.IsRunning)
                 Timing.KillCoroutines(_buttonCorountine);
 
-            
 
-          
+
+
             //RoomIdentifier.AllRoomIdentifiers.TryGetValue(Random.Range(1, RoomIdentifier.AllRoomIdentifiers.Count));
             //HashSet<RoomIdentifier> AllRooms = RoomIdentifier.AllRoomIdentifiers;
             // int rndmNumber = Random.Next(AllRooms.size());
 
 
 
-          
-           
-            
-           if (new System.Random().Next(30) == 1)
+
+
+
+            if (new System.Random().Next(30) == 1)
             {
 
                 _buttonCorountine = Timing.RunCoroutine(SpawnButton());
-               
+
             }
-        }
+
+
+        //     _DoorLockCorountine = Timing.RunCoroutine(LockDoors());
+    }
 
 
         static bool haveSerpentsSpawned = false;
@@ -359,6 +377,9 @@ namespace Plugin
             playertoTP.Position = new UnityEngine.Vector3(0.06f, 1000.96f, 0.33f);
             });
         }
+
+     
+
 
 
 
@@ -487,7 +508,10 @@ namespace Plugin
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex.ToString());
+                    if (cfg.Debug == true)
+                    {
+                        Log.Debug($"Error: {ex}");
+                    }
                 }
 
 
@@ -701,7 +725,10 @@ namespace Plugin
                }
                 catch (Exception ex)
                 {
-                    Log.Error(ex.ToString());
+                    if (cfg.Debug == true)
+                    {
+                        Log.Debug($"Error: {ex}");
+                    }
                 }
             }
         }
@@ -1508,7 +1535,7 @@ namespace Plugin
 
             }
 
-            int alive_count = 0;
+                int alive_count = 0;
                 Player target = null;
                 alive_count = 0;
                 foreach (var p in Player.GetPlayers())
@@ -1523,7 +1550,8 @@ namespace Plugin
                 {
                 //target.ReceiveHint(config.LastOneAliveHint, 10);
 
-                DisplayCore.Get(player.ReferenceHub).SetElemTemp(config.LastOneAliveHint, 200f, TimeSpan.FromSeconds(10), new TimedElemRef<SetElement>());
+                    DisplayCore.Get(attacker.ReferenceHub).SetElemTemp(config.LastOneAliveHint, 200f, TimeSpan.FromSeconds(10), new TimedElemRef<SetElement>());
+
             }
                     
 
@@ -1839,6 +1867,7 @@ namespace Plugin
                     return false;
                 if (ev.Target.IsHuman == true && !fbi.Contains(ev.Target.PlayerId) && ev.Player.Role == RoleTypeId.Scp106)
                 {
+                    /*
                     Timing.CallDelayed(0.1f, () =>
                     {
                         ev.Target.EffectsManager.DisableEffect<Traumatized>();
@@ -1847,14 +1876,17 @@ namespace Plugin
                      //   ev.Target.EffectsManager.EnableEffect<Sinkhole>(0, false);
 
                     });
+                    */
                 }
 
                 return true;
             }
             catch (Exception e)
             {
-                // Log.Error($"An error has occured while catching damage handlers.");
-                //  Log.Debug($"Error: {e}");
+                if (cfg.Debug == true)
+                {
+                    Log.Debug($"Error: {e}");
+                }
                 return true;
             }
         }
@@ -2556,7 +2588,7 @@ namespace Plugin
                                 RemoveDummy096(TempDummy);
                             });
                         }
-                        else if (arguments.First() == "SCP-207" || arguments.First() == "scp207" || arguments.First() == "207" || arguments.First() == "cola" || arguments.First() == "Cola")
+                        else if (arguments.First() == "SCP-207" || arguments.First() == "scp207" || arguments.First() == "207" || arguments.First() == "cola" || arguments.First() == "Cola" || arguments.First().ToLower() == "coke" )
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
@@ -2685,7 +2717,10 @@ namespace Plugin
             }
             catch (Exception e)
             {
-                Log.Info("ERROR READ ME on player death! Custom Roles will be the same player next Round !!!");
+                if (cfg.Debug == true)
+                {
+                    Log.Debug($"Error: {e}");
+                }
             }
         }
 
@@ -3571,10 +3606,10 @@ namespace Plugin
                 Timing.CallDelayed(3.4f, () =>
                 {
                     UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(129.9321f, -13f, 25.997f);
-                    RoleTypeId lastrole = RoleTypeId.None;
+                  //  RoleTypeId lastrole = RoleTypeId.None;
 
                     plrpos = plr.Position;
-                    // lastrole = plr.Role;
+           //          lastrole = plr.Role;
 
                     if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
                     {
@@ -3617,10 +3652,10 @@ namespace Plugin
                 Timing.CallDelayed(3.4f, () =>
                 {
                     UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(129.9321f, -13f, 25.997f);
-                    RoleTypeId lastrole = RoleTypeId.None;
+                   // RoleTypeId lastrole = RoleTypeId.None;
 
                     plrpos = plr.Position;
-
+                    //lastrole = plr.Role;
                     if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
                     {
                         byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
@@ -3758,19 +3793,12 @@ namespace Plugin
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     }
-                    // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
-                    //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
-                    // plr.EffectsManager.EnableEffect<Invisible>(10, true);
-                    // plr.Heal(50);
-                    //   plr.Damage(damageHandlerBase);
-                  
-                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+
                     plr.ReceiveHint("Timeout for you!", 3);
                     UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
                     UnityEngine.Vector3 tppos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
-                    // plrpos = plr.Position;
                     plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                    //  plr.ReceiveHint("You drank a cup of [REDACTED]. Your items magically disappeared!", 3);
+
                  
                     plrpos = plr.Position;
                     plr.Position = tppos;
@@ -3779,14 +3807,13 @@ namespace Plugin
                     Timing.CallDelayed(10f, () =>
                     {
                         plr.Position = plrpos;
+
+                        if (plr.EffectsManager.TryGetEffect(out PocketCorroding pocketCorro) && pocketCorro.IsEnabled)
+                        {
+                            plr.EffectsManager.EnableEffect<PocketCorroding>(0f, false);
+                        }
                     });
-
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
-                    //  plr.IsGodModeEnabled = true;
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
-
                 });
-                // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
             else if (item.ItemTypeId == ItemType.AntiSCP207 && colas_sour_patch_kids_slushy.Contains(item.ItemSerial))
             {
@@ -3827,12 +3854,7 @@ namespace Plugin
                         plr.Position = plrpos;
                     });
 
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
-                    //  plr.IsGodModeEnabled = true;
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
-
                 });
-                // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
             if (item.ItemTypeId == ItemType.SCP207 && choccymilk.Contains(item.ItemSerial))
             {
@@ -5346,10 +5368,7 @@ namespace Plugin
 
                         //}    
 
-                        if (Player.TryGet(sender, out player)) ;
                         SetScale(player, float.Parse(arguments.First()));
-
-
                         response = "set player scale";
                         return true;
                     }
@@ -5464,7 +5483,7 @@ namespace Plugin
                         //  player.EffectsManager.EnableEffect<CustomPlayerEffects>
                         // StatusEffectBase Randomeffect = player.ReferenceHub.playerEffectsController.AllEffects.RandomItem();
                         // player.EffectsManager.EnableEffect<Randomeffect>()
-                          List<String> list = new List<String> {"CardiacArrest","Hypothermia", "Decontaminating", "Invigorated", "Poisoned", "Scp207", "MovementBoost", "Hypothermia", "Scp1853", "AntiScp207", "DamageReduction" };
+                          List<String> list = new List<String> {"CardiacArrest", "Decontaminating", "Invigorated", "Poisoned", "Scp207", "MovementBoost", "Hypothermia", "Scp1853", "AntiScp207", "DamageReduction", "Decontaminating", "CardiacArrest", "CardiacArrest" };
                         //StatusEffectBase effect = player.ReferenceHub.playerEffectsController.AllEffects.RandomItem();
                         string effect = list.RandomItem();
                         player.ReferenceHub.playerEffectsController.ChangeState(effect, 1, 0, false);
@@ -5483,7 +5502,7 @@ namespace Plugin
 
 
                     }
-                    response = "";
+                    response = ".";
                     return true;
                 }
 
@@ -5730,7 +5749,7 @@ namespace Plugin
                     }
                     else if (arguments.First().ToLower() == "v-s-r")
                     {
-                        player.SendConsoleMessage("(I can't use anything related to violation or vsr for some reason, it stops this cmd from working) Would we be able to (if I wanted to) become a public, verified server on the SL server list? No! infact, this command that you are using (probably) breaks one of the VSR rules! but don't worry, I'm having this server stay private just for you and everyone else.","white");
+                        player.SendConsoleMessage("(I can't use anything related to violation or vsr for some reason, it stops this cmd from working) Would we be able to (if I wanted to) become a public, verified server on the SL server list? No! infact, this command that you are using breaks one of the VSR rules! but don't worry, I'm having this server stay private just for you and everyone else.","white");
                     }
                     else if (arguments.First().ToLower() == "mtf")
                     {
@@ -5780,10 +5799,10 @@ namespace Plugin
 
 
         // AUDIO API STUFF
-        // CREDIT TO KoT0XleB 
+        // CREDIT TO KoT0XleB / RisottoMan.
 
 
-
+        private static Config PluginConfig = Plugin.Singleton.Config;
         public static ReferenceHub AudioBot = new ReferenceHub();
         public static AudioPlayerBase PlayAudio(string audioFile, byte volume, bool loop)
         {
@@ -5791,7 +5810,7 @@ namespace Plugin
 
             StopAudio();
 
-            var path = Path.Combine("", audioFile);
+            var path = Path.Combine(PluginConfig.AudioDirectory, audioFile);
 
             AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBot);
             audioPlayer.Enqueue(path, -1);
@@ -5805,10 +5824,11 @@ namespace Plugin
 
         public static AudioPlayerBase PlayAudio64(string audioFile, byte volume, bool loop, ReferenceHub AudioBotT)
         {
-         //   if (AudioBot == null) AudioBot = AddDummy();
+            //   if (AudioBot == null) AudioBot = AddDummy();
 
-            
-            var path = Path.Combine("", audioFile);
+
+            var path = Path.Combine(PluginConfig.AudioDirectory, audioFile);
+
 
             AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBotT);
             audioPlayer.Enqueue(path, -1);
@@ -5831,7 +5851,7 @@ namespace Plugin
 
             StopAudio();
 
-            var path = Path.Combine("", audioFile);
+            var path = Path.Combine(PluginConfig.AudioDirectory, audioFile);
 
             AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBot);
             audioPlayer.Enqueue(path, -1);
@@ -5851,7 +5871,7 @@ namespace Plugin
 
             StopAudio();
 
-            var path = Path.Combine("", audioFile);
+            var path = Path.Combine(PluginConfig.AudioDirectory, audioFile);
 
             AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBotT);
             audioPlayer.Enqueue(path, -1);
@@ -5871,7 +5891,7 @@ namespace Plugin
 
             StopAudio();
 
-            var path = Path.Combine("", audioFile);
+            var path = Path.Combine(PluginConfig.AudioDirectory, audioFile);
 
             AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBotT);
             audioPlayer.Enqueue(path, -1);
@@ -5893,7 +5913,7 @@ namespace Plugin
 
             //StopAudio();
 
-            var path = Path.Combine("", audioFile);
+            var path = Path.Combine(PluginConfig.AudioDirectory, audioFile);
 
             AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBotT);
             //audioPlayer.Enqueue(path, -1);
@@ -5910,7 +5930,7 @@ namespace Plugin
 
             //StopAudio();
 
-            var path = Path.Combine("", audioFile);
+            var path = Path.Combine(PluginConfig.AudioDirectory, audioFile);
 
             AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBotT);
            // audioPlayer.Enqueue(path, -1);
@@ -5928,9 +5948,9 @@ namespace Plugin
             // if (AudioBot == null) AudioBot = AddDummy();
 
             //StopAudio();
-          
 
-            var path = Path.Combine("", audioFile);
+
+            var path = Path.Combine(PluginConfig.AudioDirectory, audioFile);
 
             var audioPlayer = AudioPlayerBase.Get(player.ReferenceHub);
             audioPlayer.Enqueue(path, -1);
