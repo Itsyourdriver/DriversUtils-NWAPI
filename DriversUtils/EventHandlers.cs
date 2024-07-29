@@ -593,62 +593,73 @@ namespace Plugin
                                 }
                                
                             }
-                            
-                        
-                       
 
 
-                            
-                        
+
+
+
+
+                            // DisplayCore.get(player.ReferenceHub)
+                            /*
                             if (player.Role == RoleTypeId.ClassD)
                             {
-                               /*DisplayCore.Get(player.ReferenceHub)*/core.SetElemTemp($"<color=#FF9966><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                /*DisplayCore.Get(player.ReferenceHub)*/core.SetElemTemp($"<color=#FF9966><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                               core.SetElemTemp($"<color=#FF9966><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                core.SetElemTemp($"<color=#FF9966><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.IsSCP)
                             {
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                               
                                 core.SetElemTemp($"<color=#C50000><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                
                                 core.SetElemTemp($"<color=#C50000><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.IsTutorial)
                             {
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                               
                                 core.SetElemTemp($"<color=#FF1493><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                
                                 core.SetElemTemp($"<color=#FF1493><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.Role == RoleTypeId.Scientist)
                             {
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                               
+                                
                                 core.SetElemTemp($"<color=#FAFF86><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                
                                 core.SetElemTemp($"<color=#FAFF86><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.Role == RoleTypeId.FacilityGuard)
                             {
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                              
                                 core.SetElemTemp($"<color=#727472><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                               
                                 core.SetElemTemp($"<color=#727472><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.IsChaos)
                             {
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                              
                                 core.SetElemTemp($"<color=#228B22><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                              
                                 core.SetElemTemp($"<color=#228B22><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
                             else if (player.IsNTF)
                             {
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                                
                                 core.SetElemTemp($"<color=#00B7EB><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                /*DisplayCore.Get(player.ReferenceHub)*/
+                               
                                 core.SetElemTemp($"<color=#00B7EB><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
-                        
-                       
+                            */
+
+                            if (player.IsHuman || player.IsSCP || player.IsTutorial && player.Role != RoleTypeId.Scp079)
+                            {
+                                core.SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+
+                                core.SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                            }
+                           
+                            
+                            
 
                         if (player.IsHuman || player.Role == RoleTypeId.Tutorial)
                         {
