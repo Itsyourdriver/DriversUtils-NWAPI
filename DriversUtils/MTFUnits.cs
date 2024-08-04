@@ -21,7 +21,7 @@
     using Hazards;
     using RelativePositioning;
     using Random = UnityEngine.Random;
-
+    
     public class MTFUnits : IComparable
     {
         static int respawn_count = 0;
@@ -29,7 +29,7 @@
         static UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
         SpawnableTeamType spawning_team = SpawnableTeamType.None;
         static bool IsNu7Spawning = false;
-        public int scpsleft = 0;
+        int scpsleft = 0;
         // kid class stuff :D
 
 
@@ -41,6 +41,7 @@
             nu7.Clear();
             spawning_team = SpawnableTeamType.None;
             IsNu7Spawning = false;
+            scpsleft = 0;
         }
 
 
@@ -58,7 +59,7 @@
 
 
             // old code / testing crap
-            //  player.SendBroadcast("", 15, shouldClearPrevious: true);
+             //player.SendBroadcast("You have spawned as a unit of the MTF NU-7 Faction.", 15, shouldClearPrevious: true);
             // Teleport.RoomPos(player, RoomIdentifier.AllRoomIdentifiers.Where((r) => r.Zone == FacilityZone.Surface).First(), offset);
             // player.ClearInventory();
             // player.AddItem(ItemType.GunRevolver);
@@ -73,6 +74,7 @@
             player.AddItem(ItemType.Adrenaline);
             // player.AddItem(ItemType.SCP1853);
             // player.AddItem(ItemType.AntiSCP207);
+           // player.i
 
             player.AddAmmo(ItemType.Ammo762x39, 120);
             player.AddAmmo(ItemType.Ammo556x45, 100);
@@ -84,16 +86,13 @@
             // credit to riptide for this code, i didnt feel like doing this system myself for the time being
 
 
-            switch (UnityEngine.Random.Range(0, 4))
+            switch (UnityEngine.Random.Range(0, 1))
             {
                 case 0: AddOrDropFirearm(player, ItemType.GunFRMG0, true); break;
-                case 1: AddOrDropFirearm(player, ItemType.GunAK, true); break;
-                case 2: AddOrDropFirearm(player, ItemType.GunE11SR, true); break;
-                case 3: AddOrDropFirearm(player, ItemType.GunLogicer, true); break;
-                case 4: AddOrDropFirearm(player, ItemType.GunCrossvec, true); break;
+                case 1: AddOrDropFirearm(player, ItemType.GunLogicer, true); break;
             }
 
-
+            AddOrDropFirearm(player, ItemType.GunCOM18, true);
 
             // lets do weapons now
 
@@ -118,23 +117,27 @@
             // && new System.Random().Next(2) == 1
             Config config = Plugin.Singleton.Config;
             // thanks to my friend seagull101 for the help with system.random, i still have almost no idea what I am doing lol
-            if (respawn_count >= 0 && spawning_team == SpawnableTeamType.NineTailedFox && config.ShouldSerpentsSpawn == true && haveNU7Spawned == false && new System.Random().Next(3) == 1)
+            if (respawn_count >= 0 && spawning_team == SpawnableTeamType.NineTailedFox && config.CanNu7Spawn == true && haveNU7Spawned == false && EventHandlers.isSerpentSpawning == false && new System.Random().Next(3) == 1)
             {
                 IsNu7Spawning = true;
 
                 //List<Player> Players = Player.GetPlayers();
                 
-              //  foreach (var plrr in Players)
-                //{
-                  
-                //}
-            
+                foreach (var plrr in players)
+                {
+                 if (plrr.IsSCP)
+                    {
+                        scpsleft ++;
+                        Log.Debug($"SCPS Left: {scpsleft}");
+                    }
+                }
+                
                 haveNU7Spawned = true;
 
-                Timing.CallDelayed(0.4f, () =>
+                Timing.CallDelayed(0.1f, () =>
                 {
                     Cassie.Clear();
-                    Cassie.Message("MTFUnit Nu 7 designated pitch_0.5 .G2 .G3 pitch_1 hasentered . allremaining . UNCALCULATEDSCPSLEFT", true, true, false);
+                    Cassie.Message($"MTFUnit Nu 7 designated pitch_0.5 .G2 .G3 pitch_1 hasentered . allremaining . AWAITINGRECONTAINMENT {scpsleft} SCPSUBJECTS", true, true, false);
                 });
 
 
@@ -210,6 +213,9 @@
 
 
 
+
+
+
         [PluginEvent(ServerEventType.PlayerDeath)]
         void OnPlayerDied(Player player, Player attacker, DamageHandlerBase damageHandler)
         {
@@ -220,6 +226,10 @@
 
 
 
+            }
+            if (player != null && player.Team == Team.SCPs)
+            {
+                scpsleft = scpsleft-1;
             }
         }
        
@@ -234,6 +244,10 @@
                 player.TemporaryData.Remove("custom_class");
                 player.DisplayNickname = null;
             }
+            if (player != null && player.Team == Team.SCPs)
+            {
+                scpsleft = scpsleft - 1;
+            }
         }
        
 
@@ -244,7 +258,7 @@
             haveNU7Spawned = false;
             respawn_count = 0;
             nu7.Clear();
-
+            scpsleft = 0;
 
         }
 
@@ -255,6 +269,7 @@
             haveNU7Spawned = false;
             respawn_count = 0;
             nu7.Clear();
+            scpsleft = 0;
         }
 
 

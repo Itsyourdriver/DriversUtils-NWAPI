@@ -29,8 +29,12 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony, Version=2.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Lib.Harmony.2.2.2\lib\net48\0Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>E:\SCPSL Runtimes\Assembly-CSharp.dll</HintPath>
@@ -67,8 +71,12 @@
     <Reference Include="Pooling">
       <HintPath>E:\SCPSL Runtimes\Pooling.dll</HintPath>
     </Reference>
-    <Reference Include="SCPSLAudioApi">
-      <HintPath>E:\SCPSL Runtimes\SCPSLAudioApi.dll</HintPath>
+    <Reference Include="RueI, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RueI.2.1.0\lib\net48\RueI.dll</HintPath>
+    </Reference>
+    <Reference Include="SCPSLAudioApi, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Downloads\SCPSLAudioApi.dll</HintPath>
     </Reference>
     <Reference Include="slocLoader-nw">
       <HintPath>E:\SCPSL Runtimes\slocLoader-nw.dll</HintPath>
@@ -117,7 +125,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AudioPlayer.cs" />
+    <Compile Include="CassieSettings.cs" />
     <Compile Include="CoinRandomizerEvents.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="EventHandlers.cs" />
