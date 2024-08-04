@@ -1,4 +1,4 @@
-﻿using MapGeneration;
+using MapGeneration;
 using PlayerRoles;
 using PluginAPI.Core.Zones.Heavy.Rooms;
 using System;

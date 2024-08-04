@@ -1,4 +1,4 @@
-﻿namespace Plugin
+namespace Plugin
 {
     using CommandSystem;
     using CustomPlayerEffects;
