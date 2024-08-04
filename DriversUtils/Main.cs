@@ -101,7 +101,7 @@ namespace Plugin
 
             try
             {
-                Timing.CallDelayed(0.2f, () =>
+                Timing.CallDelayed(0.2f, () => // 0.2f
                 {
                     if (config.Debug == true)
                     {
@@ -124,21 +124,22 @@ namespace Plugin
 
                             player.SendBroadcast(config.GuardText, 10);
                             //  player.DisplayNickname = "Guard Captain | " + player.Nickname;
-                            player.ReferenceHub.inventory.UserInventory.Items.Clear();
-                            //player.AddItem(ItemType.GunE11SR
+                            //  player.ReferenceHub.inventory.UserInventory.Items.Clear();
                             player.AddItem(ItemType.ArmorCombat);
+                            RemoveItem(player, ItemType.ArmorLight);
+                            RemoveItem(player, ItemType.GunFSP9);
+                            RemoveItem(player, ItemType.KeycardGuard);
+                            //player.AddItem(ItemType.GunE11SR
+                            
                             AddOrDropFirearm(player, ItemType.GunCrossvec, true);
                            // player.AddAmmo(ItemType.Ammo556x45, 80);
-                            player.AddAmmo(ItemType.Ammo9x19, 39); // funny number, doesnt look like it but it is
+                         //   player.AddAmmo(ItemType.Ammo9x19, 39); // funny number, doesnt look like it but it is
                             player.AddItem(ItemType.KeycardMTFPrivate);
-                            player.AddItem(ItemType.GrenadeFlash);
-                            player.AddItem(ItemType.Medkit);
+                        //    player.AddItem(ItemType.GrenadeFlash);
+                         //   player.AddItem(ItemType.Medkit);
                         //    player.AddItem(ItemType.GrenadeHE);
                            
-                            Timing.CallDelayed(0.2f, () =>
-                            {
-                                player.AddItem(ItemType.Radio);
-                            });
+                            
                             //player.DisplayNickname = "Facility Guard Captain | " + player.Nickname;
                          //   player.CustomInfo = $"<color=#727472>{player.DisplayNickname}</color>" + "\n<color=#727472>FACILITY GUARD CAPTAIN</color>";
                           //  player.PlayerInfo.IsRoleHidden = true;
