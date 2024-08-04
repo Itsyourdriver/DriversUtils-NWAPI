@@ -1,266 +1,286 @@
-using CentralAuth;
-using CommandSystem;
-using CustomPlayerEffects;
-//using DriversUtils;
-using GameCore;
-using InventorySystem.Items.Firearms;
-using InventorySystem.Items.Pickups;
-using MEC;
-using Mirror;
-using PlayerRoles;
-using PlayerRoles.FirstPersonControl;
-using PlayerStatsSystem;
-//using Plugin;
-//using Plugin.Commands;
-using PluginAPI.Core;
-using PluginAPI.Core.Attributes;
-using PluginAPI.Core.Interfaces;
-using PluginAPI.Enums;
-using PluginAPI.Events;
-using RemoteAdmin.Communication;
-using SCPSLAudioApi.AudioCore;
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-using slocLoader;
-using slocLoader.Objects;
-using static TheRiptide.Utility;
-using Log = PluginAPI.Core.Log;
-using RueI;
-
-
 namespace Plugin
 {
-
-
-    public class Plugin
+    using CommandSystem;
+    using CustomPlayerEffects;
+    using InventorySystem.Items;
+    using MEC;
+    using PlayerRoles;
+    using PlayerStatsSystem;
+    using PluginAPI.Core;
+    using PluginAPI.Core.Attributes;
+    using PluginAPI.Enums;
+    using PluginAPI.Events;
+    using Respawning;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using UnityEngine;
+    using Mirror;
+    using static TheRiptide.Utility;
+    using InventorySystem.Items.Usables;
+    using Hazards;
+    using RelativePositioning;
+    using Random = UnityEngine.Random;
+    
+    public class MTFUnits : IComparable
     {
-      //  public static Plugin Singleton { get; private set; }
-
-        public static Plugin Singleton;
-        
-        private Player player = null;
-
-        [PluginConfig]
-        public Config Config;
-       // public static Config CassieSettings;
-       
-        
+        static int respawn_count = 0;
+        static HashSet<int> nu7 = new HashSet<int>();
+        static UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
+        SpawnableTeamType spawning_team = SpawnableTeamType.None;
+        static bool IsNu7Spawning = false;
+        int scpsleft = 0;
+        // kid class stuff :D
 
 
-
-
-
-
-        [PluginEntryPoint("DriversUtils", "1.0.0", "This plugin adds custom features to scpsl.", "itsyourdriver")]
-        public void LoadPlugin()
-        {
-            if (!Config.IsEnabled)
-                return;
-
-
-//            Log.Info("Loading Item Commands...");
-            //    Singleton = this;
-
-
-            Singleton = this;
-            Log.Info("Loading DriversUtils...");
-            EventManager.RegisterEvents<Plugin>(this);
-            EventManager.RegisterEvents<EventHandlers>(this);
-            EventManager.RegisterEvents<MTFUnits>(this);
-            EventManager.RegisterEvents<Coin914>(this);
-            EventManager.RegisterEvents<TheKid>(this);
-            Log.Debug("Finished loading and initializing DriversUtils. Thank you for downloading!");
-            RueIMain.EnsureInit();
-            //  Log.Debug("RueI Loaded and Initialized");
-
-
-            
-        }
-
-
-        
-
-
-
-        static int guard_captain = -1;
-        static int attempts = 0;
-
-
-        // static int randomGlitchSound = new System.Random().Next(30, 150);
-
-
-
-        public ReferenceHub RadioHub;
-        public Player Radio;
 
         [PluginEvent(ServerEventType.RoundStart)]
-        void OnRoundStart()
+        void RoundStarted()
         {
-            Config config = Plugin.Singleton.Config;
-
-            try
-            {
-                Timing.CallDelayed(0.2f, () => // 0.2f
-                {
-                    if (config.Debug == true)
-                    {
-                        Log.Debug("Picking player...");
-                    }
-                    List<Player> players = Player.GetPlayers();
-                    System.Random random = new System.Random();
-
-                    guard_captain = -1;
-                    attempts = 0;
-                    while (guard_captain == -1)
-                    {
-
-                        int i = random.Next(0, players.Count);
-                        player = players[i];
-                        if (player.Role == PlayerRoles.RoleTypeId.FacilityGuard)
-                        {
-                            guard_captain = 0;
-                            player = players[i];
-
-                            player.SendBroadcast(config.GuardText, 10);
-                            //  player.DisplayNickname = "Guard Captain | " + player.Nickname;
-                            //  player.ReferenceHub.inventory.UserInventory.Items.Clear();
-                            player.AddItem(ItemType.ArmorCombat);
-                            RemoveItem(player, ItemType.ArmorLight);
-                            RemoveItem(player, ItemType.GunFSP9);
-                            RemoveItem(player, ItemType.KeycardGuard);
-                            //player.AddItem(ItemType.GunE11SR
-                            
-                            AddOrDropFirearm(player, ItemType.GunCrossvec, true);
-                           // player.AddAmmo(ItemType.Ammo556x45, 80);
-                         //   player.AddAmmo(ItemType.Ammo9x19, 39); // funny number, doesnt look like it but it is
-                            player.AddItem(ItemType.KeycardMTFPrivate);
-                        //    player.AddItem(ItemType.GrenadeFlash);
-                         //   player.AddItem(ItemType.Medkit);
-                        //    player.AddItem(ItemType.GrenadeHE);
-                           
-                            
-                            //player.DisplayNickname = "Facility Guard Captain | " + player.Nickname;
-                         //   player.CustomInfo = $"<color=#727472>{player.DisplayNickname}</color>" + "\n<color=#727472>FACILITY GUARD CAPTAIN</color>";
-                          //  player.PlayerInfo.IsRoleHidden = true;
-                           // player.PlayerInfo.IsNicknameHidden = true;
-                          //  player.PlayerInfo.IsUnitNameHidden = true;
-                            // player.GameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 0.5f);
-                            // Log.Info("set player's scale, they may get dcd");
-                            if (config.Debug == true)
-                            {
-                                Log.Debug("Finished setting up guard captain.");
-                            }
-                            break;
-                        }
-                        else
-                        {
-                            attempts++;
-                            if (attempts >= 30)
-                                break;
-                        }
-                    }
-
-                });
-                UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
-                Timing.CallDelayed(7f, () =>
-                {
-                  //  slocLoader.API.SpawnObjectsFromFile("C:/Users/defin/SLoc/test.sloc",, offset, Quaternion.Euler(0, 0, 0));
-                  //  slocLoader.API.AddTriggerAction()
-                    //  ObjectsSource.From()
-                   // ObjectsSource obj = ObjectsSource.FromFile("C:/object");
-
-
-                   // obj.AddTriggerAction(data, customHandler)
-                  // slocObjectData.FindObjectsOfType)
-                });
-
-
-            }
-            catch (Exception e)
-            {
-                Log.Warning(e.ToString());
-            }
+            respawn_count = 0;
+            nu7.Clear();
+            spawning_team = SpawnableTeamType.None;
+            IsNu7Spawning = false;
+            scpsleft = 0;
         }
 
 
 
+        static bool haveNU7Spawned = false;
 
 
-
-
-        [PluginEvent(PluginAPI.Enums.ServerEventType.PlayerDeath)]
-        private void PlayerDead(Player player, Player attacker, DamageHandlerBase damageHandler)
+        void ChangeToTutorial(Player player, RoleTypeId role)
         {
-            try
-            {
-                if (this.player != null)
-                {
-                    if (player.UserId == this.player.UserId)
-                    {
-                        Config config = Plugin.Singleton.Config;
-                        // player.DisplayNickname = player.Nickname;
-                        //  player.SendBroadcast("You were killed by: " + attacker.Nickname, 5);
-                        //  player.DisplayNickname = null;
-                        this.player = null;
-                        // Log.Info("WARNING: Chance to explode the server, ATTEMPTING TO SET NULL TO SOMETHING THAT SHOULD ALREADY BE NULL");
-                      //  player = null;
-                        guard_captain = -1;
-                        if (config.Debug == true)
-                        {
-                            Log.Debug("Reset Guard Captain stats for next round :)");
-                        }
+            // player.ReferenceHub.roleManager.ServerSetRole(RoleTypeId.Tutorial, RoleChangeReason.Escaped, RoleSpawnFlags.None);
+           // Config config = Plugin.Singleton.Config;
+            player.ReferenceHub.inventory.UserInventory.Items.Clear();
+           // player.Role = PlayerRoles.RoleTypeId.Tutorial;
+            nu7.Add(player.PlayerId);
 
+
+            // old code / testing crap
+             //player.SendBroadcast("You have spawned as a unit of the MTF NU-7 Faction.", 15, shouldClearPrevious: true);
+            // Teleport.RoomPos(player, RoomIdentifier.AllRoomIdentifiers.Where((r) => r.Zone == FacilityZone.Surface).First(), offset);
+            // player.ClearInventory();
+            // player.AddItem(ItemType.GunRevolver);
+            //   player.AddItem(ItemType.GunShotgun);
+            //   player.AddAmmo(ItemType.Ammo762x39, 200);
+
+            // insert cod modern warfare juggernaut music here
+            //player.SendBroadcast(config.SerpentsHandText, 15);
+            player.AddItem(ItemType.ArmorHeavy);
+            player.AddItem(ItemType.KeycardMTFCaptain);
+            player.AddItem(ItemType.Medkit);
+            player.AddItem(ItemType.Adrenaline);
+            // player.AddItem(ItemType.SCP1853);
+            // player.AddItem(ItemType.AntiSCP207);
+           // player.i
+
+            player.AddAmmo(ItemType.Ammo762x39, 120);
+            player.AddAmmo(ItemType.Ammo556x45, 100);
+            player.AddAmmo(ItemType.Ammo9x19, 120);
+            player.AddItem(ItemType.Radio);
+
+            player.Health = 110;
+            //  AddOrDropFirearm(player, ItemType.GunShotgun, true);
+            // credit to riptide for this code, i didnt feel like doing this system myself for the time being
+
+
+            switch (UnityEngine.Random.Range(0, 1))
+            {
+                case 0: AddOrDropFirearm(player, ItemType.GunFRMG0, true); break;
+                case 1: AddOrDropFirearm(player, ItemType.GunLogicer, true); break;
+            }
+
+            AddOrDropFirearm(player, ItemType.GunCOM18, true);
+
+            // lets do weapons now
+
+           // player.AddAmmo(ItemType.Ammo44cal, 24);
+            //AddOrDropFirearm(player, ItemType.GunRevolver, true);
+
+            //   player.AddAmmo(ItemType.Ammo9x19, 20);
+            //   player.DisplayNickname = "Serpents Hand | " + player.Nickname;
+          //  Player playertoTP = Player.Get(player.ReferenceHub);
+            //playertoTP.Position = new UnityEngine.Vector3(0.06f, 1000.96f, 0.33f);
+            // might add config for this in the future, dunno yet
+            // fyi add +1000 to ur y coord if you wanna tp someone to somewhere on surface, learned that from axwabo. 
+
+        }
+
+        [PluginEvent(ServerEventType.TeamRespawn)]
+        void OnRespawnWave(SpawnableTeamType team, List<Player> players, int max)
+        {
+            //    Log.Info($"Spawned team &6{team}&r");
+            spawning_team = team;
+            respawn_count++;
+            // && new System.Random().Next(2) == 1
+            Config config = Plugin.Singleton.Config;
+            // thanks to my friend seagull101 for the help with system.random, i still have almost no idea what I am doing lol
+            if (respawn_count >= 0 && spawning_team == SpawnableTeamType.NineTailedFox && config.CanNu7Spawn == true && haveNU7Spawned == false && EventHandlers.isSerpentSpawning == false && new System.Random().Next(3) == 1)
+            {
+                IsNu7Spawning = true;
+
+                //List<Player> Players = Player.GetPlayers();
+                
+                foreach (var plrr in players)
+                {
+                 if (plrr.IsSCP)
+                    {
+                        scpsleft ++;
+                        Log.Debug($"SCPS Left: {scpsleft}");
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                Log.Warning(e.ToString());
+                
+                haveNU7Spawned = true;
+
+                Timing.CallDelayed(0.1f, () =>
+                {
+                    Cassie.Clear();
+                    Cassie.Message($"MTFUnit Nu 7 designated pitch_0.5 .G2 .G3 pitch_1 hasentered . allremaining . AWAITINGRECONTAINMENT {scpsleft} SCPSUBJECTS", true, true, false);
+                });
+
+
+                
+
+                //       }
+                //    !player.TemporaryData.Contains("custom_class"))
+
+                Timing.CallDelayed(5f, () =>
+                {
+                    IsNu7Spawning = false;
+                });
             }
         }
 
 
 
 
+
+        [PluginEvent(ServerEventType.PlayerSpawn)]
+        void OnPlayerSpawned(Player player, RoleTypeId role)
+        {
+            if (respawn_count >= 1 && IsNu7Spawning == true)
+            {
+                if (spawning_team == SpawnableTeamType.NineTailedFox && role.GetTeam() == Team.FoundationForces && !player.TemporaryData.Contains("custom_class"))
+                {
+
+                    // ewww formatting went bye bye, this is probably really inefficient but it seems to fix my original problem where players would infinitely be set to tutorial or have like thousands of each ammo type
+                    Timing.CallDelayed(0.1f, () =>
+                    {
+                        if (player.Role != RoleTypeId.Tutorial)
+                        {
+                            ChangeToTutorial(player, role);
+                        }
+
+
+
+                     
+                            
+                            player.TemporaryData.Add("custom_class", this);
+                            // player.SendBroadcast("", 10);
+                            //   player.TemporaryData.Add("custom_class", this);
+                            //  AddOrDropItem(player, ItemType.KeycardFacilityManager);
+                            //   AddOrDropFirearm(player, ItemType.GunCOM15, true);
+                            //  }
+                            // Log.Debug("Serpents hand spawned.");
+                    });
+                }
+            }
+
+        }
+
+
+        // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) received effect &6{effect}&r with an intensity of &6{intensity}&r.");
+
+
+        [PluginEvent(ServerEventType.PlayerChangeRole)]
+        void PlayerChangeRole(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
+        {
+            if (player != null && nu7.Contains(player.PlayerId))
+            {
+                nu7.Remove(player.PlayerId);
+                player.TemporaryData.Remove("custom_class");
+
+               // SetScale(player, 1.0f);
+            }
+
+         
+        }
+
+
+
+
+
+
+
+
+
+        [PluginEvent(ServerEventType.PlayerDeath)]
+        void OnPlayerDied(Player player, Player attacker, DamageHandlerBase damageHandler)
+        {
+            if (player != null && nu7.Contains(player.PlayerId)) // && newRole.GetTeam() != Team.ChaosInsurgency
+            {
+                nu7.Remove(player.PlayerId);
+                player.TemporaryData.Remove("custom_class");
+
+
+
+            }
+            if (player != null && player.Team == Team.SCPs)
+            {
+                scpsleft = scpsleft-1;
+            }
+        }
+       
+
+        [PluginEvent(ServerEventType.PlayerLeft)]
+        void OnPlayerLeave(Player player)
+        {
+            if (player != null && nu7.Contains(player.PlayerId))
+            {
+                //  player.DisplayNickname = player.Nickname;
+                nu7.Remove(player.PlayerId);
+                player.TemporaryData.Remove("custom_class");
+                player.DisplayNickname = null;
+            }
+            if (player != null && player.Team == Team.SCPs)
+            {
+                scpsleft = scpsleft - 1;
+            }
+        }
+       
 
 
         [PluginEvent(ServerEventType.RoundEnd)]
         void OnRoundEnded(RoundSummary.LeadingTeam leadingTeam)
         {
-            guard_captain = -1;
-            attempts = 0;
-            Config config = Plugin.Singleton.Config;
-            if (config.Debug == true)
-            {
-                Log.Debug("Reset guard captain as round ended.");
-                Log.Debug($"Round ended. {leadingTeam.ToString()} won!");
-            }
+            haveNU7Spawned = false;
+            respawn_count = 0;
+            nu7.Clear();
+            scpsleft = 0;
+
         }
 
 
-        [PluginEvent(ServerEventType.PlayerLeft)]
-        void OnPlayerLeave(Player player)
+        [PluginEvent(ServerEventType.RoundRestart)]
+        void OnRoundRestart()
         {
-            if (this.player != null)
-            {
-                if (player.UserId == this.player.UserId)
-                {
-                    //  player.DisplayNickname = player.Nickname;
-                    Config config = Plugin.Singleton.Config;
-                   // player.DisplayNickname = null;
-                    guard_captain = -1;
-                    //Log.Info("Player left");
+            haveNU7Spawned = false;
+            respawn_count = 0;
+            nu7.Clear();
+            scpsleft = 0;
+        }
 
-                    if (config.Debug == true)
-                    {
-                        Log.Debug("Reset guard captain as player left.");
-                    }
-                }
-            }
+
+        
+
+
+
+        public int CompareTo(object obj)
+        {
+            return Comparer<MTFUnits>.Default.Compare(this, obj as MTFUnits);
         }
     }
 }
-
-
 
