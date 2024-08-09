@@ -99,6 +99,7 @@ namespace Plugin
                                     player.SendBroadcast($"You are <color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}>The Brute</color>. You are slightly taller and start have damage resistance.", 10);
                                     player.AddItem(ItemType.ArmorHeavy);
                                     player.EffectsManager.EnableEffect<DamageReduction>(0, false);
+                                    player.EffectsManager.ChangeState<DamageReduction>(40, 0, false);
                                     SetScale(player, 1.2f);
                             }
 

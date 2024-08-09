@@ -66,6 +66,8 @@ namespace Plugin
     using static System.Net.Mime.MediaTypeNames;
     using CentralAuth;
     using CommandSystem.Commands.Console;
+    using PlayerRoles.PlayableScps.Scp096;
+    using static global::Plugin.EventHandlers;
 
     // woo I love converting 6k lines of code over to new things (i'm gonna have to do it again when labapi drops :D)
     public class EventHandlers : IComparable
@@ -73,7 +75,8 @@ namespace Plugin
         int respawn_count = 0;
         HashSet<int> fbi = new HashSet<int>();
         HashSet<int> sci = new HashSet<int>();
-        HashSet<int> ambience914 = new HashSet<int>();
+        HashSet<int> chase096Music = new HashSet<int>();
+
         static UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
         SpawnableTeamType spawning_team = SpawnableTeamType.None;
         public static bool isSerpentSpawning = false;
@@ -94,6 +97,8 @@ namespace Plugin
 
 
         public static Dictionary<Player, int> PlayerKills = new Dictionary<Player, int>();
+
+        public static Dictionary<Player, ReferenceHub> PlayerAudioBots = new Dictionary<Player, ReferenceHub>();
         public static Dictionary<Player, int> PlayerSpectators = new Dictionary<Player, int>();
         // Custom Items that need to be accessed everwhere (should really make a custom enum or smthn for this lmao)
         public static HashSet<ushort> THEButton = new HashSet<ushort>();
@@ -116,10 +121,11 @@ namespace Plugin
             buttonused = false;
             respawn_count = 0;
             fbi.Clear();
+            chase096Music.Clear();
             spawning_team = SpawnableTeamType.None;
             isSerpentSpawning = false;
             // TempDummyy = AddDummy2();
-
+            PlayerAudioBots.Clear();
             //  RoundEvent = "";
             generatorsActivated = 0;
             // PlayAudio64("ninefourteen.ogg", (byte)65F, true, TempDummyy);
@@ -225,10 +231,7 @@ namespace Plugin
                             {
                                 p.SendBroadcast("<color=#228B22>EVENT:</color> The SCPs are now nextbots!", 13, Broadcast.BroadcastFlags.Normal, false);
 
-                                if (p.IsSCP)
-                                {
-                                    SetScale(p, new Vector3(1f, 1f, 0.1f));
-                                }
+                                
                                 
                             }
                         }
@@ -684,7 +687,7 @@ namespace Plugin
                             {
 
 
-                                if (player.Room.name == "EZ_Smallrooms2" || player.Room.name == "LCZ_TCross (11)")
+                                if (player.Room.name == "EZ_upstairs" || player.Room.name == "LCZ_TCross (11)")
                                 {
                                         //  player.ReceiveHint("You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)", 1.25f);
                                         /*DisplayCore.Get(player.ReferenceHub)*/
@@ -792,19 +795,23 @@ namespace Plugin
             .Replace("%distance%", target != observer ? Math.Floor(Vector3.Distance(observer.Position, target.Position)) + "m" : "");
     }
 
+
+
         [PluginEvent(ServerEventType.PlayerReceiveEffect)]
         void OnReceiveEffect(Player plr, StatusEffectBase effect, byte intensity, float duration)
         {
 
-            if (effect.name == "Vitality" || effect.name == "MovementBoost" && intensity == 10 || effect.name == "RainbowTaste" && intensity == 1)
+           
+
+
+            if (effect.name == "Vitality" || effect.name == "MovementBoost" && intensity == 10 || effect.name == "RainbowTaste" && intensity == 1 || effect.name == "DamageReduction" && intensity == 40)
             {
                 ReferenceHub TempDummy = AddDummy();
 
                 
                 if (effect.name == "Vitality")
             {
-                
-               
+
 
                 PlayPlayerAudio096(plr, "windows.ogg", (byte)65f, TempDummy);
 
@@ -822,6 +829,18 @@ namespace Plugin
                 PlayPlayerAudio096(plr, "yellowcandy.ogg", (byte)65f, TempDummy);
 
                 Timing.CallDelayed(8.3f, () =>
+                {
+                    RemoveDummy096(TempDummy);
+                });
+            }
+            if (effect.name == "DamageReduction" && intensity == 40)
+            {
+                    //  ReferenceHub TempDummy = AddDummy();
+
+               // CheckPlaying(TempDummy);
+                PlayPlayerAudio096(plr, "graycandy.ogg", (byte)65f, TempDummy);
+
+                Timing.CallDelayed(14.1f, () =>
                 {
                     RemoveDummy096(TempDummy);
                 });
@@ -855,6 +874,39 @@ namespace Plugin
             Log.Debug(randomNumber.ToString());
             RoundEvent = "";
 
+            /*
+            foreach (var room in Facility.Rooms)
+            {
+                if (room.GameObject.name == "LCZ_Crossing (6)") { 
+                foreach (var component in room.GameObject.GetComponentsInChildren<Component>())
+                    try
+                    {
+                        if (component.name.Contains("SCP-079") || component.name.Contains("CCTV"))
+                        {
+                           // Log.Debug(
+                            //    $"Prevented from destroying: {component.name} {component.tag} {component.GetType().FullName}");
+                            continue;
+                        }
+
+                        if (component.GetComponentsInParent<Component>()
+                            .Any(c => c.name.Contains("SCP-079") || c.name.Contains("CCTV")))
+                        {
+                          //  Log.Debug(
+                           //     $"Prevented from destroying: {component.name} {component.tag} {component.GetType().FullName}");
+                            continue;
+                        }
+
+                            // Log.Debug($"Destroying component: {component.name} {component.tag} {component.GetType().FullName}");
+
+                            Object.Destroy(component);
+                        }
+                    catch
+                    {
+                        // ignored
+                    }
+                }
+            }
+            */
 
         }
 
@@ -1190,6 +1242,19 @@ namespace Plugin
             if (player != null)
             {
 
+                if (RoundEvent == "Nextbots")
+                {
+                    Timing.CallDelayed(1.5f, () =>
+                    {
+                        if (player.IsSCP && player.Role != RoleTypeId.Scp079 && player.Role != RoleTypeId.Scp939)
+                        {
+
+                            
+                            SetScale(player, new Vector3(1f, 1f, 0.1f));
+                        }
+                    });
+                }
+
                 if (newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Overwatch || newRole != RoleTypeId.Filmmaker)
                 {
                     if (player.CustomInfo != null)
@@ -1207,8 +1272,6 @@ namespace Plugin
 
                 if (reason != RoleChangeReason.RoundStart && reason != RoleChangeReason.LateJoin)
                     return;
-
-
 
                 if (RoundEvent == "ArmedDClass")
                 {
@@ -1519,6 +1582,24 @@ namespace Plugin
 
                
 
+                if (player.Role == RoleTypeId.Scp096)
+                {
+                    List<Player> Playerss = Player.GetPlayers();
+                    
+                    foreach (var randplr in Playerss)
+                    {
+
+                        if (chase096Music.Contains(randplr.PlayerId))
+                        {
+                            chase096Music.Remove(randplr.PlayerId);
+                            //  randplr.TemporaryData.Remove("scp096ambience");
+                            RemoveDummy096(PlayerAudioBots[randplr]);
+                            PlayerAudioBots.Remove(randplr);
+                        }
+                    }
+                }
+                
+
             }
 
            
@@ -1677,7 +1758,6 @@ namespace Plugin
             });
         }
 
-
         [PluginEvent(ServerEventType.Scp096AddingTarget)]
         public bool New096Target(Scp096AddingTargetEvent args)
         {
@@ -1687,10 +1767,109 @@ namespace Plugin
             }
             else
             {
+
+
+                if (args.Player.RoleBase is Scp096Role scp096Role && scp096Role.StateController.RageState == Scp096RageState.Enraged && !chase096Music.Contains(args.Target.PlayerId))
+                {
+                    ReferenceHub PlayersAudioBot = AddDummy();
+
+                    //     PlayersAudioBot = TemporaryBot;
+                    PlayPlayerAudio096(args.Target, "scp096chase.ogg", (byte)65f, PlayersAudioBot);
+                    //    args.Target.TemporaryData.Add<args.Target>("scp096chase",args.Target);
+                    // args.Target.TemporaryData.Add("scp096chase", args.Target);
+                    PlayerAudioBots.Add(args.Target, PlayersAudioBot);
+                    chase096Music.Add(args.Target.PlayerId);
+                }
+               
+               
                 DisplayCore.Get(args.Target.ReferenceHub).SetElemTemp(cfg.targetmessage, 400f, TimeSpan.FromSeconds(5), new TimedElemRef<SetElement>());
                 return true;
             }
         }
+
+        [PluginEvent]
+        public void OnScp096CalmDown(Scp096ChangeStateEvent ev)
+        {
+            if (ev.RageState != Scp096RageState.Enraged && ev.RageState != Scp096RageState.Distressed)
+            {
+
+                Player player = ev.Player;
+                List<Player> Playerss = Player.GetPlayers();
+
+
+                foreach (var randplr in Playerss)
+                {
+
+                    if (chase096Music.Contains(randplr.PlayerId))
+                    {
+                        chase096Music.Remove(randplr.PlayerId);
+                        //  randplr.TemporaryData.Remove("scp096ambience");
+                        RemoveDummy096(PlayerAudioBots[randplr]);
+                        PlayerAudioBots.Remove(randplr);
+                    }
+                }
+
+                /*
+                       PlayersAudioBot = AddDummy();
+                       if (player.Room.name == "LCZ_914 (14)" && !player.TemporaryData.Contains("scp914_ambience"))
+                       {
+
+                           player.TemporaryData.Add("scp914_ambience", this);
+
+                           //PlayersAudioBot = AddDummy();
+
+                           //     PlayersAudioBot = TemporaryBot;
+                           PlayPlayerAudio096_Loop(player, "ninefourteen.ogg", (byte)65f, PlayersAudioBot);
+                           // player.EffectsManager.EnableEffect<SoundtrackMute>(0, false);
+                       }
+
+                       if (player.Room.name != "LCZ_914 (14)" && player.TemporaryData.Contains("scp914_ambience"))
+                       {
+
+                           player.TemporaryData.Remove("scp914_ambience");
+
+                           //player.EffectsManager.DisableEffect<SoundtrackMute>();
+                           Log.Debug($"{PlayersAudioBot.name}");
+                           //StopAudio096(PlayersAudioBot);
+                           StopAudio096(PlayersAudioBot);
+                           RemoveDummy096(PlayersAudioBot);
+                           Log.Debug($"{PlayersAudioBot.name}");
+                       }
+
+                   }
+                   */
+            }
+        }
+
+        [PluginEvent]
+        public void OnScp096Enrage(Scp096EnragingEvent ev)
+        {
+            List<Player> Playerss = Player.GetPlayers();
+
+            foreach (var randplr in Playerss)
+            {
+
+                    if (ev.Player.RoleBase is Scp096Role scp096Role && scp096Role.SubroutineModule.TryGetSubroutine<Scp096TargetsTracker>(out var player096targettrackerr)) //scp096Role.SubroutineModule.TryGetSubroutine(out Scp096RageManager player096RageManager))
+                    {
+
+                    //if (player096RageManager._targetsTracker.HasTarget(randplr.ReferenceHub)) {
+                    if (player096targettrackerr.Targets.Contains(randplr.ReferenceHub))
+                    {
+                            Timing.WaitForSeconds(6.1f);
+                            Log.Debug("playing music now");
+                            ReferenceHub PlayersAudioBot = AddDummy();
+                            PlayPlayerAudio096(randplr, "scp096chase.ogg", (byte)65f, PlayersAudioBot);
+                            PlayerAudioBots.Add(randplr, PlayersAudioBot);
+                            chase096Music.Add(randplr.PlayerId);
+                        
+                    }
+                        
+                    }
+                }
+            
+        }
+
+
 
         [PluginEvent(ServerEventType.Scp173NewObserver)]
         public bool New173Target(Scp173NewObserverEvent args)
@@ -1829,19 +2008,6 @@ namespace Plugin
             }
         }
 
-        [PluginEvent]
-        public void OnScp096Enrage(Scp096EnragingEvent ev)
-        {
-           // Log.Info($"Player &6{ev.Player.Nickname}&r (&6{ev.Player.UserId}&r) went into a state of rage for {ev.InitialDuration} seconds");
-        }
-
-        [PluginEvent]
-        public void OnScp096CalmDown(Scp096ChangeStateEvent ev)
-        {
-           // Log.Info($"Player &6{ev.Player.Nickname}&r (&6{ev.Player.UserId}&r) changed its state to {ev.RageState} as SCP-096");
-        }
-
-
 
 
 
@@ -1977,7 +2143,7 @@ namespace Plugin
         public static HashSet<ushort> lava = new HashSet<ushort>();
         public static HashSet<ushort> balls = new HashSet<ushort>();
         public static HashSet<ushort> colas_beer = new HashSet<ushort>();
-
+        public static HashSet<ushort> colas_nextbot = new HashSet<ushort>();
 
 
         // CUSTOM ITEMS
@@ -1989,6 +2155,7 @@ namespace Plugin
         public static HashSet<ushort> invis_pills = new HashSet<ushort>();
         public static HashSet<ushort> friend_pills = new HashSet<ushort>();
         public static HashSet<ushort> scale_pills = new HashSet<ushort>();
+        public static HashSet<ushort> teleport_pills = new HashSet<ushort>();
         public static HashSet<ushort> seeing_adrenaline = new HashSet<ushort>();
         public static HashSet<ushort> scp500s = new HashSet<ushort>();
 
@@ -2023,14 +2190,33 @@ namespace Plugin
                         player.SendConsoleMessage("List of SCP-294 Drinks: oxygen, speed, SCP-207, Coffee, Espresso, GoldenAtomKick, NuclearKick, godmode, nuclearkick, Invisibility, scp268, Me, Tea, Horror, PocketDimension, Borgor, Cheeserburger, Antimatter, Nuke, 049, Zombie, CherryAtomKick, HealthPotion, grenade, pinkcandy, Boom, SCP-173, Peanut, Saltwater, Ocean, Teleportation, Teleport, Escape, Windex, Medusa, SCP-330, Candy, SeveredHands, BEPIS, Small, Big, grow, LeafLover, Water, Slushy, Ghost, Cold, Ice, Death, Metal, Steel, RazorBlade, Oil, Freedom, Bose-Einstein, Condensate, QuantumGas, Beer, Vodka, slime, scp1853, scp-1853, choccymilk, lava, lemonade","white");
                         player.SendConsoleMessage("DUPLICATE ENTRIES ARE INCLUDED. SOME MAY BE CASE-SENSITIVE; MAKE SURE TO DOUBLE CHECK CAPS / LOWERCASE.","white");
                     }
-                    if (player.Room != null && ItemType.Coin.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room.name == "EZ_Smallrooms2" && arguments.First().ToLower() != "list" || player.Room.name == "LCZ_TCross (11)")
+                    if (player.Room != null && ItemType.Coin.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room.name == "EZ_upstairs" && arguments.First().ToLower() != "list" || player.Room.name == "LCZ_TCross (11)")
                     {
 
 
 
-                            
 
-                       
+
+                        if (arguments.First().ToLower() == "nextbot" || arguments.First().ToLower() == "2d" || arguments.First().ToLower() == "cutout")
+                        {
+                            // Log.Debug("send help pls");
+                            //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
+
+                            player.RemoveItem(player.CurrentItem);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a bottle of {arguments.First()}", 5);
+                            //  player.AddItem(ItemType.SCP207); no longer need this lol
+                            ItemBase thiscola = player.AddItem(ItemType.SCP207);
+
+                            colas_nextbot.Add(thiscola.ItemSerial);
+
+                            ReferenceHub TempDummy = AddDummy();
+                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            Timing.CallDelayed(9f, () =>
+                            {
+                                RemoveDummy096(TempDummy);
+                            });
+
+                        }
                         if (arguments.First().ToLower() == "beer" || arguments.First().ToLower() == "vodka" || arguments.First().ToLower() == "addiction")
                         {
                             // Log.Debug("send help pls");
@@ -2741,6 +2927,44 @@ namespace Plugin
         [PluginEvent(ServerEventType.PlayerUseItem)]
         void OnPlayerStartedUsingItem(Player plr, UsableItem item)
         {
+
+            /*
+            
+                Timing.CallDelayed(0.1f, () =>
+                {
+                    
+                    if (plr.ArtificialHealth == 30 && !plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.AntiScp207 sevHands) && !sevHands.IsEnabled && plr.CurrentItem.ItemTypeId != ItemType.Adrenaline) {
+                        ReferenceHub TempDummy = AddDummy();
+                        PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
+
+                        Timing.CallDelayed(28.2f, () =>
+                        {
+                            RemoveDummy096(TempDummy);
+                        });
+                    }
+                    
+                });
+        */
+            if (item.ItemTypeId == ItemType.MicroHID)
+            {
+                List<Player> Playerss = Player.GetPlayers();
+                foreach (var randplr in Playerss)
+                {
+
+                    if (plr != randplr && randplr.Role == RoleTypeId.Scp096 && randplr.Room == plr.Room)
+                    {
+
+
+                        if (randplr.RoleBase is Scp096Role scp096Role && scp096Role.SubroutineModule.TryGetSubroutine<Scp096TargetsTracker>(out var tracker))
+                        {
+                            tracker.AddTarget(plr.ReferenceHub, false);
+
+                        }
+                    }
+                }
+            }
+
+
             if (item.ItemTypeId == ItemType.SCP207 && colas_oxygen.Contains(item.ItemSerial))
             {
                 //  Log.Debug("SCP-268 was used.");
@@ -2790,6 +3014,28 @@ namespace Plugin
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
                     plr.ReceiveHint("You drank the cup of speed juice. It had a overly sweet taste. You feel like running a marathon.", 3);
+                });
+                // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
+            }
+            else if (item.ItemTypeId == ItemType.SCP207 && colas_nextbot.Contains(item.ItemSerial))
+            {
+                //  Log.Debug("SCP-268 was used.");
+
+                Timing.CallDelayed(3.4f, () =>
+                {
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    {
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                    }
+                    else
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                    }
+
+                    SetScale(plr, new Vector3(1f, 1f, 0.1f));
+                    plr.ReceiveHint("Why?", 3);
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3221,14 +3467,22 @@ namespace Plugin
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
-                    plr.EffectsManager.EnableEffect<Invigorated>(20, true);
-                    plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
-                    plr.EffectsManager.EnableEffect<DamageReduction>(15, true);
-                    plr.EffectsManager.EnableEffect<Scp1853>(20, true);
+                    plr.EffectsManager.EnableEffect<Invigorated>(28, true);
+                    plr.EffectsManager.EnableEffect<BodyshotReduction>(28, true);
+                    plr.EffectsManager.EnableEffect<DamageReduction>(28, true);
+                    plr.EffectsManager.EnableEffect<Scp1853>(28, true);
                     // plr.Kill("I don't know what you expected.");
 
+
+                    ReferenceHub TempDummy = AddDummy();
+                    PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
+
+                    Timing.CallDelayed(28.2f, () =>
+                    {
+                        RemoveDummy096(TempDummy);
+                    });
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
-                   
+
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
                     plr.ReceiveHint("You took a sip of Cherry Atom Kick. It was perfectly refreshing.", 3);
                 });
@@ -3499,12 +3753,22 @@ namespace Plugin
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
-                    plr.EffectsManager.EnableEffect<Ghostly>(20, true);
-                    plr.EffectsManager.EnableEffect<CustomPlayerEffects.Invisible>(20, true);
+                    plr.EffectsManager.EnableEffect<Ghostly>(41, true);
+                    plr.EffectsManager.EnableEffect<CustomPlayerEffects.Invisible>(41, true);
                     plr.ReceiveHint("You drank the ghastly brew...", 3);
 
+                    ReferenceHub TempDummy = AddDummy();
+                    PlayPlayerAudio096(plr, "whitecandy.ogg", (byte)65f, TempDummy);
+
+                    Timing.CallDelayed(41.2f, () =>
+                    {
+                        RemoveDummy096(TempDummy);
+                    });
+
+
+                    
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
-                   
+
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
                     // plr.ReceiveHint("Borgor.", 3);
                 });
@@ -4102,6 +4366,26 @@ namespace Plugin
                 });
 
             }
+            else if (item.ItemTypeId == ItemType.SCP500 && teleport_pills.Contains(item.ItemSerial))
+            {
+
+
+                Timing.CallDelayed(1.36f, () =>
+                {
+                    // plr.ReceiveHint("You swallowed <color=#C50000>SCP-500-A</color>");
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You swallowed <color=#C50000>SCP-500-T</color>", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                    if (plr.RoleBase is IFpcRole role)
+                    {
+                        plr.EffectsManager.EnableEffect<PocketCorroding>();
+                        var position = Scp106PocketExitFinder.GetBestExitPosition(role);
+                        plr.EffectsManager.DisableEffect<PocketCorroding>();
+                        plr.EffectsManager.DisableEffect<Corroding>();
+                        plr.Position = position;
+                    }
+                   
+                });
+
+            }
             else if (item.ItemTypeId == ItemType.SCP500 && invis_pills.Contains(item.ItemSerial))
             {
 
@@ -4247,18 +4531,18 @@ namespace Plugin
                     if ((itemba is Scp330Bag bag))
                     {
 
-                        int candyCount = bag.Candies.Count - 1;
-                        CandyKindID id = bag.Candies[candyCount];
+                        //int candyCount = bag.Candies.Count - 1;
+                       // CandyKindID id = bag.Candies[candyCount];
 
-                        if (id.ToString().ToLower() == "green")
-                        {
+                      //  if (id.ToString().ToLower() == "green")
+                        //{
                          //   ReferenceHub GCandyDummy = AddDummy();
                         //    PlayPlayerAudio096(plr, "windows.ogg", (byte)85f, GCandyDummy);
                          //   Timing.CallDelayed(28f, () =>
                          //   {
                          //       RemoveDummy096(GCandyDummy);
                         //    });
-                        }
+                       // }
                     }
                 }
             }
@@ -4603,9 +4887,9 @@ namespace Plugin
                 }
 
                 
-                if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && !scp500s.Contains(newItemBase.ItemSerial) && !scale_pills.Contains(newItemBase.ItemSerial) && !friend_pills.Contains(newItemBase.ItemSerial) && !invis_pills.Contains(newItemBase.ItemSerial) && !resurrection_pills.Contains(newItemBase.ItemSerial) && !super_pills.Contains(newItemBase.ItemSerial))
+                if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && !scp500s.Contains(newItemBase.ItemSerial) && !scale_pills.Contains(newItemBase.ItemSerial) && !friend_pills.Contains(newItemBase.ItemSerial) && !invis_pills.Contains(newItemBase.ItemSerial) && !resurrection_pills.Contains(newItemBase.ItemSerial) && !super_pills.Contains(newItemBase.ItemSerial) && !teleport_pills.Contains(newItemBase.ItemSerial))
                 {
-                    if (UnityEngine.Random.Range(1, 12) <= 3)
+                    if (UnityEngine.Random.Range(1, 12) <= 5)
                     {
 
                         switch (UnityEngine.Random.Range(0, 5))
@@ -4615,11 +4899,11 @@ namespace Plugin
                             case 2: resurrection_pills.Add(newItemBase.ItemSerial); break;
                             case 3: super_pills.Add(newItemBase.ItemSerial); break;
                             case 4: friend_pills.Add(newItemBase.ItemSerial); break;
-                            case 5: scp500s.Add(newItemBase.ItemSerial); break;
+                            case 5: teleport_pills.Add(newItemBase.ItemSerial); break;
                         }
 
                     }
-                    else if (newItemBase.ItemTypeId == ItemType.SCP500 && !scale_pills.Contains(newItemBase.ItemSerial) && !friend_pills.Contains(newItemBase.ItemSerial) && !invis_pills.Contains(newItemBase.ItemSerial) && !resurrection_pills.Contains(newItemBase.ItemSerial) && !super_pills.Contains(newItemBase.ItemSerial) && !scp500s.Contains(newItemBase.ItemSerial))
+                    else if (newItemBase.ItemTypeId == ItemType.SCP500 && !scale_pills.Contains(newItemBase.ItemSerial) && !friend_pills.Contains(newItemBase.ItemSerial) && !invis_pills.Contains(newItemBase.ItemSerial) && !resurrection_pills.Contains(newItemBase.ItemSerial) && !super_pills.Contains(newItemBase.ItemSerial) && !scp500s.Contains(newItemBase.ItemSerial) && !teleport_pills.Contains(newItemBase.ItemSerial))
                     {
 
 
@@ -4643,6 +4927,12 @@ namespace Plugin
                 {
                    // plr.ReceiveHint("You equipped <color=#C50000>SCP-500-A</color> \nConsuming it will give you a variety of effects.", 3);
                     DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>SCP-500-A</color> \nConsuming it will give you a variety of effects.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+
+                }
+                if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && teleport_pills.Contains(newItemBase.ItemSerial))
+                {
+                    // plr.ReceiveHint("You equipped <color=#C50000>SCP-500-A</color> \nConsuming it will give you a variety of effects.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>SCP-500-T</color> \nConsuming it will teleport you to a random room in your current zone.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                 }
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && invis_pills.Contains(newItemBase.ItemSerial))
@@ -5221,6 +5511,57 @@ namespace Plugin
 
 
         [CommandHandler(typeof(RemoteAdminCommandHandler))]
+        public class DestroyRoom : ICommand
+        {
+            public string Command { get; } = "destroyroom";
+
+            public string[] Aliases { get; } = new string[] { };
+
+            public string Description { get; } = "didn't know this was possible, lmaoo";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+                Player player;
+                if (Player.TryGet(sender, out player))
+                {
+                    foreach (var component in player.Room.gameObject.GetComponentsInChildren<Component>())
+                        try
+                        {
+                            if (component.name.Contains("SCP-079") || component.name.Contains("CCTV"))
+                            {
+                                Log.Debug(
+                                    $"Prevent from destroying: {component.name} {component.tag} {component.GetType().FullName}");
+                                continue;
+                            }
+
+                            if (component.GetComponentsInParent<Component>()
+                                .Any(c => c.name.Contains("SCP-079") || c.name.Contains("CCTV")))
+                            {
+                                Log.Debug(
+                                    $"Prevent from destroying: {component.name} {component.tag} {component.GetType().FullName}");
+                                continue;
+                            }
+
+                            Log.Debug($"Destroying component: {component.name} {component.tag} {component.GetType().FullName}");
+
+                            Object.Destroy(component);
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
+                    response = "success";
+                    return true;
+                }
+                response = "failed";
+                return false;
+            }
+        }
+
+
+        
+
+[CommandHandler(typeof(RemoteAdminCommandHandler))]
         public class givethebutton : ICommand
         {
             public string Command { get; } = "givethebutton";
@@ -5494,7 +5835,7 @@ namespace Plugin
                         //  player.EffectsManager.EnableEffect<CustomPlayerEffects>
                         // StatusEffectBase Randomeffect = player.ReferenceHub.playerEffectsController.AllEffects.RandomItem();
                         // player.EffectsManager.EnableEffect<Randomeffect>()
-                          List<String> list = new List<String> {"CardiacArrest", "Decontaminating", "Invigorated", "Poisoned", "Scp207", "MovementBoost", "Hypothermia", "Scp1853", "AntiScp207", "DamageReduction", "Decontaminating", "CardiacArrest", "CardiacArrest" };
+                          List<String> list = new List<String> {"CardiacArrest", "Decontaminating", "Invigorated", "Poisoned", "Scp207", "MovementBoost", "Scp1853", "AntiScp207", "DamageReduction", "Decontaminating", "CardiacArrest", "CardiacArrest", "Poisoned", "Exhausted", "Disabled", "Bleeding", "Amnesia Vision", "Asphyxiated" };
                         //StatusEffectBase effect = player.ReferenceHub.playerEffectsController.AllEffects.RandomItem();
                         string effect = list.RandomItem();
                         player.ReferenceHub.playerEffectsController.ChangeState(effect, 1, 0, false);
@@ -6021,8 +6362,12 @@ namespace Plugin
             hubPlayer.authManager.InstanceMode = CentralAuth.ClientInstanceMode.Unverified;
             // CharacterClassManager.instance
             hubPlayer.characterClassManager._godMode = true;
+          //  hubPlayer.playerStats.GetModule<AdminFlagsStat>().SetFlag(AdminFlags.Noclip, true);
+
             hubPlayer.roleManager.ServerSetRole(RoleTypeId.Overwatch, RoleChangeReason.RemoteAdmin, RoleSpawnFlags.None);
-           hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
+            hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
+            hubPlayer.authManager.NetworkSyncedUserId = null;
+            //hubPlayer.Network_playerId = null;
             try
             {
                 if (isSerpentSpawning == true)
@@ -6075,6 +6420,9 @@ namespace Plugin
 
             return hubPlayer;
         }
+
+
+    
 
 
         public static ReferenceHub AddDummy2()
