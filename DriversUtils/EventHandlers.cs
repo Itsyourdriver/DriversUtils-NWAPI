@@ -1569,6 +1569,15 @@ namespace Plugin
                 //player.PlayerInfo.IsRoleHidden = false;
                 //player.CustomInfo = string.Empty;
 
+                if (chase096Music.Contains(player.PlayerId))
+                {
+                    chase096Music.Remove(player.PlayerId);
+                    //  randplr.TemporaryData.Remove("scp096ambience");
+                    RemoveDummy096(PlayerAudioBots[player]);
+                    PlayerAudioBots.Remove(player);
+                }
+
+
                 if (attacker != null && PlayerKills.TryGetValue(attacker, out int test))
                 {
                     PlayerKills[attacker]++;
