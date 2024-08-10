@@ -18,7 +18,7 @@ namespace Plugin
         [Description("Display strings. Format: Role, display string.")]
         public Dictionary<RoleTypeId, string> DisplayStrings { get; set; } = new Dictionary<RoleTypeId, string>()
         {
-            { RoleTypeId.Scp106, "<color=#D51D1D>SCP-106 [%healthpercent%%] Vigor: null %distance%</color>" },
+            { RoleTypeId.Scp106, "<color=#D51D1D>SCP-106 [%healthpercent%%] Vigor: %106vigor% %distance%</color>" },
             { RoleTypeId.Scp049, "<color=#D51D1D>SCP-049 [%healthpercent%% Zombies: %zombies%] %distance%</color>" },
             { RoleTypeId.Scp079, "<color=#D51D1D>SCP-079 [%generators%%engaging%/3] Lvl: %079level% Exp: %079experience% Energy: %079energy%</color>" },
             { RoleTypeId.Scp096, "<color=#D51D1D>SCP-096 [%healthpercent%%] %distance%</color>" },

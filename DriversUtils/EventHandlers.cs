@@ -781,8 +781,8 @@ namespace Plugin
                         .Replace("%079experience", tier.RelativeExp.ToString());
                     break;
                 case Scp106Role scp106:
-                 //   scp106.SubroutineModule.TryGetSubroutine(out Scp106Vigor vigor);
-                    //raw = raw.Replace("%106vigor%", Math.Floor(vigor.VigorAmount * 100).ToString());
+                    scp106.SubroutineModule.TryGetSubroutine(out Scp106VigorAbilityBase vigor);
+                    raw = raw.Replace("%106vigor%", Math.Floor(vigor.VigorAmount * 100).ToString() + "%");
                     break;
 
             }
@@ -1580,6 +1580,8 @@ namespace Plugin
                     // NULL
                 }
 
+
+
                
 
                 if (player.Role == RoleTypeId.Scp096)
@@ -1774,7 +1776,7 @@ namespace Plugin
                     ReferenceHub PlayersAudioBot = AddDummy();
 
                     //     PlayersAudioBot = TemporaryBot;
-                    PlayPlayerAudio096(args.Target, "scp096chase.ogg", (byte)65f, PlayersAudioBot);
+                    PlayPlayerAudio_096_HigherVolume(args.Target, "scp096chase.ogg", (byte)75f, PlayersAudioBot);
                     //    args.Target.TemporaryData.Add<args.Target>("scp096chase",args.Target);
                     // args.Target.TemporaryData.Add("scp096chase", args.Target);
                     PlayerAudioBots.Add(args.Target, PlayersAudioBot);
@@ -1844,6 +1846,23 @@ namespace Plugin
         [PluginEvent]
         public void OnScp096Enrage(Scp096EnragingEvent ev)
         {
+
+            Timing.CallDelayed(6.1f, () =>
+            {
+                if (ev.Player != null)
+                {
+                    if (ev.Player.Role == RoleTypeId.Scp096)
+                    {
+                        ReferenceHub PlayersAudioBot = AddDummy();
+                        PlayPlayerAudio096(ev.Player, "scp096chase.ogg", (byte)75f, PlayersAudioBot);
+                        PlayerAudioBots.Add(ev.Player, PlayersAudioBot);
+                        chase096Music.Add(ev.Player.PlayerId);
+                    }
+
+                }
+            });
+
+
             List<Player> Playerss = Player.GetPlayers();
 
             foreach (var randplr in Playerss)
@@ -1853,16 +1872,26 @@ namespace Plugin
                     {
 
                     //if (player096RageManager._targetsTracker.HasTarget(randplr.ReferenceHub)) {
-                    if (player096targettrackerr.Targets.Contains(randplr.ReferenceHub))
-                    {
-                            Timing.WaitForSeconds(6.1f);
-                            Log.Debug("playing music now");
-                            ReferenceHub PlayersAudioBot = AddDummy();
-                            PlayPlayerAudio096(randplr, "scp096chase.ogg", (byte)65f, PlayersAudioBot);
-                            PlayerAudioBots.Add(randplr, PlayersAudioBot);
-                            chase096Music.Add(randplr.PlayerId);
+                    
+
+                        Timing.CallDelayed(6.1f, () =>
+                        {
+                        if (randplr != null && player096targettrackerr.Targets.Contains(randplr.ReferenceHub))
+                        {
+                            if (ev.Player.Role == RoleTypeId.Scp096)
+                            {
+                                Log.Debug("playing music now");
+                                ReferenceHub PlayersAudioBot = AddDummy();
+                                PlayPlayerAudio_096_HigherVolume(randplr, "scp096chase.ogg", (byte)75f, PlayersAudioBot);
+                                PlayerAudioBots.Add(randplr, PlayersAudioBot);
+                                chase096Music.Add(randplr.PlayerId);
+                            }
+
+                        }
+                        });
+                      
                         
-                    }
+                    
                         
                     }
                 }
@@ -2951,15 +2980,16 @@ namespace Plugin
                 foreach (var randplr in Playerss)
                 {
 
-                    if (plr != randplr && randplr.Role == RoleTypeId.Scp096 && randplr.Room == plr.Room)
+                    if (randplr.Role == RoleTypeId.Scp096 && randplr.Room.name == plr.Room.name)
                     {
 
 
                         if (randplr.RoleBase is Scp096Role scp096Role && scp096Role.SubroutineModule.TryGetSubroutine<Scp096TargetsTracker>(out var tracker))
                         {
-                            tracker.AddTarget(plr.ReferenceHub, false);
+                            tracker.AddTarget(plr.ReferenceHub, true);
 
                         }
+
                     }
                 }
             }
@@ -6231,6 +6261,26 @@ namespace Plugin
             audioPlayer.BroadcastChannel = VoiceChatChannel.Proximity;
             audioPlayer.BroadcastTo.Add(player.PlayerId);
             audioPlayer.Volume = 10f;
+            audioPlayer.Loop = false;
+            audioPlayer.Play(0);
+            return audioPlayer;
+        }
+
+
+        public static AudioPlayerBase PlayPlayerAudio_096_HigherVolume(Player player, string audioFile, byte volume, ReferenceHub AudioBotT)
+        {
+            //if (AudioBot == null) AudioBot = AddDummy();
+
+            StopAudio();
+
+            var path = Path.Combine(PluginConfig.AudioDirectory, audioFile);
+
+            AudioPlayerBase audioPlayer = AudioPlayerBase.Get(AudioBotT);
+            audioPlayer.Enqueue(path, -1);
+            audioPlayer.LogDebug = false;
+            audioPlayer.BroadcastChannel = VoiceChatChannel.Proximity;
+            audioPlayer.BroadcastTo.Add(player.PlayerId);
+            audioPlayer.Volume = 15f;
             audioPlayer.Loop = false;
             audioPlayer.Play(0);
             return audioPlayer;
