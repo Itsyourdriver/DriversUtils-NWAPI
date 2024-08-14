@@ -68,6 +68,8 @@ namespace Plugin
     using CommandSystem.Commands.Console;
     using PlayerRoles.PlayableScps.Scp096;
     using static global::Plugin.EventHandlers;
+    using GameCore;
+    using Log = PluginAPI.Core.Log;
 
     // woo I love converting 6k lines of code over to new things (i'm gonna have to do it again when labapi drops :D)
     public class EventHandlers : IComparable
@@ -752,8 +754,7 @@ namespace Plugin
         [PluginEvent(ServerEventType.PlayerJoined)]
         void OnPlayerJoin(Player player)
         {
-            Timing.CallDelayed(1.1f, () =>
-            {
+
 
             while (true) { 
                     if (player.IsReady)
@@ -764,7 +765,7 @@ namespace Plugin
                         }
                         break;
                    }
-            });
+
         }
 
 
@@ -2017,8 +2018,18 @@ namespace Plugin
             fbi.Clear();
             captainplayer = null;
             sci.Clear();
+            PlayerKills.Clear();
+            PlayerSpectators.Clear();
+            PlayerAudioBots.Clear();
+            Server.FriendlyFire = true;
+            float restartTime = ConfigFile.ServerConfig.GetFloat("auto_round_restart_time");
 
+            Timing.CallDelayed(restartTime - 0.5f, () =>
+            {
+                Server.FriendlyFire = false;
+            });
         }
+
 
 
 
@@ -2983,6 +2994,8 @@ namespace Plugin
                     
                 });
         */
+
+            /*
             if (item.ItemTypeId == ItemType.MicroHID)
             {
                 List<Player> Playerss = Player.GetPlayers();
@@ -3002,7 +3015,7 @@ namespace Plugin
                     }
                 }
             }
-
+            */
 
             if (item.ItemTypeId == ItemType.SCP207 && colas_oxygen.Contains(item.ItemSerial))
             {
@@ -6424,8 +6437,8 @@ namespace Plugin
           //  hubPlayer.playerStats.GetModule<AdminFlagsStat>().SetFlag(AdminFlags.Noclip, true);
 
             hubPlayer.roleManager.ServerSetRole(RoleTypeId.Overwatch, RoleChangeReason.RemoteAdmin, RoleSpawnFlags.None);
-            hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
-            hubPlayer.authManager.NetworkSyncedUserId = null;
+           // hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
+            //hubPlayer.authManager.NetworkSyncedUserId = null;
             //hubPlayer.Network_playerId = null;
             try
             {
@@ -6447,7 +6460,7 @@ namespace Plugin
               
                 hubPlayer.roleManager.ServerSetRole(RoleTypeId.Overwatch, RoleChangeReason.None, RoleSpawnFlags.None);
                hubPlayer.characterClassManager._godMode = true;
-               hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
+             //  hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
                // foreach (var target in ReferenceHub.AllHubs.Where(x => x != ReferenceHub.HostHub))
                   //  NetworkServer.SendSpawnMessage(hub.networkIdentity, target.connectionToClient);
             });
@@ -6505,7 +6518,7 @@ namespace Plugin
             //hubPlayer.characterClassManager.isno = true;
             // hubPlayer.playerEffectsController.
             hubPlayer.roleManager.ServerSetRole(RoleTypeId.Tutorial, RoleChangeReason.RemoteAdmin, RoleSpawnFlags.None);
-            hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
+          //  hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
             try
             {
                 if (isSerpentSpawning == true)
@@ -6526,7 +6539,7 @@ namespace Plugin
 
                 hubPlayer.roleManager.ServerSetRole(RoleTypeId.Tutorial, RoleChangeReason.None, RoleSpawnFlags.None);
                 hubPlayer.characterClassManager._godMode = true;
-                hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
+             //   hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 0.1f, 0.1f);
                 // foreach (var target in ReferenceHub.AllHubs.Where(x => x != ReferenceHub.HostHub))
                 //  NetworkServer.SendSpawnMessage(hub.networkIdentity, target.connectionToClient);
             });
