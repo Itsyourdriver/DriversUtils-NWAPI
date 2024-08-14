@@ -2235,7 +2235,7 @@ namespace Plugin
                     if (player.Room != null && arguments.Count != 0 && arguments.First().ToLower() == "list" || arguments.First().ToLower() == "help" || arguments.First().ToLower() == "drinks")
                     {
                         player.SendConsoleMessage("List of SCP-294 Drinks: cola, anticola, dietcola, coffee, supercola, invis, pinkcandy, peanut, teleport, ironskin, shrink, grow, timeout, ghost, scp1853", "white");
-                        player.SendConsoleMessage("DUPLICATE ENTRIES ARE INCLUDED. SOME MAY BE CASE-SENSITIVE; MAKE SURE TO DOUBLE CHECK CAPS / LOWERCASE.","white");
+                      //  player.SendConsoleMessage("DUPLICATE ENTRIES ARE INCLUDED. SOME MAY BE CASE-SENSITIVE; MAKE SURE TO DOUBLE CHECK CAPS / LOWERCASE.","white");
                     }
 
                     if (player.Room != null && ItemType.Coin.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room.name == "EZ_upstairs" && arguments.First().ToLower() != "list" || player.Room.name == "LCZ_TCross (11)")
@@ -2440,7 +2440,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a cup of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a Ghastly Brew.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
@@ -2485,7 +2485,7 @@ namespace Plugin
                             });
 
                         }
-                        else if (arguments.First().ToLower() == "coffee" || arguments.First() == "Espresso" || arguments.First() == "coffee" || arguments.First() == "espresso")
+                        else if (arguments.First().ToLower() == "coffee" || arguments.First() == "Espresso" || arguments.First() == "espresso")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
@@ -2508,7 +2508,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a glittering sound and dispensed you a can of Golden Atom Kick.", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a glittering sound and dispensed you a can of Super Cola!", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
                             colas_atomkick.Add(thiscola.ItemSerial);
@@ -2824,7 +2824,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a high-pitched noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a high-pitched noise and dispensed you a potion of Shrinking.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_small.Add(thiscola.ItemSerial);
@@ -2875,7 +2875,7 @@ namespace Plugin
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a weird noise and dispensed a vile of SCP-1853.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP1853);
-                            greenjuice.Add(thiscola.ItemSerial);
+                           // greenjuice.Add(thiscola.ItemSerial);
                             PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
@@ -2920,7 +2920,7 @@ namespace Plugin
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
                             ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
-                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a bottle of {arguments.First()}", 5);
+                            player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a Potion of Growing!", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_big.Add(thiscola.ItemSerial);
@@ -2951,7 +2951,7 @@ namespace Plugin
 
                     }
                 }
-                response = "Notice: You can get a list of valid drinks by running the command .vm list";
+                response = "";
                 return true;
             }
         }
@@ -3103,7 +3103,8 @@ namespace Plugin
                     }
 
                     SetScale(plr, new Vector3(1f, 1f, 0.1f));
-                    plr.ReceiveHint("Why?", 3);
+                   // plr.ReceiveHint("Why?", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank the bottle of Diet Cola.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3161,10 +3162,19 @@ namespace Plugin
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
                     plr.Heal(60);
-                    plr.EffectsManager.EnableEffect<Invigorated>(30, true);
-                    
+                    plr.EffectsManager.EnableEffect<Invigorated>(28, true);
+
+                    ReferenceHub TempDummy = AddDummy();
+                    PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
+
+                    Timing.CallDelayed(28.2f, () =>
+                    {
+                        RemoveDummy096(TempDummy);
+                    });
+
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You drank a cup of coffee. It was refreshing.", 3);
+                    //  plr.ReceiveHint("You drank a cup of coffee. It was refreshing.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank a cup of coffee. It was refreshing.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
@@ -3194,7 +3204,8 @@ namespace Plugin
                     //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
                    
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You drank a can of golden atom kick. You feel amazing and think about the good times.", 3);
+                    //plr.ReceiveHint("You drank a can of golden atom kick. You feel amazing and think about the good times.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank a bottle of super cola!!!!!!!!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3583,9 +3594,9 @@ namespace Plugin
                     // plr.Kill("I don't know what you expected.");
 
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
-                    
+
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You took a drink from the can of bepis.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank the Iron Skin potion.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3612,13 +3623,13 @@ namespace Plugin
                     //  plr.EffectsManager.EnableEffect<Scp1853>(20, true);
                     // plr.Kill("I don't know what you expected.");
                     // SetScale(plr, 0.85f);
-                    SetScale(plr, plr.GameObject.transform.localScale.y - 0.15f);
+                    SetScale(plr, plr.GameObject.transform.localScale.y - 0.2f);
                     // player.GameObject.transform.localScale.y
                     // plr.SCal
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
-                   
+
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You feel smaller... (if you need to return to normal after a respawn or revive, run the command .fixmepls in your ~ console.)", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank a potion of shrinking.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3649,9 +3660,9 @@ namespace Plugin
                     // player.GameObject.transform.localScale.y
                     // plr.SCal
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
-                 
+
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You feel bigger... (if you need to return to normal after a respawn or revive, run the command .fixmepls in your ~ console.)", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank a potion of growing.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3684,9 +3695,10 @@ namespace Plugin
 
                     NetworkServer.Spawn(tantrumObj.gameObject);
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
-                    
+
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You drank the bottle of SCP-173. You suddenly feel the need to go to the bathroom, will you make it?", 3);
+                    // plr.ReceiveHint("You drank the bottle of SCP-173. You suddenly feel the need to go to the bathroom, will you make it?", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("uhhhhhhh", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3709,9 +3721,10 @@ namespace Plugin
                     // plr.Kill("I don't know what you expected.");
 
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
-                    
+
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.SendBroadcast("You inhaled the box of gunpowder. BOOM!", 3);
+                    // plr.SendBroadcast("You inhaled the box of gunpowder. BOOM!", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("BOOM!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3825,23 +3838,23 @@ namespace Plugin
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Ghostly>(41, true);
-                    plr.EffectsManager.EnableEffect<CustomPlayerEffects.Invisible>(41, true);
-                    plr.ReceiveHint("You drank the ghastly brew...", 3);
+                 //   plr.EffectsManager.EnableEffect<CustomPlayerEffects.Invisible>(41, true);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank the Ghastly Brew.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
-                    //ReferenceHub TempDummy = AddDummy();
-                   
+                    ReferenceHub TempDummy = AddDummy();
+
+
+                     PlayPlayerAudio096(plr, "whitecandy.ogg", (byte)65f, TempDummy);
+
+
                     
-                    // PlayPlayerAudio096(plr, "whitecandy.ogg", (byte)65f, TempDummy);
-
-
-                    /*
                     Timing.CallDelayed(41.2f, () =>
                     {
                    //     RemoveDummy096(TempDummy);
                     });
-                    */
-
                     
+
+
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
 
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
@@ -4143,44 +4156,6 @@ namespace Plugin
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     }
-
-                    plr.ReceiveHint("Timeout for you!", 3);
-                    UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
-                    UnityEngine.Vector3 tppos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-
-                 
-                    plrpos = plr.Position;
-                    plr.Position = tppos;
-
-
-                    Timing.CallDelayed(10f, () =>
-                    {
-                        plr.Position = plrpos;
-
-                        if (plr.EffectsManager.TryGetEffect(out PocketCorroding pocketCorro) && pocketCorro.IsEnabled)
-                        {
-                            plr.EffectsManager.EnableEffect<PocketCorroding>(0f, false);
-                        }
-                    });
-                });
-            }
-            else if (item.ItemTypeId == ItemType.AntiSCP207 && colas_sour_patch_kids_slushy.Contains(item.ItemSerial))
-            {
-                //  Log.Debug("SCP-268 was used.");
-
-                Timing.CallDelayed(3.4f, () =>
-                {
-
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.AntiScp207 sevHands) && sevHands.IsEnabled)
-                    {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.AntiScp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.AntiScp207>().Intensity = (byte)(num - 1);
-                    }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.AntiScp207>();
-                    }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     // plr.EffectsManager.EnableEffect<Invisible>(10, true);
@@ -4188,7 +4163,7 @@ namespace Plugin
                     //   plr.Damage(damageHandlerBase);
                     plr.ClearBroadcasts();
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("Timeout for you!", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("Timeout for you!", 450f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
                     UnityEngine.Vector3 tppos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
                     // plrpos = plr.Position;
@@ -4199,7 +4174,7 @@ namespace Plugin
                     plr.Position = tppos;
 
 
-                    Timing.CallDelayed(10f, () =>
+                    Timing.CallDelayed(20f, () =>
                     {
                         plr.Position = plrpos;
                     });
@@ -4597,7 +4572,8 @@ namespace Plugin
                 Timing.CallDelayed(3.4f, () =>
                 {
                     plr.ClearBroadcasts();
-                    plr.ReceiveHint("You drank a bottle of cola. You now feel faster...", 3);
+                    //plr.ReceiveHint("You drank a bottle of cola. You now feel faster...", 3);
+                    //DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You pressed <color=#C50000>THE BUTTON</color>. Your fate is being decided...", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 });
             }
             else if (item.ItemTypeId == ItemType.SCP330)
@@ -4636,7 +4612,7 @@ namespace Plugin
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
                     }
-                    plr.ClearBroadcasts();
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("Good luck!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     if (plr.IsAlive && plr.RoleBase is IFpcRole role)
                     {
                         plr.EffectsManager.EnableEffect<PocketCorroding>();
@@ -4722,7 +4698,7 @@ namespace Plugin
                 else if (!newItemBase == false && colas_atomkick.Contains(newItemBase.ItemSerial))
                 {
 
-                    plr.ReceiveHint("You equipped a can of golden atom kick. You feel can feel the speed coming from the can.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped a bottle of Super Cola!!!!!!!!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                 }
                 else if (!newItemBase == false && colas_nuclearkick.Contains(newItemBase.ItemSerial))
@@ -4733,7 +4709,7 @@ namespace Plugin
                 }
                 else if (!newItemBase == false && colas_sour_patch_kids_slushy.Contains(newItemBase.ItemSerial))
                 {
-                    plr.ReceiveHint("You equipped a sour patch kids slushy.", 3);
+                    plr.ReceiveHint("You equipped a timeout potion.", 3);
 
                 }
                 else if (!newItemBase == false && colas_invis.Contains(newItemBase.ItemSerial))
@@ -4799,13 +4775,14 @@ namespace Plugin
                 else if (!newItemBase == false && colas_bepis.Contains(newItemBase.ItemSerial))
                 {
 
-                    plr.ReceiveHint("You equipped a can of Bepis.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped an Iron Skin Potion.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                 }
                 else if (!newItemBase == false && colas_explosion.Contains(newItemBase.ItemSerial))
                 {
 
-                    plr.ReceiveHint("You equipped a bottle of gunpowd- WAIT NO", 3);
+                  //  plr.ReceiveHint("You equipped a bottle of gunpowd- WAIT NO", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped an explosive drink.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                 }
                 else if (!newItemBase == false && colas_saltwater.Contains(newItemBase.ItemSerial))
@@ -4841,8 +4818,8 @@ namespace Plugin
                 else if (!newItemBase == false && colas_peanut.Contains(newItemBase.ItemSerial))
                 {
 
-                    plr.ReceiveHint("You equipped a bottle of SCP-173.", 3);
-
+                    //  plr.ReceiveHint("You equipped a bottle of SCP-173.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped a bottle of SCP-173.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 }
                 else if (!newItemBase == false && colas_gas.Contains(newItemBase.ItemSerial))
                 {
@@ -4853,19 +4830,19 @@ namespace Plugin
                 else if (!newItemBase == false && colas_ghost.Contains(newItemBase.ItemSerial))
                 {
 
-                    plr.ReceiveHint("You equipped a ghostly brew.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped a ghostly brew.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                 }
                 else if (!newItemBase == false && colas_scp207.Contains(newItemBase.ItemSerial))
                 {
 
-                    plr.ReceiveHint("COCA COLA ESPUMA", 3);
-
+                    //plr.ReceiveHint("COCA COLA ESPUMA", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("COCA COLA ESPUMA", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 }
                 else if (!newItemBase == false && colas_big.Contains(newItemBase.ItemSerial))
                 {
 
-                    plr.ReceiveHint("You equipped a bottle of growing juice.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped a potion of growing.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                 }
                 else if (!newItemBase == false && colas_beer.Contains(newItemBase.ItemSerial))
@@ -4877,8 +4854,8 @@ namespace Plugin
                 else if (!newItemBase == false && colas_teleportation.Contains(newItemBase.ItemSerial))
                 {
 
-                    plr.ReceiveHint("You equipped a teleportation potion.", 3);
-
+                    //  plr.ReceiveHint("You equipped a teleportation potion.", 3);
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped a teleportation potion.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 }
                 else if (!newItemBase == false && colas_windex.Contains(newItemBase.ItemSerial))
                 {
@@ -4901,8 +4878,9 @@ namespace Plugin
                 else if (!newItemBase == false && colas_small.Contains(newItemBase.ItemSerial))
                 {
 
-                    plr.ReceiveHint("You equipped a potion of smol.", 3);
+                 //   plr.ReceiveHint("You equipped a potion of smol.", 3);
 
+                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped a potion of shrinking.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 }
 
 
@@ -5381,7 +5359,7 @@ namespace Plugin
             else if (colas_atomkick.Contains(pickup.NetworkInfo.Serial))
             {
 
-                plr.ReceiveHint("You picked up a can of golden atom kick.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up a bottle of super cola!!!!!!!!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
             }
             else if (colas_nuclearkick.Contains(pickup.NetworkInfo.Serial))
@@ -5392,7 +5370,7 @@ namespace Plugin
             }
             else if (colas_sour_patch_kids_slushy.Contains(pickup.NetworkInfo.Serial))
             {
-                plr.ReceiveHint("You picked up a sour patch kids slushy.", 3);
+                plr.ReceiveHint("You picked up a timeout potion.", 3);
 
             }
             else if (colas_invis.Contains(pickup.NetworkInfo.Serial))
@@ -5458,13 +5436,14 @@ namespace Plugin
             else if (colas_bepis.Contains(pickup.NetworkInfo.Serial))
             {
 
-                plr.ReceiveHint("You picked a can of Bepis.", 3);
-
+                //   plr.ReceiveHint("You picked a can of Bepis.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up a Iron Skin potion.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
             }
             else if (colas_explosion.Contains(pickup.NetworkInfo.Serial))
             {
 
-                plr.ReceiveHint("You picked up a bottle of gunpowd- WAIT NO", 3);
+               // plr.ReceiveHint("You picked up a bottle of gunpowd- WAIT NO", 3);
+              DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up an explosive drink.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
             }
             else if (colas_saltwater.Contains(pickup.NetworkInfo.Serial))
@@ -5500,7 +5479,8 @@ namespace Plugin
             else if (colas_peanut.Contains(pickup.NetworkInfo.Serial))
             {
 
-                plr.ReceiveHint("You picked up a bottle of SCP-173.", 3);
+            //    plr.ReceiveHint("You picked up a bottle of SCP-173.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up a bottle of SCP-173.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
             }
             else if (colas_gas.Contains(pickup.NetworkInfo.Serial))
@@ -5512,26 +5492,27 @@ namespace Plugin
             else if (colas_ghost.Contains(pickup.NetworkInfo.Serial))
             {
 
-                plr.ReceiveHint("You picked up a ghostly brew.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up a ghostly brew.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
             }
             else if (colas_scp207.Contains(pickup.NetworkInfo.Serial))
             {
 
-                plr.ReceiveHint("You picked up a bottle of cola.", 3);
+              //  plr.ReceiveHint("You picked up a bottle of cola.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up a bottle of cola.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
             }
             else if (colas_big.Contains(pickup.NetworkInfo.Serial))
             {
 
-                plr.ReceiveHint("You picked up a bottle of growing juice.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up a potion of shrinking.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
             }
             else if (colas_teleportation.Contains(pickup.NetworkInfo.Serial))
             {
 
-                plr.ReceiveHint("You picked up a teleportation potion.", 3);
-
+                // plr.ReceiveHint("You picked up a teleportation potion.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up a teleportation potion.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
             }
             else if (colas_windex.Contains(pickup.NetworkInfo.Serial))
             {
@@ -5554,7 +5535,7 @@ namespace Plugin
             else if (colas_small.Contains(pickup.NetworkInfo.Serial))
             {
 
-                plr.ReceiveHint("You equipped a potion of smol.", 3);
+                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You picked up a potion of shrinking.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
             }
         }
