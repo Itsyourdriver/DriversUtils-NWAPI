@@ -84,9 +84,9 @@ namespace Plugin
                             guard_captain = 0;
                             player = players[i];
 
-                                int RandomNumber = UnityEngine.Random.RandomRange(1, 3);
+                                int RandomNumber = UnityEngine.Random.RandomRange(1, 4);
 
-                            if (RandomNumber == 1 || RandomNumber == 2)
+                            if (RandomNumber == 1 || RandomNumber == 2 || RandomNumber == 3)
                             {
                                     player.SendBroadcast(config.KidText, 10);
                                     SetScale(player, 0.8f);
