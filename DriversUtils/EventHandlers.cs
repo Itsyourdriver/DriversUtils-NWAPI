@@ -691,7 +691,7 @@ namespace Plugin
                                 {
                                         //  player.ReceiveHint("You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)", 1.25f);
                                         /*DisplayCore.Get(player.ReferenceHub)*/
-                                        core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-294</color>. (.vm (drink), run [.vm list] for a list of available drinks, some are hidden.)</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                        core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-294</color>. (.vm (drink), run [.vm list] for a list of drinks.)</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                                 }
 
                                 if (player.Room.name == "LCZ_372 (18)")
