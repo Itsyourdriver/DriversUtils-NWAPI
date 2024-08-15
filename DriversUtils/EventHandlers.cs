@@ -2232,10 +2232,15 @@ namespace Plugin
 
                 if (arguments.Count != 0)
                 {
-                    if (player.Room != null && arguments.Count != 0 && arguments.First().ToLower() == "list" || arguments.First().ToLower() == "help" || arguments.First().ToLower() == "drinks")
+                    if (arguments.Count != 0 && arguments.First().ToLower() == "list" || arguments.First().ToLower() == "help" || arguments.First().ToLower() == "drinks")
                     {
                         player.SendConsoleMessage("List of SCP-294 Drinks: cola, anticola, dietcola, coffee, supercola, invis, pinkcandy, peanut, teleport, ironskin, shrink, grow, timeout, ghost, scp1853", "white");
                       //  player.SendConsoleMessage("DUPLICATE ENTRIES ARE INCLUDED. SOME MAY BE CASE-SENSITIVE; MAKE SURE TO DOUBLE CHECK CAPS / LOWERCASE.","white");
+                    }
+
+                    if (arguments.Count != 0 && arguments.First().ToLower() == "oldlist")
+                    {
+                        player.SendConsoleMessage("Old List of SCP-294 Drinks: oxygen, speed, cola, anit-cola, Coffee, GoldenAtomKick, godmode, Invisibility, Me, Tea, Horror, Borgor, Cheeserburger, Antimatter, Zombie, CherryAtomKick, pinkcandy, Boom, Peanut, Saltwater, Teleport, Windex, Medusa, Candy, BEPIS, Small, grow, LeafLover, Water, Slushy, Ghost, Ice, Death, Steel, RazorBlade, Oil, Bose-Einstein, Beer, slime, scp1853, choccymilk, lava, lemonade, Balls, Crazy", "white");
                     }
 
                     if (player.Room != null && ItemType.Coin.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room.name == "EZ_upstairs" && arguments.First().ToLower() != "list" || player.Room.name == "LCZ_TCross (11)")
