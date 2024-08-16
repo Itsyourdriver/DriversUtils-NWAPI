@@ -70,7 +70,7 @@ namespace Plugin
             EventManager.RegisterEvents<MTFUnits>(this);
             EventManager.RegisterEvents<Coin914>(this);
             EventManager.RegisterEvents<TheKid>(this);
-            Log.Debug("Finished loading and initializing DriversUtils. Thank you for downloading!");
+            Log.Debug("Finished loading and initializing DriversUtils!");
             RueIMain.EnsureInit();
             //  Log.Debug("RueI Loaded and Initialized");
 

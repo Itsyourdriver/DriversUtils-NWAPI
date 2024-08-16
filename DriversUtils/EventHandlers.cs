@@ -125,7 +125,7 @@ namespace Plugin
             spawning_team = SpawnableTeamType.None;
             isSerpentSpawning = false;
             // TempDummyy = AddDummy2();
-            PlayerAudioBots.Clear();
+          //  PlayerAudioBots.Clear();
             //  RoundEvent = "";
             generatorsActivated = 0;
             // PlayAudio64("ninefourteen.ogg", (byte)65F, true, TempDummyy);
@@ -554,7 +554,7 @@ namespace Plugin
 
                             }
 
-                        if (player.IsSCP)
+                        if (player.IsSCP || (player.Role == RoleTypeId.Tutorial && fbi.Contains(player.PlayerId)))
                         {
 
                             
@@ -563,7 +563,7 @@ namespace Plugin
 
                           
 
-                            foreach (var scp in Player.GetPlayers().Where(p => p?.Role.GetTeam() == Team.SCPs && cfg.DisplayStrings.ContainsKey(p.Role)))
+                            foreach (var scp in Player.GetPlayers().Where(p => (p?.Role.GetTeam() == Team.SCPs || p.Role == RoleTypeId.Tutorial) && cfg.DisplayStrings.ContainsKey(p.Role)))
                             {
                                 text += (player == scp && true ? "<color=#50C878>You --></color>" + " " : "") + ProcessStringVariables(cfg.DisplayStrings[scp.Role], player, scp) + "\n";
                             }
@@ -572,7 +572,8 @@ namespace Plugin
                             // player.ReceiveHint(text, 1.25f);
                             //text += $"</align>";
 
-                            /*DisplayCore.Get(player.ReferenceHub)*/core.SetElemTemp(text, 850f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                            /*DisplayCore.Get(player.ReferenceHub)*/
+                            core.SetElemTemp(text, 850f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                         }
 
 
@@ -581,8 +582,8 @@ namespace Plugin
 
                         specCount = 0;
                        
-                            // Player.GetPlayers().First(x => x.ReferenceHub.IsSpectatedBy(player.ReferenceHub));
-                          //  PlayerSpectators[player] = 0;
+                             Player.GetPlayers().First(x => x.ReferenceHub.IsSpectatedBy(player.ReferenceHub));
+                            PlayerSpectators[player] = 0;
                             foreach (var x in Player.GetPlayers().Where(p => p?.Role == RoleTypeId.Spectator && player != p))
                             {
                                 specCount++;
@@ -590,7 +591,7 @@ namespace Plugin
                                 {
                                     if (player.ReferenceHub.IsSpectatedBy(x.ReferenceHub))
                                     {
-                                   //  PlayerSpectators[player]++;
+                                     PlayerSpectators[player]++;
                                     }
                                     
                                 }
@@ -714,7 +715,7 @@ namespace Plugin
                                     //PlayersAudioBot = AddDummy();
 
                                     //     PlayersAudioBot = TemporaryBot;
-                                    PlayPlayerAudio096_Loop(player, "ninefourteen.ogg", (byte)65f, PlayersAudioBot);
+                                    // PlayPlayerAudio096_Loop(player, "ninefourteen.ogg", (byte)65f, PlayersAudioBot);
                                    // player.EffectsManager.EnableEffect<SoundtrackMute>(0, false);
                                 }
 
@@ -749,24 +750,6 @@ namespace Plugin
 
 
 
-        [PluginEvent(ServerEventType.PlayerJoined)]
-        void OnPlayerJoin(Player player)
-        {
-
-
-            while (true) { 
-                    if (player.IsReady)
-                        if (!PlayerKills.TryGetValue(player, out int test))
-                        {
-                            PlayerKills.Add(player, 0);
-                            PlayerSpectators.Add(player, 0);
-                        }
-                        break;
-                   }
-
-        }
-
-
         private string ProcessStringVariables(string raw, Player observer, Player target)
         {
             switch (target.ReferenceHub.roleManager.CurrentRole)
@@ -787,12 +770,41 @@ namespace Plugin
             }
 
             return raw
-                .Replace("%healthpercent%", Math.Floor(target.Health / target.MaxHealth * 100).ToString())
-                .Replace("%health%", Math.Floor(target.Health).ToString())
+                .Replace("%healthpercent%", "♥" + Math.Floor(target.Health / target.MaxHealth * 100).ToString())
+                .Replace("%health%", "♥" + Math.Floor(target.Health).ToString())
                 .Replace("%generators%", _generators.Count(gen => gen.Engaged).ToString())
             .Replace("%engaging%", _generators.Count(gen => gen.Activating) > 0 ? $" (+{_generators.Count(gen => gen.Activating)})" : "").Replace("%zombies%", Player.GetPlayers<Player>().Count(p => p.Role == RoleTypeId.Scp0492).ToString())
-            .Replace("%distance%", target != observer ? Math.Floor(Vector3.Distance(observer.Position, target.Position)) + "m" : "");
-    }
+          //  .Replace("%distance%", target != observer ? Math.Floor(Vector3.Distance(observer.Position, target.Position)) + "m" : "");
+           .Replace("%distance%", "");
+        }
+
+
+        [PluginEvent(ServerEventType.PlayerJoined)]
+        void OnPlayerJoin(Player player)
+        {
+
+
+            while (true) { 
+                    if (player.IsReady)
+
+                    Timing.CallDelayed(1f, () =>
+                    {
+                    
+                        if (!PlayerKills.TryGetValue(player, out int test))
+                        {
+                            PlayerKills.Add(player, 0);
+                            PlayerSpectators.Add(player, 0);
+                        }
+                        
+
+                    });
+                break;
+            }
+
+        }
+
+
+
 
 
 
@@ -805,51 +817,51 @@ namespace Plugin
 
             if (effect.name == "Vitality" || effect.name == "MovementBoost" && intensity == 10 || effect.name == "RainbowTaste" && intensity == 1 || effect.name == "DamageReduction" && intensity == 40)
             {
-                ReferenceHub TempDummy = AddDummy();
+                // ReferenceHub TempDummy = AddDummy();
 
                 
                 if (effect.name == "Vitality")
             {
 
 
-                PlayPlayerAudio096(plr, "windows.ogg", (byte)65f, TempDummy);
+                // PlayPlayerAudio096(plr, "windows.ogg", (byte)65f, TempDummy);
 
                 Timing.CallDelayed(27.5f, () =>
                 {
                     //  CheckPlaying(TempDummy);
-                    RemoveDummy096(TempDummy);
+                    // RemoveDummy096(TempDummy);
                 });
             }
             if (effect.name == "MovementBoost" && intensity == 10)
             {
-                    //  ReferenceHub TempDummy = AddDummy();
+                    //  // ReferenceHub TempDummy = AddDummy();
 
                // CheckPlaying(TempDummy);
-                PlayPlayerAudio096(plr, "yellowcandy.ogg", (byte)65f, TempDummy);
+                // PlayPlayerAudio096(plr, "yellowcandy.ogg", (byte)65f, TempDummy);
 
                 Timing.CallDelayed(8.3f, () =>
                 {
-                    RemoveDummy096(TempDummy);
+                    // RemoveDummy096(TempDummy);
                 });
             }
             if (effect.name == "DamageReduction" && intensity == 40)
             {
-                    //  ReferenceHub TempDummy = AddDummy();
+                    //  // ReferenceHub TempDummy = AddDummy();
 
                // CheckPlaying(TempDummy);
-                PlayPlayerAudio096(plr, "graycandy.ogg", (byte)65f, TempDummy);
+                // PlayPlayerAudio096(plr, "graycandy.ogg", (byte)65f, TempDummy);
 
                 Timing.CallDelayed(14.1f, () =>
                 {
-                    RemoveDummy096(TempDummy);
+                    // RemoveDummy096(TempDummy);
                 });
             }
             if (effect.name == "RainbowTaste" && intensity == 1)
             {
-                    //   ReferenceHub TempDummy = AddDummy();
+                    //   // ReferenceHub TempDummy = AddDummy();
 
                    // CheckPlaying(TempDummy);
-                    PlayPlayerAudio096(plr, "rainbowcandy.ogg", (byte)75f, TempDummy);
+                    // PlayPlayerAudio096(plr, "rainbowcandy.ogg", (byte)75f, TempDummy);
 
 
                    
@@ -857,7 +869,7 @@ namespace Plugin
                     Timing.CallDelayed(29f, () =>
                     {
 
-                    RemoveDummy096(TempDummy);
+                    // RemoveDummy096(TempDummy);
 
                 });
             }
@@ -1572,8 +1584,8 @@ namespace Plugin
                 {
                     chase096Music.Remove(player.PlayerId);
                     //  randplr.TemporaryData.Remove("scp096ambience");
-                    RemoveDummy096(PlayerAudioBots[player]);
-                    PlayerAudioBots.Remove(player);
+                //    RemoveDummy096(PlayerAudioBots[player]);
+                  //  PlayerAudioBots.Remove(player);
                 }
 
 
@@ -1603,8 +1615,8 @@ namespace Plugin
                         {
                             chase096Music.Remove(randplr.PlayerId);
                             //  randplr.TemporaryData.Remove("scp096ambience");
-                            RemoveDummy096(PlayerAudioBots[randplr]);
-                            PlayerAudioBots.Remove(randplr);
+                        //    RemoveDummy096(PlayerAudioBots[randplr]);
+                          //  PlayerAudioBots.Remove(randplr);
                         }
                     }
                 }
@@ -1651,8 +1663,11 @@ namespace Plugin
                 if (alive_count == 1)
                 {
                 //target.ReceiveHint(config.LastOneAliveHint, 10);
-
+                    if (attacker.IsHuman == true && !attacker.IsTutorial)
+                {
                     DisplayCore.Get(attacker.ReferenceHub).SetElemTemp(config.LastOneAliveHint, 200f, TimeSpan.FromSeconds(10), new TimedElemRef<SetElement>());
+                }
+                   
 
             }
                     
@@ -1781,13 +1796,13 @@ namespace Plugin
 
                 if (args.Player.RoleBase is Scp096Role scp096Role && scp096Role.StateController.RageState == Scp096RageState.Enraged && !chase096Music.Contains(args.Target.PlayerId))
                 {
-                    ReferenceHub PlayersAudioBot = AddDummy();
+                   // ReferenceHub PlayersAudioBot = AddDummy();
 
                     //     PlayersAudioBot = TemporaryBot;
-                    PlayPlayerAudio_096_HigherVolume(args.Target, "scp096chase.ogg", (byte)75f, PlayersAudioBot);
+                 //   PlayPlayerAudio_096_HigherVolume(args.Target, "scp096chase.ogg", (byte)75f, PlayersAudioBot);
                     //    args.Target.TemporaryData.Add<args.Target>("scp096chase",args.Target);
                     // args.Target.TemporaryData.Add("scp096chase", args.Target);
-                    PlayerAudioBots.Add(args.Target, PlayersAudioBot);
+                  //  PlayerAudioBots.Add(args.Target, PlayersAudioBot);
                     chase096Music.Add(args.Target.PlayerId);
                 }
                
@@ -1814,8 +1829,8 @@ namespace Plugin
                     {
                         chase096Music.Remove(randplr.PlayerId);
                         //  randplr.TemporaryData.Remove("scp096ambience");
-                        RemoveDummy096(PlayerAudioBots[randplr]);
-                        PlayerAudioBots.Remove(randplr);
+                      //  RemoveDummy096(PlayerAudioBots[randplr]);
+                     //   PlayerAudioBots.Remove(randplr);
                     }
                 }
 
@@ -1829,7 +1844,7 @@ namespace Plugin
                            //PlayersAudioBot = AddDummy();
 
                            //     PlayersAudioBot = TemporaryBot;
-                           PlayPlayerAudio096_Loop(player, "ninefourteen.ogg", (byte)65f, PlayersAudioBot);
+                           // PlayPlayerAudio096_Loop(player, "ninefourteen.ogg", (byte)65f, PlayersAudioBot);
                            // player.EffectsManager.EnableEffect<SoundtrackMute>(0, false);
                        }
 
@@ -1861,9 +1876,9 @@ namespace Plugin
                 {
                     if (ev.Player.Role == RoleTypeId.Scp096)
                     {
-                        ReferenceHub PlayersAudioBot = AddDummy();
-                        PlayPlayerAudio096(ev.Player, "scp096chase.ogg", (byte)75f, PlayersAudioBot);
-                        PlayerAudioBots.Add(ev.Player, PlayersAudioBot);
+                       // ReferenceHub PlayersAudioBot = AddDummy();
+                        // PlayPlayerAudio096(ev.Player, "scp096chase.ogg", (byte)75f, PlayersAudioBot);
+                     //   PlayerAudioBots.Add(ev.Player, PlayersAudioBot);
                         chase096Music.Add(ev.Player.PlayerId);
                     }
 
@@ -1889,9 +1904,9 @@ namespace Plugin
                             if (ev.Player.Role == RoleTypeId.Scp096)
                             {
                                 Log.Debug("playing music now");
-                                ReferenceHub PlayersAudioBot = AddDummy();
-                                PlayPlayerAudio_096_HigherVolume(randplr, "scp096chase.ogg", (byte)75f, PlayersAudioBot);
-                                PlayerAudioBots.Add(randplr, PlayersAudioBot);
+                             //   ReferenceHub PlayersAudioBot = AddDummy();
+                               // PlayPlayerAudio_096_HigherVolume(randplr, "scp096chase.ogg", (byte)75f, PlayersAudioBot);
+                               // PlayerAudioBots.Add(randplr, PlayersAudioBot);
                                 chase096Music.Add(randplr.PlayerId);
                             }
 
@@ -2018,7 +2033,7 @@ namespace Plugin
             sci.Clear();
             PlayerKills.Clear();
             PlayerSpectators.Clear();
-            PlayerAudioBots.Clear();
+          //  PlayerAudioBots.Clear();
             Server.FriendlyFire = true;
             float restartTime = ConfigFile.ServerConfig.GetFloat("auto_round_restart_time");
 
@@ -2051,7 +2066,7 @@ namespace Plugin
             {
                // ev.Target.TemporaryData.Add("chasemusic", this);
              //   ReferenceHub Dummy = AddDummy();
-              //  PlayPlayerAudio096(ev.Target, "scp096chase.ogg", (byte)85f, Dummy);
+              //  // PlayPlayerAudio096(ev.Target, "scp096chase.ogg", (byte)85f, Dummy);
             }
         }
 
@@ -2262,11 +2277,11 @@ namespace Plugin
 
                             colas_nextbot.Add(thiscola.ItemSerial);
 
-                            ReferenceHub TempDummy = AddDummy();
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // ReferenceHub TempDummy = AddDummy();
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2279,11 +2294,11 @@ namespace Plugin
 
                            // colas_nextbot.Add(thiscola.ItemSerial);
 
-                            ReferenceHub TempDummy = AddDummy();
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // ReferenceHub TempDummy = AddDummy();
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2299,11 +2314,11 @@ namespace Plugin
 
                             colas_beer.Add(thiscola.ItemSerial);
 
-                            ReferenceHub TempDummy = AddDummy();
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
+                            // ReferenceHub TempDummy = AddDummy();
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2318,11 +2333,11 @@ namespace Plugin
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
                             colas_oil.Add(thiscola.ItemSerial);
-                            ReferenceHub TempDummy = AddDummy();
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
+                            // ReferenceHub TempDummy = AddDummy();
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2337,11 +2352,11 @@ namespace Plugin
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
                             choccymilk.Add(thiscola.ItemSerial);
-                            ReferenceHub TempDummy = AddDummy();
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
+                            // ReferenceHub TempDummy = AddDummy();
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2356,11 +2371,11 @@ namespace Plugin
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
                             lemonade.Add(thiscola.ItemSerial);
-                            ReferenceHub TempDummy = AddDummy();
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
+                            // ReferenceHub TempDummy = AddDummy();
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2375,11 +2390,11 @@ namespace Plugin
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
                             lava.Add(thiscola.ItemSerial);
-                            ReferenceHub TempDummy = AddDummy();
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // ReferenceHub TempDummy = AddDummy();
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2394,11 +2409,11 @@ namespace Plugin
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
 
                             balls.Add(thiscola.ItemSerial);
-                            ReferenceHub TempDummy = AddDummy();
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // ReferenceHub TempDummy = AddDummy();
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2406,7 +2421,7 @@ namespace Plugin
                         {
                             // Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a cup of metal.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
@@ -2414,11 +2429,11 @@ namespace Plugin
 
                             colas_metal.Add(thiscola.ItemSerial);
 
-                            PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f, TempDummy);
 
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2426,16 +2441,16 @@ namespace Plugin
                         {
                             // Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with<color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a cup of ice.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
-                            PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f, TempDummy);
                             colas_cold.Add(thiscola.ItemSerial);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2443,16 +2458,16 @@ namespace Plugin
                         {
                             // Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a Ghastly Brew.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             colas_ghost.Add(thiscola.ItemSerial);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2460,16 +2475,16 @@ namespace Plugin
                         {
                             // Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             colas_oxygen.Add(thiscola.ItemSerial);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2477,16 +2492,16 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise pitched up to high levels and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
                             colas_speed.Add(thiscola.ItemSerial);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2494,16 +2509,16 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_coffee.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2511,16 +2526,16 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a glittering sound and dispensed you a can of Super Cola!", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
                             colas_atomkick.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2528,16 +2543,16 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a small noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_nuclearkick.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2545,48 +2560,48 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a noise of fabric being cut and dispensed you a cup of SCP-268.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_invis.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First() == "Me" || arguments.First() == "Myself" || arguments.First() == "me" || arguments.First() == "I" || arguments.First().ToLower() == "blood")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud rumbling noise and dispensed you a cup of yourself.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_me.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First() == "Tea" || arguments.First() == "tea" || arguments.First() == "teadrink" || arguments.First() == "t")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a cup of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_tea.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2594,32 +2609,32 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a crunchy noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_horror.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First() == "Borgor" || arguments.First() == "borgor" || arguments.First() == "Cheeseburger" || arguments.First() == "cheseburger")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_borgor.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2627,16 +2642,16 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_antimatter.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2644,32 +2659,32 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_zombie.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First() == "CherryAtomKick" || arguments.First() == "cherryatomkick" || arguments.First() == "CherryatomKick" || arguments.First() == "atomkickcherry" || arguments.First() == "HealthPotion" || arguments.First() == "healthpotion" || arguments.First() == "potion" || arguments.First() == "Potion")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_cherryatomkick.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2677,16 +2692,16 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
                             colas_explosion.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2694,16 +2709,16 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a crunchy noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_peanut.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2711,16 +2726,16 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_saltwater.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2728,32 +2743,32 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_gas.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First().ToLower() == "teleport" || arguments.First().ToLower() == "random" || arguments.First().ToLower() == "teleportation" || arguments.First().ToLower() == "tp" || arguments.First().ToLower() == "escape")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_teleportation.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2761,32 +2776,32 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a glimmering noise and dispensed you a bottle of Windex.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_windex.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First().ToLower() == "medusa" || arguments.First().ToLower() == "rock" || arguments.First().ToLower() == "tank")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a glimmering noise and dispensed you a bottle of Medusa.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_medusa.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2794,16 +2809,16 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a glimmering noise and dispensed you a Timeout Potion.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_sour_patch_kids_slushy.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
 
                         }
@@ -2811,144 +2826,144 @@ namespace Plugin
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine began to say Crazy? I was crazy once, they locked me in a room, a rubber room, a rubber room with rats, and rats make me crazy. In a robotic voice and dispensed you a drink.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_crazy.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First() == "Small" || arguments.First().ToLower() == "shrink" || arguments.First() == "smol" || arguments.First() == "Tiny" || arguments.First() == "tiny")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a high-pitched noise and dispensed you a potion of Shrinking.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_small.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First().ToLower() == "ironskin")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a odd noise and dispensed you an Iron Skin Potion..", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_bepis.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First() == "SCP-207" || arguments.First() == "scp207" || arguments.First() == "207" || arguments.First() == "cola" || arguments.First() == "Cola" || arguments.First().ToLower() == "coke" )
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a high-pitched noise and dispensed you a bottle of cola.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_scp207.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         if (arguments.First().ToLower() == "scp-1853" || arguments.First().ToLower() == "1853" || arguments.First().ToLower() == "slime")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a weird noise and dispensed a vile of SCP-1853.", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP1853);
                            // greenjuice.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First() == "water" || arguments.First() == "Water" || arguments.First() == "h2o")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a slight noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_water.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense1.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First() == "flamingo" || arguments.First() == "Flamingo" || arguments.First() == "1507" || arguments.First() == "scp-1507" || arguments.First() == "SCP-1507")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a weird noise and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_flamingo.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         else if (arguments.First() == "big" || arguments.First() == "Big" || arguments.First() == "large" || arguments.First() == "Large" || arguments.First() == "grow")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made a loud noise and dispensed you a Potion of Growing!", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.SCP207);
                             colas_big.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f,TempDummy);
+                            // PlayPlayerAudio096(player, "dispense2.ogg", (byte)85f,TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
                         if (arguments.First().ToLower() == "quantamgas" || arguments.First().ToLower() == "bose-einstein" || arguments.First().ToLower() == "condensate")
                         {
                             //  Log.Debug("send help pls");
                             //response = $"You put a coin in SCP-294, the machine made a slight noise and dispensed you a cup of &6{arguments.First()}";
-                            ReferenceHub TempDummy = AddDummy();
+                            // ReferenceHub TempDummy = AddDummy();
                             player.RemoveItem(player.CurrentItem);
                             player.SendBroadcast($"You exchanged a coin with <color=#C50000>SCP-294</color>, the machine made the sound of gas being released and dispensed you a bottle of {arguments.First()}", 5);
                             //  player.AddItem(ItemType.SCP207); no longer need this lol
                             ItemBase thiscola = player.AddItem(ItemType.AntiSCP207);
                             colas_quantam.Add(thiscola.ItemSerial);
-                            PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
+                            // PlayPlayerAudio096(player, "dispense3.ogg", (byte)85f, TempDummy);
                             Timing.CallDelayed(9f, () =>
                             {
-                                RemoveDummy096(TempDummy);
+                                // RemoveDummy096(TempDummy);
                             });
                         }
 
@@ -3004,12 +3019,12 @@ namespace Plugin
                 {
                     
                     if (plr.ArtificialHealth == 30 && !plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.AntiScp207 sevHands) && !sevHands.IsEnabled && plr.CurrentItem.ItemTypeId != ItemType.Adrenaline) {
-                        ReferenceHub TempDummy = AddDummy();
-                        PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
+                        // ReferenceHub TempDummy = AddDummy();
+                        // PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
 
                         Timing.CallDelayed(28.2f, () =>
                         {
-                            RemoveDummy096(TempDummy);
+                            // RemoveDummy096(TempDummy);
                         });
                     }
                     
@@ -3169,12 +3184,12 @@ namespace Plugin
                     plr.Heal(60);
                     plr.EffectsManager.EnableEffect<Invigorated>(28, true);
 
-                    ReferenceHub TempDummy = AddDummy();
-                    PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
+                    // ReferenceHub TempDummy = AddDummy();
+                    // PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
 
                     Timing.CallDelayed(28.2f, () =>
                     {
-                        RemoveDummy096(TempDummy);
+                        // RemoveDummy096(TempDummy);
                     });
 
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
@@ -3558,12 +3573,12 @@ namespace Plugin
                     // plr.Kill("I don't know what you expected.");
 
 
-                    ReferenceHub TempDummy = AddDummy();
-                    PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
+                    // ReferenceHub TempDummy = AddDummy();
+                    // PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
 
                     Timing.CallDelayed(28.2f, () =>
                     {
-                        RemoveDummy096(TempDummy);
+                        // RemoveDummy096(TempDummy);
                     });
                     //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
 
@@ -3846,16 +3861,16 @@ namespace Plugin
                  //   plr.EffectsManager.EnableEffect<CustomPlayerEffects.Invisible>(41, true);
                     DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank the Ghastly Brew.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
-                    ReferenceHub TempDummy = AddDummy();
+                    // ReferenceHub TempDummy = AddDummy();
 
 
-                     PlayPlayerAudio096(plr, "whitecandy.ogg", (byte)65f, TempDummy);
+                     // PlayPlayerAudio096(plr, "whitecandy.ogg", (byte)65f, TempDummy);
 
 
                     
                     Timing.CallDelayed(41.2f, () =>
                     {
-                   //     RemoveDummy096(TempDummy);
+                   //     // RemoveDummy096(TempDummy);
                     });
                     
 
@@ -4594,7 +4609,7 @@ namespace Plugin
                       //  if (id.ToString().ToLower() == "green")
                         //{
                          //   ReferenceHub GCandyDummy = AddDummy();
-                        //    PlayPlayerAudio096(plr, "windows.ogg", (byte)85f, GCandyDummy);
+                        //    // PlayPlayerAudio096(plr, "windows.ogg", (byte)85f, GCandyDummy);
                          //   Timing.CallDelayed(28f, () =>
                          //   {
                          //       RemoveDummy096(GCandyDummy);
@@ -5907,11 +5922,11 @@ namespace Plugin
                         // player.TemporaryData.Add("coolDown",player);
 
 
-                        ReferenceHub TempDummy = AddDummy();
-                        PlayPlayerAudio096(player, "page.ogg", (byte)85f, TempDummy);
+                        // ReferenceHub TempDummy = AddDummy();
+                        // PlayPlayerAudio096(player, "page.ogg", (byte)85f, TempDummy);
                         Timing.CallDelayed(2f, () =>
                         {
-                            RemoveDummy096(TempDummy);
+                            // RemoveDummy096(TempDummy);
                         });
 
 
@@ -6218,6 +6233,7 @@ namespace Plugin
 
         private static Config PluginConfig = Plugin.Singleton.Config;
         public static ReferenceHub AudioBot = new ReferenceHub();
+        /*
         public static AudioPlayerBase PlayAudio(string audioFile, byte volume, bool loop)
         {
             if (AudioBot == null) AudioBot = AddDummy();
@@ -6235,7 +6251,7 @@ namespace Plugin
             audioPlayer.Play(0);
             return audioPlayer;
         }
-
+        */
         public static AudioPlayerBase PlayAudio64(string audioFile, byte volume, bool loop, ReferenceHub AudioBotT)
         {
             //   if (AudioBot == null) AudioBot = AddDummy();
@@ -6282,7 +6298,7 @@ namespace Plugin
         public static AudioPlayerBase PlayPlayerAudio096(Player player, string audioFile, byte volume, ReferenceHub AudioBotT)
         {
             //if (AudioBot == null) AudioBot = AddDummy();
-
+            
             StopAudio();
 
             var path = Path.Combine(PluginConfig.AudioDirectory, audioFile);

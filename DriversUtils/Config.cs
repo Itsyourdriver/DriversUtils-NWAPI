@@ -25,8 +25,9 @@ namespace Plugin
             { RoleTypeId.Scp173, "<color=#D51D1D>SCP-173 [%healthpercent%%] %distance%</color>" },
             { RoleTypeId.Scp939, "<color=#D51D1D>SCP-939 [%healthpercent%%] %distance%</color>" },
             { RoleTypeId.Scp3114, "<color=#D51D1D>SCP-3114 [%healthpercent%%] %distance%</color>" },
+            { RoleTypeId.Tutorial, "<color=#D51D1D>Serpent's Hand [%health%%] %distance%</color>" },
         };
-        public List<string> Events { get; set; } =  new List<String> { "ChaosInvasion", "PowerBlackout", "Foggy", "SpecialOps", "ArmedDClass", "EveryoneIsSmall", "Nextbots" };
+        public List<string> Events { get; set; } =  new List<String> { "ChaosInvasion", "Foggy", "SpecialOps", "ArmedDClass", "EveryoneIsSmall", "Nextbots" };
 
         [Description("Whether or not CASSIE should announce when serpents hand spawn.")]
         public bool ShouldCassie { get; set; } = true;
