@@ -70,6 +70,8 @@ namespace Plugin
     using static global::Plugin.EventHandlers;
     using GameCore;
     using Log = PluginAPI.Core.Log;
+    using System.Runtime.InteropServices;
+    using System.Net;
 
     // woo I love converting 6k lines of code over to new things (i'm gonna have to do it again when labapi drops :D)
     public class EventHandlers : IComparable
@@ -292,13 +294,6 @@ namespace Plugin
             fbi.Add(player.PlayerId);
 
             player.ClearBroadcasts();
-            // old code / testing crap
-            //  player.SendBroadcast("", 15, shouldClearPrevious: true);
-            // Teleport.RoomPos(player, RoomIdentifier.AllRoomIdentifiers.Where((r) => r.Zone == FacilityZone.Surface).First(), offset);
-            // player.ClearInventory();
-            // player.AddItem(ItemType.GunRevolver);
-            //   player.AddItem(ItemType.GunShotgun);
-            //   player.AddAmmo(ItemType.Ammo762x39, 200);
             if (serpentsCaptain == false)
             {
                 serpentsCaptain = true;
@@ -319,12 +314,12 @@ namespace Plugin
 
                 player.AddAmmo(ItemType.Ammo44cal, 24);
                 AddOrDropFirearm(player, ItemType.GunRevolver, true);
-                    /*
-                player.CustomInfo = $"<color=#FF1493>{player.Nickname}</color>" + "\n<color=#FF1493>SERPENTS HAND CAPTAIN</color>";
+                player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#FF1493>{player.Nickname}</color>" + "\n<color=#FF1493>SERPENTS HAND CAPTAIN</color>";
+                  //  player.CustomInfo = $"<color=#FF1493>{player.Nickname}</color>" + "\n<color=#FF1493>SERPENTS HAND CAPTAIN</color>";
                 player.PlayerInfo.IsNicknameHidden = true;
                 player.PlayerInfo.IsUnitNameHidden = true;
                 player.PlayerInfo.IsRoleHidden = true;
-                    */
+                    
 
                 player.SendBroadcast(config.SerpentsHandCaptainText, 15);
 
@@ -367,12 +362,12 @@ namespace Plugin
                 // lets do weapons now
 
                 AddOrDropFirearm(player, ItemType.GunCOM18, true);
-                    /*
-                  player.CustomInfo = $"<color=#FF1493>{player.DisplayNickname}</color>" + "\n<color=#FF1493>SERPENTS HAND AGENT</color>";
-                  player.PlayerInfo.IsNicknameHidden = true;
+                    player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#FF1493>{player.Nickname}</color>" + "\n<color=#FF1493>SERPENTS HAND AGENT</color>";
+                    //player.CustomInfo = $"<color=#FF1493>{player.DisplayNickname}</color>" + "\n<color=#FF1493>SERPENTS HAND AGENT</color>";
+                    player.PlayerInfo.IsNicknameHidden = true;
                   player.PlayerInfo.IsUnitNameHidden = true;
                   player.PlayerInfo.IsRoleHidden = true;
-                    */
+                    
                 }
 
 
@@ -531,7 +526,9 @@ namespace Plugin
                 yield return Timing.WaitForSeconds(1f);
                 try
                 {
-                    foreach (var player in Player.GetPlayers().Where(p => p != null))// && p.CurrentItem == ItemType.SCP207 || p.CurrentItem == ItemType.AntiSCP207))
+
+                    List<Player> players = Player.GetPlayers();
+                    foreach (var player in players.Where(p => p != null))// && p.CurrentItem == ItemType.SCP207 || p.CurrentItem == ItemType.AntiSCP207))
                     {
                         DisplayCore core = DisplayCore.Get(player.ReferenceHub);
 
@@ -581,79 +578,30 @@ namespace Plugin
                         int specCount = 0;
 
                         specCount = 0;
-                       
-                             Player.GetPlayers().First(x => x.ReferenceHub.IsSpectatedBy(player.ReferenceHub));
+                             
+                             //Player.GetPlayers().First(x => x.ReferenceHub.IsSpectatedBy(player.ReferenceHub));
                             PlayerSpectators[player] = 0;
-                            foreach (var x in Player.GetPlayers().Where(p => p?.Role == RoleTypeId.Spectator && player != p))
+                            foreach (var x in players.Where(p => p?.Role == RoleTypeId.Spectator && player != p))
                             {
-                                specCount++;
-                                if (specCount != 0)
+                                if (players.Count != 1)
                                 {
-                                    if (player.ReferenceHub.IsSpectatedBy(x.ReferenceHub))
+                                    specCount++;
+                                    if (specCount != 0)
                                     {
-                                     PlayerSpectators[player]++;
+                                        if (player.ReferenceHub.IsSpectatedBy(x.ReferenceHub))
+                                        {
+                                            PlayerSpectators[player]++;
+                                        }
+
                                     }
-                                    
                                 }
                                
-                            }
-
-
-
-
-
-
-                            // DisplayCore.get(player.ReferenceHub)
-                            /*
-                            if (player.Role == RoleTypeId.ClassD)
-                            {
-                               core.SetElemTemp($"<color=#FF9966><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                core.SetElemTemp($"<color=#FF9966><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                            }
-                            else if (player.IsSCP)
-                            {
                                
-                                core.SetElemTemp($"<color=#C50000><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                
-                                core.SetElemTemp($"<color=#C50000><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                             }
-                            else if (player.IsTutorial)
-                            {
-                               
-                                core.SetElemTemp($"<color=#FF1493><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                
-                                core.SetElemTemp($"<color=#FF1493><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                            }
-                            else if (player.Role == RoleTypeId.Scientist)
-                            {
-                               
-                                
-                                core.SetElemTemp($"<color=#FAFF86><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                
-                                core.SetElemTemp($"<color=#FAFF86><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                            }
-                            else if (player.Role == RoleTypeId.FacilityGuard)
-                            {
-                              
-                                core.SetElemTemp($"<color=#727472><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                               
-                                core.SetElemTemp($"<color=#727472><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                            }
-                            else if (player.IsChaos)
-                            {
-                              
-                                core.SetElemTemp($"<color=#228B22><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                              
-                                core.SetElemTemp($"<color=#228B22><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                            }
-                            else if (player.IsNTF)
-                            {
-                                
-                                core.SetElemTemp($"<color=#00B7EB><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                               
-                                core.SetElemTemp($"<color=#00B7EB><align=left><b><size=75%>                        👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                            }
-                            */
+
+
+
+
 
                             if (player.IsHuman || player.IsSCP || player.IsTutorial && player.Role != RoleTypeId.Scp079)
                             {
@@ -787,17 +735,19 @@ namespace Plugin
             while (true) { 
                     if (player.IsReady)
 
-                    Timing.CallDelayed(1f, () =>
-                    {
+                    
                     
                         if (!PlayerKills.TryGetValue(player, out int test))
                         {
                             PlayerKills.Add(player, 0);
                             PlayerSpectators.Add(player, 0);
+                         //   Log.Debug(player.ReferenceHub.nicknameSync.Network_playerInfoToShow.ToString());
+
+                       // player.ReferenceHub.nicknameSync.setpl = (PlayerInfoArea.Nickname, PlayerInfoArea.Badge, PlayerInfoArea.CustomInfo, PlayerInfoArea.Role, PlayerInfoArea.UnitName, PlayerInfoArea.PowerStatus)
                         }
                         
 
-                    });
+                    
                 break;
             }
 
@@ -1247,11 +1197,203 @@ namespace Plugin
         [PluginEvent(ServerEventType.PlayerChangeRole)]
         void PlayerChangeRole(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
         {
+            if (player != null && newRole == RoleTypeId.NtfSergeant)
+            {
+
+                 if (Random.Range(1, 6) == 4)
+                   {
+
+                Timing.CallDelayed(0.2f, () =>
+                {
+                    player.SendBroadcast("You are a <color=#00B7EB>Nine-Tailed Fox Demolitionist</color>. Check your inventory.", 10);
+                    player.AddItem(ItemType.GrenadeHE);
+                    player.AddItem(ItemType.GrenadeHE);
+
+                    //   player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}\nNine Tailed Fox Boom Boom Boy</color>";
+                    /*
+                       player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX DEMOLITIONIST</color>";
+                    */
+                    player.PlayerInfo.IsRoleHidden = true;
+                    player.PlayerInfo.IsNicknameHidden = true;
+                    player.PlayerInfo.IsUnitNameHidden = true;
+                    player.PlayerInfo.IsRoleHidden = true;
+                    
+
+
+                    player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#00B7EB>{player.DisplayNickname}\nNine-Tailed Fox Boom Boom Boy</color>";
+                   // Log.Debug(player.CustomInfo);
+                });
+
+
+                  }
+            }
+
+            if (player != null && oldRole != null && oldRole.RoleTypeId == RoleTypeId.Scp173 && reason == RoleChangeReason.Died)
+            {
+                var item = player.ReferenceHub.inventory.CreateItemInstance(new ItemIdentifier(ItemType.GrenadeHE, ItemSerialGenerator.GenerateNext()), false) as ThrowableItem;
+                TimeGrenade grenadeboom = (TimeGrenade)UnityEngine.Object.Instantiate(item.Projectile, player.Position, UnityEngine.Quaternion.identity);
+                grenadeboom._fuseTime = 0f;
+                grenadeboom.NetworkInfo = new PickupSyncInfo(item.ItemTypeId, item.Weight, item.ItemSerial);
+                grenadeboom.PreviousOwner = new Footprint(player != null ? player.ReferenceHub : ReferenceHub.HostHub);
+                NetworkServer.Spawn(grenadeboom.gameObject);
+                grenadeboom.ServerActivate();
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            if (player != null && newRole == RoleTypeId.ChaosRifleman && isSerpentSpawning == false)
+            {
+
+                if ((Random.Range(1, 10) == 4))
+                {
+
+
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                        player.SendBroadcast("You are a <color=#4B5320>Chaos Specialist</color>. You have access to ???.", 10);
+
+                        //player.CustomInfo = $"<color=#228b22>{player.DisplayNickname}</color>" + "\n<color=#228b22>CHAOS SPECIALIST</color>";
+                        player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#228b22>{player.DisplayNickname}</color>" + "\n<color=#228b22>CHAOS SPECIALIST</color>";
+
+                        player.PlayerInfo.IsNicknameHidden = true;
+                        player.PlayerInfo.IsUnitNameHidden = true;
+                        player.PlayerInfo.IsRoleHidden = true;
+
+                        switch (UnityEngine.Random.Range(0, 8))
+                        {
+                            case 0: AddOrDropItem(player, ItemType.SCP2176); break;
+                            case 1: AddOrDropItem(player, ItemType.SCP500); break;
+                            case 2: AddOrDropItem(player, ItemType.SCP1853); break;
+                            case 3: AddOrDropItem(player, ItemType.SCP207); break;
+                            case 4: AddOrDropItem(player, ItemType.SCP018); break;
+                            case 5: AddOrDropItem(player, ItemType.SCP268); break;
+                            case 6: AddOrDropItem(player, ItemType.SCP244a); break;
+                            case 7: AddOrDropItem(player, ItemType.AntiSCP207); break;
+                            case 8: AddOrDropItem(player, ItemType.SCP244b); break;
+                        }
+
+                    });
+
+
+                }
+            }
+            
+            if (player != null && newRole == RoleTypeId.Scientist && isScienceTeamSpawning == false)
+            {
+
+                if ((Random.Range(1, 10) == 3))
+                {
+
+
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                        player.SendBroadcast("You are a <color=#FAFF86>Senior Researcher</color>. Check your inventory.", 10);
+                        player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
+                        // player.CustomInfo = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
+                        player.PlayerInfo.IsNicknameHidden = true;
+                        player.PlayerInfo.IsUnitNameHidden = true;
+                        player.PlayerInfo.IsRoleHidden = true;
+
+                        foreach (var items in player.Items)
+                        {
+                            if (items.ItemTypeId is ItemType.KeycardScientist || items.ItemTypeId is ItemType.Medkit || items.ItemTypeId is ItemType.Radio)
+                            {
+                                player.RemoveItem(items);
+                            }
+                        }
+                        player.AddItem(ItemType.KeycardResearchCoordinator);
+                        player.AddItem(ItemType.Radio);
+                        player.AddItem(ItemType.Medkit);
+                    });
+
+
+                }
+            }
+            if (player != null && newRole == RoleTypeId.NtfPrivate)
+            {
+
+                if ((Random.Range(1, 10) == 2))
+                {
+
+
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                        player.SendBroadcast("You are a <color=#00B7EB>Nine-Tailed Fox Medic</color>. Check your inventory.", 10);
+
+                        player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
+                        //  player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
+                        //   player.PlayerInfo.IsRoleHidden = true;
+                        player.PlayerInfo.IsNicknameHidden = true;
+                        player.PlayerInfo.IsUnitNameHidden = true;
+                        player.PlayerInfo.IsRoleHidden = true;
+
+                        player.AddItem(ItemType.Medkit);
+                        player.AddItem(ItemType.Painkillers);
+                    });
+
+
+                }
+            }
+
+
+            if (player != null && fbi.Contains(player.PlayerId) && player.PlayerId == captainplayer.PlayerId)
+            {
+                fbi.Remove(player.PlayerId);
+                player.TemporaryData.Remove("custom_class");
+                captainplayer = null;
+            }
+
+            if (player != null && fbi.Contains(player.PlayerId))
+            {
+                fbi.Remove(player.PlayerId);
+                player.TemporaryData.Remove("custom_class");
+            }
+
+            if (player != null && sci.Contains(player.PlayerId))
+            {
+                sci.Remove(player.PlayerId);
+                // player.TemporaryData.Remove("custom_class");
+            }
+
+            if (player != null && newRole == RoleTypeId.Scp0492)
+            {
+                Timing.CallDelayed(0.1f, () =>
+                {
+                    SetScale(player, UnityEngine.Random.Range(0.7f, 1.2f));
+
+                   
+                });
+            }
 
 
 
             if (player != null)
             {
+                if (newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Overwatch || newRole != RoleTypeId.Filmmaker)
+                {
+                    if (player.CustomInfo != string.Empty)
+                    {
+
+                        player.PlayerInfo.IsRoleHidden = true;
+                        player.PlayerInfo.IsNicknameHidden = true;
+                        player.PlayerInfo.IsUnitNameHidden = true;
+
+                        //player.CustomInfo = string.Empty;
+
+                        player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = string.Empty;
+                    }
+                }
 
                 if (RoundEvent == "Nextbots")
                 {
@@ -1260,23 +1402,13 @@ namespace Plugin
                         if (player.IsSCP && player.Role != RoleTypeId.Scp079 && player.Role != RoleTypeId.Scp939)
                         {
 
-                            
+
                             SetScale(player, new Vector3(1f, 1f, 0.1f));
                         }
                     });
                 }
 
-                if (newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Overwatch || newRole != RoleTypeId.Filmmaker)
-                {
-                    if (player.CustomInfo != null)
-                    {
-
-                        player.PlayerInfo.IsRoleHidden = true;
-                        player.PlayerInfo.IsNicknameHidden = true;
-                        player.PlayerInfo.IsUnitNameHidden = true;
-                        player.CustomInfo = null;
-                    }
-                }
+                
 
                 if (randomNumber > cfg.EventRarity)
                     return;
@@ -1347,10 +1479,10 @@ namespace Plugin
 
 
 
-            
 
-        }
 
+            }
+        
 
             if (RoundEvent == "PowerBlackout")
             {
@@ -1372,198 +1504,19 @@ namespace Plugin
                     }
                 });
             }
-
-
-            if (player != null && oldRole != null && oldRole.RoleTypeId == RoleTypeId.Scp173 && reason == RoleChangeReason.Died)
+            if (RoundEvent == "EveryoneIsSmall")
             {
-                var item = player.ReferenceHub.inventory.CreateItemInstance(new ItemIdentifier(ItemType.GrenadeHE, ItemSerialGenerator.GenerateNext()), false) as ThrowableItem;
-                TimeGrenade grenadeboom = (TimeGrenade)UnityEngine.Object.Instantiate(item.Projectile, player.Position, UnityEngine.Quaternion.identity);
-                grenadeboom._fuseTime = 0f;
-                grenadeboom.NetworkInfo = new PickupSyncInfo(item.ItemTypeId, item.Weight, item.ItemSerial);
-                grenadeboom.PreviousOwner = new Footprint(player != null ? player.ReferenceHub : ReferenceHub.HostHub);
-                NetworkServer.Spawn(grenadeboom.gameObject);
-                grenadeboom.ServerActivate();
-            }
-
-
-            if (player != null && newRole == RoleTypeId.NtfSergeant)
-            {
-
-                if (Random.Range(1, 6) == 4)
+                Timing.CallDelayed(0.3f, () =>
                 {
-
-                    Timing.CallDelayed(0.2f, () =>
+                    if (newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Filmmaker && newRole != RoleTypeId.Overwatch)
                     {
-                        player.SendBroadcast("You are a <color=#00B7EB>Nine-Tailed Fox Demolitionist</color>. Check your inventory.", 10);
-                        player.AddItem(ItemType.GrenadeHE);
-                        player.AddItem(ItemType.GrenadeHE);
-
-                        //   player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}\nNine Tailed Fox Boom Boom Boy</color>";
-                        /*
-                           player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX DEMOLITIONIST</color>";
-                        player.PlayerInfo.IsRoleHidden = true;
-                        player.PlayerInfo.IsNicknameHidden = true;
-                        player.PlayerInfo.IsUnitNameHidden = true;
-                        player.PlayerInfo.IsRoleHidden = true;
-                        */
-                      //  player.ReceiveHint(player.CustomInfo, 10);
-
-                    });
-
-
-               }
-            }
-
-
-                if (RoundEvent == "EveryoneIsSmall")
-                {
-                    Timing.CallDelayed(0.3f, () =>
-                    {
-                        if (newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Filmmaker && newRole != RoleTypeId.Overwatch)
-                        {
-                            SetScale(player, 0.5f);
-                        }
-                    });
-                }
-
-
-
-
-
-
-
-
-
-            if (player != null && newRole == RoleTypeId.ChaosRifleman && isSerpentSpawning == false)
-            {
-
-                if ((Random.Range(1, 10) == 4))
-                {
-
-
-                    Timing.CallDelayed(0.2f, () =>
-                    {
-                        player.SendBroadcast("You are a <color=#4B5320>Chaos Specialist</color>. You have access to ???.", 10);
-                        /*
-                        player.CustomInfo = $"<color=#228b22>{player.DisplayNickname}</color>" + "\n<color=#228b22>CHAOS SPECIALIST</color>";
-                        player.PlayerInfo.IsRoleHidden = true;
-                        player.PlayerInfo.IsNicknameHidden = true;
-                        player.PlayerInfo.IsUnitNameHidden = true;
-                        player.PlayerInfo.IsRoleHidden = true;
-                        */
-                        switch (UnityEngine.Random.Range(0, 8))
-                        {
-                            case 0: AddOrDropItem(player, ItemType.SCP2176); break;
-                            case 1: AddOrDropItem(player, ItemType.SCP500); break;
-                            case 2: AddOrDropItem(player, ItemType.SCP1853); break;
-                            case 3: AddOrDropItem(player, ItemType.SCP207); break;
-                            case 4: AddOrDropItem(player, ItemType.SCP018); break;
-                            case 5: AddOrDropItem(player, ItemType.SCP268); break;
-                            case 6: AddOrDropItem(player, ItemType.SCP244a); break;
-                            case 7: AddOrDropItem(player, ItemType.AntiSCP207); break;
-                            case 8: AddOrDropItem(player, ItemType.SCP244b); break;
-                        }
-
-                    });
-
-
-                }
-            }
-           //
-           if (player != null && oldRole.RoleTypeId != RoleTypeId.Spectator && newRole == RoleTypeId.Scientist && isScienceTeamSpawning == false)
-           {
-
-               if ((Random.Range(1, 10) == 3))
-                {
-                    
-
-                    Timing.CallDelayed(0.2f, () =>
-                    {
-                       player.SendBroadcast("You are a <color=#FAFF86>Senior Researcher</color>. Check your inventory.", 10);
-                        /*
-                        player.CustomInfo = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
-                        player.PlayerInfo.IsNicknameHidden = true;
-                        player.PlayerInfo.IsUnitNameHidden = true;
-                        player.PlayerInfo.IsRoleHidden = true;
-                        */
-                        foreach (var items in player.Items)
-                        {
-                            if (items.ItemTypeId is ItemType.KeycardScientist || items.ItemTypeId is ItemType.Medkit || items.ItemTypeId is ItemType.Radio)
-                            {
-                                player.RemoveItem(items);
-                            }
-                        }
-                       player.AddItem(ItemType.KeycardResearchCoordinator);
-                       player.AddItem(ItemType.Radio);
-                       player.AddItem(ItemType.Medkit);
-                    });
-
-
-               }
-            }
-            if (player != null && newRole == RoleTypeId.NtfPrivate)
-            {
-
-                if ((Random.Range(1, 10) == 2))
-                {
-
-
-                    Timing.CallDelayed(0.2f, () =>
-                    {
-                        player.SendBroadcast("You are a <color=#00B7EB>Nine-Tailed Fox Medic</color>. Check your inventory.", 10);
-                        /*
-                        player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
-                        player.PlayerInfo.IsRoleHidden = true;
-                        player.PlayerInfo.IsNicknameHidden = true;
-                        player.PlayerInfo.IsUnitNameHidden = true;
-                        player.PlayerInfo.IsRoleHidden = true;
-                        */
-                        player.AddItem(ItemType.Medkit);
-                        player.AddItem(ItemType.Painkillers);
-                    });
-
-
-                }
-            }
-
-         
-            if (player != null && fbi.Contains(player.PlayerId) && player.PlayerId == captainplayer.PlayerId)
-            {
-                fbi.Remove(player.PlayerId);
-                player.TemporaryData.Remove("custom_class");
-                captainplayer = null;
-            }
-
-            if (player != null && fbi.Contains(player.PlayerId))
-            {
-                fbi.Remove(player.PlayerId);
-                player.TemporaryData.Remove("custom_class");
-            }
-
-            if (player != null && sci.Contains(player.PlayerId))
-            {
-                sci.Remove(player.PlayerId);
-               // player.TemporaryData.Remove("custom_class");
-            }
-
-            if (player != null && newRole == RoleTypeId.Scp0492)
-            {
-                Timing.CallDelayed(0.1f, () =>
-                {
-                    SetScale(player, UnityEngine.Random.Range(0.7f, 1.2f));
-
-                    if (UnityEngine.Random.Range(1, 4) == 1)
-                    {
-                        player.EffectsManager.EnableEffect<MovementBoost>(60f, true);
+                        SetScale(player, 0.5f);
                     }
-                    Timing.CallDelayed(1f, () =>
-                    {
-                        // player.Health = UnityEngine.Random.Range(400f, 450f);
-
-                    });
                 });
             }
 
+
+           
 
             
 
@@ -1575,10 +1528,16 @@ namespace Plugin
             Config config = Plugin.Singleton.Config;
             if (player != null)
             {
-                // player.PlayerInfo.IsUnitNameHidden = false;
-                //player.PlayerInfo.IsNicknameHidden = false;
-                //player.PlayerInfo.IsRoleHidden = false;
-                //player.CustomInfo = string.Empty;
+                if (player.CustomInfo != string.Empty)
+                {
+                    player.PlayerInfo.IsUnitNameHidden = false;
+                    player.PlayerInfo.IsNicknameHidden = false;
+                    player.PlayerInfo.IsRoleHidden = false;
+                    player.CustomInfo = string.Empty;
+
+                }
+
+                // player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
 
                 if (chase096Music.Contains(player.PlayerId))
                 {
@@ -5778,7 +5737,7 @@ namespace Plugin
 
             public string[] Aliases { get; } = new string[] { };
 
-            public string Description { get; } = "Set player scale";
+            public string Description { get; } = "Set player scale (Syntax: setscale Scale PlayerName)";
 
             public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
             {
@@ -5790,14 +5749,25 @@ namespace Plugin
                 {
                     if (arguments.Count != 0)
                     {
-
+                        foreach (var p in Player.GetPlayers())
+                        {
+                            if (p.Role != RoleTypeId.Spectator)
+                            {
+                                if (p.Nickname == arguments.At(1))
+                                {
+                                    SetScale(p, float.Parse(arguments.First()));
+                                }
+                               
+                                
+                            }
+                        }
                         // response = " Success, you gave your coin for: ";
                         // problem if statement, wants me to stop comparing a string to a system.predicate string I'm probably stupid but yeah  if (arguments.First() == list.Find("deeznuts"))
                         //  {
 
                         //}    
 
-                        SetScale(player, float.Parse(arguments.First()));
+                        
                         response = "set player scale";
                         return true;
                     }
@@ -5812,6 +5782,99 @@ namespace Plugin
                 return false;
             }
         }
+
+
+        [CommandHandler(typeof(RemoteAdminCommandHandler))]
+        public class RocketPlayer : ICommand
+        {
+            public string Command { get; } = "rocket";
+
+            public string[] Aliases { get; } = new string[] { };
+
+            public string Description { get; } = "Rocket someone! (Syntax: rocket PlayerName Speed)";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+
+
+                Player player;
+
+                if (Player.TryGet(sender, out player))
+                {
+                    if (arguments.Count != 0)
+                    {
+                        foreach (var p in Player.GetPlayers())
+                        {
+                            if (p.Role != RoleTypeId.Spectator)
+                            {
+                                if (p.Nickname == arguments.First())
+                                {
+                                    if (float.TryParse(arguments.At(1), out float spd))
+                                    {
+                                        Timing.RunCoroutine(DoRocket(p, spd));
+                                    }
+                                    
+                                }
+
+
+                            }
+                        }
+                        // response = " Success, you gave your coin for: ";
+                        // problem if statement, wants me to stop comparing a string to a system.predicate string I'm probably stupid but yeah  if (arguments.First() == list.Find("deeznuts"))
+                        //  {
+
+                        //}    
+
+
+                        response = $"Rocketed {arguments.First()}";
+                        return true;
+                    }
+
+
+
+
+
+
+                }
+                response = "failed";
+                return false;
+            }
+        }
+
+
+
+        // Axwabo's NW Port. I do not take any credit for this code besides swapping out the grenade spawning system.
+        public static IEnumerator<float> DoRocket(Player player, float speed)
+        {
+            const int maxAmount = 50;
+            int current = 0;
+            bool godMode = player.IsGodModeEnabled;
+            while (player.GameObject != null && player.Role != RoleTypeId.Spectator)
+            {
+                player.Position += Vector3.up * speed;
+                current++;
+                if (current >= maxAmount)
+                {
+                    player.IsGodModeEnabled = false;
+                    var item = player.ReferenceHub.inventory.CreateItemInstance(new ItemIdentifier(ItemType.GrenadeHE, ItemSerialGenerator.GenerateNext()), false) as ThrowableItem;
+                    TimeGrenade grenadeboom = (TimeGrenade)UnityEngine.Object.Instantiate(item.Projectile, player.Position, UnityEngine.Quaternion.identity);
+                    grenadeboom._fuseTime = 0f;
+                    grenadeboom.NetworkInfo = new PickupSyncInfo(item.ItemTypeId, item.Weight, item.ItemSerial);
+                    grenadeboom.PreviousOwner = new Footprint(player != null ? player.ReferenceHub : ReferenceHub.HostHub);
+                    NetworkServer.Spawn(grenadeboom.gameObject);
+                    grenadeboom.ServerActivate();
+                    player.Kill("Went on a trip in their favorite rocket ship.");
+                    player.IsGodModeEnabled = godMode;
+                    yield break;
+                }
+
+                yield return Timing.WaitForOneFrame;
+            }
+        }
+
+
+       
+
 
         [CommandHandler(typeof(RemoteAdminCommandHandler))]
         public class spawnBot : ICommand
@@ -5842,7 +5905,8 @@ namespace Plugin
 
                     try
                     {
-                        hubPlayer.nicknameSync.SetNick("This is a bot");
+                      //  hubPlayer.nicknameSync.SetNick($"{player.Nickname}'s bot");
+                        
                         hubPlayer.TryOverridePosition(player.Position, player.Rotation);
                     }
                     catch (Exception) { }
@@ -5864,7 +5928,9 @@ namespace Plugin
                     Timing.CallDelayed(1f, () =>
                     {
                         hubPlayer.TryOverridePosition(player.Position, player.Rotation);
-                        hubPlayer.nicknameSync.CustomPlayerInfo = $"<color=#FF96DE>{hubPlayer.nicknameSync.CombinedName}</color>" + "\n<color=#FF96DE>SERPENTS HAND CAPTAIN</color>";
+                        // hubPlayer.nicknameSync.Network_playerInfoToShow = PlayerInfoArea.CustomInfo;
+                       // hubPlayer.nicknameSync.CustomPlayerInfo = $"<color=#00B7EB>{hubPlayer.nicknameSync.Network_displayName} \nNine-Tailed Fox Boom Boom Boy</color>";
+                        //hubPlayer.nicknameSync.CustomPlayerInfo = $"<color=#C50000>{hubPlayer.nicknameSync.CombinedName}</color>" + "\n<color=#C50000>SCP-035</color>";
 
                     });
 

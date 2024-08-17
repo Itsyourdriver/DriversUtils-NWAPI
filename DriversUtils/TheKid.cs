@@ -92,11 +92,19 @@ namespace Plugin
                                     SetScale(player, 0.8f);
                                     player.AddItem(ItemType.SCP330);
                                     player.AddItem(ItemType.SCP330);
+                                    player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#FF9966>{player.DisplayNickname}</color>" + "\n<color=#FF9966>THE KID</color>";
+                                    player.PlayerInfo.IsRoleHidden = true;
+                                    player.PlayerInfo.IsNicknameHidden = true;
+                                    player.PlayerInfo.IsUnitNameHidden = true;
 
-                            }
+                                }
                             else
                             {
                                     player.SendBroadcast($"You are <color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}>The Brute</color>. You are slightly taller and start have damage resistance.", 10);
+                                    player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#FF9966>{player.DisplayNickname}</color>" + "\n<color=#FF9966>THE BRUTE</color>";
+                                    player.PlayerInfo.IsRoleHidden = true;
+                                    player.PlayerInfo.IsNicknameHidden = true;
+                                    player.PlayerInfo.IsUnitNameHidden = true;
                                     player.AddItem(ItemType.ArmorHeavy);
                                     player.EffectsManager.EnableEffect<DamageReduction>(0, false);
                                     player.EffectsManager.ChangeState<DamageReduction>(40, 0, false);
@@ -155,12 +163,7 @@ namespace Plugin
 
      
 
-        [PluginEvent(ServerEventType.PlayerChangeRole)]
-        private void OnPlayerChangeRole(PlayerChangeRoleEvent ev)
-        {
 
-        
-        }
 
         [PluginEvent(PluginAPI.Enums.ServerEventType.PlayerDeath)]
         private void PlayerDead(Player player, Player attacker, DamageHandlerBase damageHandler)
