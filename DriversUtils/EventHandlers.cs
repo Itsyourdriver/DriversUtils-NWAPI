@@ -72,6 +72,8 @@ namespace Plugin
     using Log = PluginAPI.Core.Log;
     using System.Runtime.InteropServices;
     using System.Net;
+    using InventorySystem.Items.Radio;
+    using HarmonyLib;
 
     // woo I love converting 6k lines of code over to new things (i'm gonna have to do it again when labapi drops :D)
     public class EventHandlers : IComparable
@@ -80,6 +82,9 @@ namespace Plugin
         HashSet<int> fbi = new HashSet<int>();
         HashSet<int> sci = new HashSet<int>();
         HashSet<int> chase096Music = new HashSet<int>();
+
+
+        public static HashSet<int> scp035s = new HashSet<int>();
 
         static UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
         SpawnableTeamType spawning_team = SpawnableTeamType.None;
@@ -108,6 +113,7 @@ namespace Plugin
         public static HashSet<ushort> peanutnade = new HashSet<ushort>();
         public static HashSet<ushort> freezenade = new HashSet<ushort>();
         public static HashSet<ushort> grenades = new HashSet<ushort>();
+        public static HashSet<ushort> Mask035List = new HashSet<ushort>();
         System.Random random = new System.Random();
 
 
@@ -263,12 +269,10 @@ namespace Plugin
 
 
 
-            if (new System.Random().Next(30) == 1)
-            {
-
+           
                 _buttonCorountine = Timing.RunCoroutine(SpawnButton());
 
-            }
+            
 
 
         //     _DoorLockCorountine = Timing.RunCoroutine(LockDoors());
@@ -281,6 +285,67 @@ namespace Plugin
 
         static bool serpentsCaptain = false;
         private Player captainplayer = null;
+
+
+        // Exiled
+        // Reformatted by normalcat from the NWAPI Discord
+        // Also broken!
+        public static void SubtitledCassie(string message, string subtitles)
+        {
+            string finished = $"{subtitles.Replace(' ', ' ')}<size=0>{message}</size>";
+            RespawnEffectsController.PlayCassieAnnouncement(finished, true, true, true);
+        }
+
+        public void ChangeTo035(Player player)
+        {
+            if (!scp035s.Contains(player.PlayerId))
+            {
+                player.EffectsManager.EnableEffect<SeveredHands>(1f, false);
+                Timing.CallDelayed(0.1f, () =>
+                {
+
+                    player.ReferenceHub.roleManager.ServerSetRole(RoleTypeId.Tutorial, RoleChangeReason.RemoteAdmin, RoleSpawnFlags.None);
+                    player.EffectsManager.DisableAllEffects();
+
+                    scp035s.Add(player.PlayerId);
+
+                    player.SendBroadcast("You picked up an infected item and are now <color=#C50000>SCP-035</color>. Work with the SCPs, terminate any human classes.", 15, Broadcast.BroadcastFlags.Normal, true);
+                    player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#C50000>{player.Nickname}</color>" + "\n<color=#C50000>SCP-035</color>";
+
+                    player.PlayerInfo.IsNicknameHidden = true;
+                    player.PlayerInfo.IsUnitNameHidden = true;
+                    player.PlayerInfo.IsRoleHidden = true;
+
+                    player.Health = 500f;
+
+                   
+                        
+
+
+                    if (player.ReferenceHub.playerStats.StatModules[1] is AhpStat ahpStat)
+                    {
+                        //AhpStat.AhpProcess ahpProcess = (250f, 250f, 0f, 10f, 1f, true);
+                        ahpStat.ServerAddProcess(250f, 250f, 0f, 10f, 1f, true);
+                    }
+
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                        foreach (var items in player.Items)
+                        {
+                            if (Mask035List.Contains(items.ItemSerial))
+                            {
+                                player.ReferenceHub.inventory.ServerRemoveItem(items.ItemSerial, items.PickupDropModel);
+                                //player.RemoveItem(items);
+                            }
+                        }
+                    });
+                });
+            }
+        }
+
+
+
+      
 
         void ChangeToTutorial(Player player, RoleTypeId role)
         {
@@ -469,7 +534,7 @@ namespace Plugin
         private IEnumerator<float> SpawnButton()
         {
 
-            yield return Timing.WaitForSeconds(Random.Range(60f, 300f));
+            yield return Timing.WaitForSeconds(Random.Range(300f, 600f));
             {
                 try
                 {
@@ -481,28 +546,46 @@ namespace Plugin
                         String RandomRoom = RoomList.RandomItem();
 
 
-                        ItemBase itemBase = ReferenceHub.HostHub.inventory.ServerAddItem(ItemType.SCP1576);
+                        List<ItemType> ItemList = new List<ItemType> { ItemType.GunE11SR, ItemType.GunCrossvec, ItemType.Adrenaline, ItemType.AntiSCP207, ItemType.SCP500, ItemType.SCP018, ItemType.SCP1576, ItemType.SCP1853, ItemType.SCP268, ItemType.ArmorCombat, ItemType.ArmorHeavy, ItemType.ArmorLight, ItemType.Flashlight, ItemType.KeycardContainmentEngineer, ItemType.GunCOM15, ItemType.GunCOM18, ItemType.GrenadeFlash, ItemType.KeycardChaosInsurgency, ItemType.KeycardJanitor, ItemType.KeycardScientist, ItemType.KeycardResearchCoordinator, ItemType.GunLogicer, ItemType.Medkit, ItemType.Painkillers, ItemType.GunFSP9, ItemType.SCP244b, ItemType.SCP244a, ItemType.KeycardZoneManager, ItemType.KeycardGuard, ItemType.Lantern, ItemType.Radio, ItemType.GrenadeHE, ItemType.SCP207, ItemType.Jailbird, ItemType.KeycardO5, ItemType.KeycardFacilityManager, ItemType.KeycardChaosInsurgency };
+
+                        ItemBase mask = ReferenceHub.HostHub.inventory.ServerAddItem(ItemList.RandomItem());
+
+                        String RandomRoomMask = RoomList.RandomItem();
+                        ItemPickupBase maskPickup = mask.ServerDropItem();
+                        maskPickup.transform.position = new Vector3((float)(RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoomMask).transform.position.x), (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoomMask).transform.position.y + 2, (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoomMask).transform.position.z);
+                        maskPickup.transform.rotation = UnityEngine.Quaternion.Euler(0, 0, 0);
+                        maskPickup.transform.localScale = new Vector3(1f, 1f, 1f);
+
+                        Mask035List.Add(mask.ItemSerial);
 
 
-                    ItemPickupBase itemPickup = itemBase.ServerDropItem();
-                    itemPickup.transform.position = new Vector3((float)(RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoom).transform.position.x), (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoom).transform.position.y + 2, (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoom).transform.position.z);
-                    itemPickup.transform.rotation = UnityEngine.Quaternion.Euler(0, 0, 0);
-                    itemPickup.transform.localScale = new Vector3(1f, 1f, 1f);
-                    List<Player> Playerss = Player.GetPlayers();
-                    Log.Warning("The Button has spawned.");
-                    foreach (var allplrs in Playerss)
-                    {
-                        if (allplrs.Role != RoleTypeId.Overwatch)
+                        if (new System.Random().Next(30) == 1)
                         {
-                            allplrs.SendBroadcast("<color=#C50000>THE BUTTON</color> has spawned.", 3);
+                            ItemBase itemBase = ReferenceHub.HostHub.inventory.ServerAddItem(ItemType.SCP1576);
+
+                            String RandomRoomButton = RoomList.RandomItem();
+                            ItemPickupBase itemPickup = itemBase.ServerDropItem();
+                            itemPickup.transform.position = new Vector3((float)(RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoomButton).transform.position.x), (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoomButton).transform.position.y + 2, (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RandomRoomButton).transform.position.z);
+                            itemPickup.transform.rotation = UnityEngine.Quaternion.Euler(0, 0, 0);
+                            itemPickup.transform.localScale = new Vector3(1f, 1f, 1f);
+                            THEButton.Add(itemBase.ItemSerial);
+                            List<Player> Playersss = Player.GetPlayers();
+                            //Log.Warning("The Button has spawned.");
+                            foreach (var allplrs in Playersss)
+                            {
+                                if (allplrs.Role != RoleTypeId.Overwatch)
+                                {
+                                    allplrs.SendBroadcast("<color=#C50000>THE BUTTON</color> has spawned.", 3);
 
 
+                                }
+                            }
+                            
                         }
-                    }
-                    THEButton.Add(itemBase.ItemSerial);
-                   
 
-                }
+
+                    
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -526,6 +609,12 @@ namespace Plugin
                 yield return Timing.WaitForSeconds(1f);
                 try
                 {
+
+                    if (scp035s.Count != 0)
+                    {
+                        Round.IsLocked = true;
+                    }
+                    
 
                     List<Player> players = Player.GetPlayers();
                     foreach (var player in players.Where(p => p != null))// && p.CurrentItem == ItemType.SCP207 || p.CurrentItem == ItemType.AntiSCP207))
@@ -551,7 +640,7 @@ namespace Plugin
 
                             }
 
-                        if (player.IsSCP || (player.Role == RoleTypeId.Tutorial && fbi.Contains(player.PlayerId)))
+                            if (player.IsSCP || (player.Role == RoleTypeId.Tutorial && (fbi.Contains(player.PlayerId) || scp035s.Contains(player.PlayerId))))
                         {
 
                             
@@ -578,30 +667,47 @@ namespace Plugin
                         int specCount = 0;
 
                         specCount = 0;
-                             
-                             //Player.GetPlayers().First(x => x.ReferenceHub.IsSpectatedBy(player.ReferenceHub));
+
+
+                            int TargetCount = 0;
+                            TargetCount = 0;
+                            //Player.GetPlayers().First(x => x.ReferenceHub.IsSpectatedBy(player.ReferenceHub));
                             PlayerSpectators[player] = 0;
-                            foreach (var x in players.Where(p => p?.Role == RoleTypeId.Spectator && player != p))
+                            foreach (var x in players)
                             {
                                 if (players.Count != 1)
                                 {
-                                    specCount++;
-                                    if (specCount != 0)
+                                    if (x.IsHuman && x.Role != RoleTypeId.Tutorial)
                                     {
-                                        if (player.ReferenceHub.IsSpectatedBy(x.ReferenceHub))
-                                        {
-                                            PlayerSpectators[player]++;
-                                        }
-
+                                        TargetCount++;
                                     }
+
+                                    if (x.Role == RoleTypeId.Spectator)
+                                    {
+                                        specCount++;
+                                        if (specCount != 0)
+                                        {
+                                            if (x.ReferenceHub.IsSpectatedBy(x.ReferenceHub))
+                                            {
+                                                PlayerSpectators[player]++;
+                                            }
+
+
+                                        }
+                                    }
+                                   
                                 }
                                
                                
                             }
 
+                           
+                            
 
-
-
+                            if (scp035s.Contains(player.PlayerId))
+                            {
+                                core.SetElemTemp($"<align=right><pos=890><voffset=70><b><size=150%>👤{TargetCount}</size></b></voffset></align>", 890f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                            }
 
                             if (player.IsHuman || player.IsSCP || player.IsTutorial && player.Role != RoleTypeId.Scp079)
                             {
@@ -716,10 +822,14 @@ namespace Plugin
                     break;
 
             }
+            if (scp035s.Contains(target.PlayerId))
+            {
+                raw = raw.Replace("Serpent's Hand Agent", "SCP-035");
+            }
 
             return raw
                 .Replace("%healthpercent%", "♥" + Math.Floor(target.Health / target.MaxHealth * 100).ToString())
-                .Replace("%health%", "♥" + Math.Floor(target.Health).ToString())
+                .Replace("%health%", "♥" + Math.Floor(target.Health).ToString() + "HP")
                 .Replace("%generators%", _generators.Count(gen => gen.Engaged).ToString())
             .Replace("%engaging%", _generators.Count(gen => gen.Activating) > 0 ? $" (+{_generators.Count(gen => gen.Activating)})" : "").Replace("%zombies%", Player.GetPlayers<Player>().Count(p => p.Role == RoleTypeId.Scp0492).ToString())
           //  .Replace("%distance%", target != observer ? Math.Floor(Vector3.Distance(observer.Position, target.Position)) + "m" : "");
@@ -1029,7 +1139,7 @@ namespace Plugin
             }
         }
 
-
+   
         [PluginEvent(ServerEventType.PlayerSpawn)]
         void OnPlayerSpawned(Player player, RoleTypeId role)
         {
@@ -1197,6 +1307,12 @@ namespace Plugin
         [PluginEvent(ServerEventType.PlayerChangeRole)]
         void PlayerChangeRole(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
         {
+            if (player != null && scp035s.Contains(player.PlayerId))
+            {
+                scp035s.Remove(player.PlayerId);
+                Round.IsLocked = false;
+            }
+
             if (player != null && newRole == RoleTypeId.NtfSergeant)
             {
 
@@ -1537,6 +1653,71 @@ namespace Plugin
 
                 }
 
+
+
+
+                if (scp035s.Contains(player.PlayerId))
+                {
+                    scp035s.Remove(player.PlayerId);
+                    Round.IsLocked = false;
+                    if (damageHandler != null)
+                    {
+                        if (damageHandler is WarheadDamageHandler wdh)
+                        {
+                            // SubtitledCassie("SCP 0 3 5 Successfully Terminated By Alpha Warhead", "SCP-035 successfully terminated by Alpha Warhead");
+                            Cassie.Message("SCP 0 3 5 Successfully Terminated By Alpha Warhead", true, true, true);
+                        }
+
+                        if (damageHandler is UniversalDamageHandler udh)
+                        {
+                            if (udh.TranslationId == DeathTranslations.Tesla.Id)
+                            {
+                                // SubtitledCassie("SCP 0 3 5 successfully terminated by Automatic Security System", "SCP-035 successfully terminated by Automatic Security System.");
+                                Cassie.Message("SCP 0 3 5 successfully terminated by Automatic Security System", true, true, true);
+                            }
+                            else if (udh.TranslationId == DeathTranslations.Decontamination.Id)
+                            {
+                                //SubtitledCassie("SCP 0 3 5 lost in Decontamination Sequence", "SCP-035 lost in Decontamination Sequence.");
+                                Cassie.Message("SCP 0 3 5 lost in Decontamination Sequence", true, true, true);
+                            }
+                            else
+                            {
+                                // SubtitledCassie("SCP 0 3 5 Successfully Terminated . Termination cause unspecified", "SCP-035 successfully terminated. Termination cause unspecified.");
+                                Cassie.Message("SCP 0 3 5 Successfully Terminated . Termination cause unspecified", true, true, true);
+                            }
+                        }
+                    }
+                    else if (attacker != null)
+                    {
+                        if (attacker.Role == RoleTypeId.ClassD)
+                        {
+                            // SubtitledCassie("SCP 0 3 5 Contained Successfully By Class D Personnel", "SCP-035 contained successfully by Class D Personnel");
+                            Cassie.Message("SCP 0 3 5 Contained Successfully By Class D Personnel", true, true, true);
+
+                        }
+                        if (attacker.IsChaos)
+                        {
+                            //  SubtitledCassie("SCP 0 3 5 Contained Successfully By Chaos Insurgency", "SCP-035 contained successfully by Chaos Insurgency");
+                            Cassie.Message("SCP 0 3 5 Contained Successfully By Chaos Insurgency", true, true, true);
+                        }
+                        if (attacker.IsNTF)
+                        {
+                            // SubtitledCassie("SCP 0 3 5 Contained Successfully . Containment Unit .g4", "SCP-035 contained successfully. Containment unit Unknown");
+                            Cassie.Message("SCP 0 3 5 Contained Successfully . Containment Unit Unknown", true, true, true);
+                        }
+                        if (attacker.Role == RoleTypeId.Scientist)
+                        {
+                            // SubtitledCassie("SCP 0 3 5 Contained Successfully By Science Personnel", "SCP-035 contained successfully. Containment unit Unknown");
+                            Cassie.Message("SCP 0 3 5 Contained Successfully By Science Personnel", true, true, true);
+                        }
+                    }
+                    else if (attacker != null && damageHandler != null)
+                    {
+                        Cassie.Message("SCP 0 3 5 Successfully Terminated . Termination cause unspecified", true, true, true);
+                    }
+                   
+                   
+                }
                 // player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
 
                 if (chase096Music.Contains(player.PlayerId))
@@ -1635,7 +1816,7 @@ namespace Plugin
         [PluginEvent(ServerEventType.Scp173SnapPlayer)]
         public bool OnScp173SnapPlayer(Player player, Player target)
         {
-            if (target != null && fbi.Contains(target.PlayerId)) // && newRole.GetTeam() != Team.ChaosInsurgency
+            if (target != null && (fbi.Contains(target.PlayerId) || scp035s.Contains(target.PlayerId))) // && newRole.GetTeam() != Team.ChaosInsurgency
             {
                 //fbi.Remove(player.PlayerId);
                 //player.TemporaryData.Remove("custom_class");
@@ -1696,33 +1877,11 @@ namespace Plugin
             {
                 sci.Remove(player.PlayerId);
             }
-        }
-
-        [PluginEvent(ServerEventType.Scp939Attack)]
-        public bool OnScp939Attack(Player player, IDestructible target)
-        {
-            if (!ReferenceHub.TryGetHubNetID(target.NetworkId, out ReferenceHub hub))
+            if (player != null & scp035s.Contains(player.PlayerId))
             {
-                return false;
+                scp035s.Remove(player.PlayerId);
             }
-
-            Player targetPlayer = Player.Get<Player>(hub);
-
-            if (player != null && fbi.Contains(player.PlayerId)) // && newRole.GetTeam() != Team.ChaosInsurgency
-            {
-                //fbi.Remove(player.PlayerId);
-                //player.TemporaryData.Remove("custom_class");
-                // Log.Info($"Player &6{player.Nickname}&r (&6{player.UserId}&r) playing as SCP-173 killed &6{target.Nickname}&r (&6{target.UserId}&r) by snapping his neck");
-                return true;
-            }
-            return true;
-            // Log.Info($"Player &6{player.Nickname}&r (&6{player.UserId}&r) playing as SCP-939 attacked &6{targetPlayer.Nickname}&r (&6{targetPlayer.UserId}&r)!");
         }
-
-
-
-
-
 
         [PluginEvent(ServerEventType.PlayerCoinFlip)]
         void OnCoinFlip(Player player, bool isTails)
@@ -1745,8 +1904,8 @@ namespace Plugin
         [PluginEvent(ServerEventType.Scp096AddingTarget)]
         public bool New096Target(Scp096AddingTargetEvent args)
         {
-            if (fbi.Contains(args.Target.PlayerId))
-            {
+            if (fbi.Contains(args.Target.PlayerId) || scp035s.Contains(args.Target.PlayerId))
+            { 
                 return false;
             }
             else
@@ -1793,35 +1952,7 @@ namespace Plugin
                     }
                 }
 
-                /*
-                       PlayersAudioBot = AddDummy();
-                       if (player.Room.name == "LCZ_914 (14)" && !player.TemporaryData.Contains("scp914_ambience"))
-                       {
-
-                           player.TemporaryData.Add("scp914_ambience", this);
-
-                           //PlayersAudioBot = AddDummy();
-
-                           //     PlayersAudioBot = TemporaryBot;
-                           // PlayPlayerAudio096_Loop(player, "ninefourteen.ogg", (byte)65f, PlayersAudioBot);
-                           // player.EffectsManager.EnableEffect<SoundtrackMute>(0, false);
-                       }
-
-                       if (player.Room.name != "LCZ_914 (14)" && player.TemporaryData.Contains("scp914_ambience"))
-                       {
-
-                           player.TemporaryData.Remove("scp914_ambience");
-
-                           //player.EffectsManager.DisableEffect<SoundtrackMute>();
-                           Log.Debug($"{PlayersAudioBot.name}");
-                           //StopAudio096(PlayersAudioBot);
-                           StopAudio096(PlayersAudioBot);
-                           RemoveDummy096(PlayersAudioBot);
-                           Log.Debug($"{PlayersAudioBot.name}");
-                       }
-
-                   }
-                   */
+               
             }
         }
 
@@ -1885,7 +2016,7 @@ namespace Plugin
         [PluginEvent(ServerEventType.Scp173NewObserver)]
         public bool New173Target(Scp173NewObserverEvent args)
         {
-            if (fbi.Contains(args.Target.PlayerId))
+            if (fbi.Contains(args.Target.PlayerId) || scp035s.Contains(args.Target.PlayerId))
             {
                 return false;
             }
@@ -2017,17 +2148,7 @@ namespace Plugin
         }
 
 
-        [PluginEvent]
-        public void OnScp096AddTarget(Scp096AddingTargetEvent ev)
-        {
-           // Log.Info($"Player &6{ev.Target.Nickname}&r (&6{ev.Target.UserId}&r) {(ev.IsForLook ? "look" : "shoot")}  player &6{ev.Player.Nickname}&r (&6{ev.Player.UserId}&r) and was added to the SCP-096 target list");
-            if (!fbi.Contains(ev.Target.PlayerId))
-            {
-               // ev.Target.TemporaryData.Add("chasemusic", this);
-             //   ReferenceHub Dummy = AddDummy();
-              //  // PlayPlayerAudio096(ev.Target, "scp096chase.ogg", (byte)85f, Dummy);
-            }
-        }
+
 
 
 
@@ -2043,25 +2164,25 @@ namespace Plugin
                     return true;
                 if (ev.DamageHandler is null)
                     return true;
-                if (ev.DamageHandler is FirearmDamageHandler fdh && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
+                if (ev.DamageHandler is FirearmDamageHandler fdh && ev.Target.IsSCP == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
                     return false;
-                if (ev.DamageHandler is JailbirdDamageHandler jdh && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
+                if (ev.DamageHandler is JailbirdDamageHandler jdh && ev.Target.IsSCP == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
                     return false;
-                if (ev.DamageHandler is ExplosionDamageHandler gdh && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
+                if (ev.DamageHandler is ExplosionDamageHandler gdh && ev.Target.IsSCP == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
                     return false;
-                if (ev.DamageHandler is DisruptorDamageHandler ddh && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
+                if (ev.DamageHandler is DisruptorDamageHandler ddh && ev.Target.IsSCP == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
                     return false;
-                if (ev.DamageHandler is MicroHidDamageHandler mhd && ev.Target.IsSCP == true && fbi.Contains(ev.Player.PlayerId))
+                if (ev.DamageHandler is MicroHidDamageHandler mhd && ev.Target.IsSCP == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
                     return false;
-                if (ev.DamageHandler is Scp939DamageHandler sc939dh && ev.Player.IsSCP == true && fbi.Contains(ev.Target.PlayerId))
+                if (ev.DamageHandler is Scp939DamageHandler sc939dh && ev.Player.IsSCP == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
                     return false;
-                if (ev.DamageHandler is Scp049DamageHandler sc049dh && ev.Player.IsSCP == true && fbi.Contains(ev.Target.PlayerId))
+                if (ev.DamageHandler is Scp049DamageHandler sc049dh && ev.Player.IsSCP == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
                     return false;
-                if (ev.DamageHandler is Scp3114DamageHandler scp3114dh && ev.Player.IsSCP == true && fbi.Contains(ev.Target.PlayerId))
+                if (ev.DamageHandler is Scp3114DamageHandler scp3114dh && ev.Player.IsSCP == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
                     return false;
-                if (fbi.Contains(ev.Player.PlayerId) && ev.Player.IsTutorial && ev.Target.IsSCP == true)
+                if ((fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)) && ev.Player.IsTutorial && ev.Target.IsSCP == true)
                     return false;
-                if (ev.Player.IsSCP == true && ev.Target.IsTutorial == true && fbi.Contains(ev.Target.PlayerId))
+                if (ev.Player.IsSCP == true && ev.Target.IsTutorial == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
                     return false;
                 if (ev.Target.IsHuman == true && !fbi.Contains(ev.Target.PlayerId) && ev.Player.Role == RoleTypeId.Scp106)
                 {
@@ -5052,8 +5173,15 @@ namespace Plugin
 
 
           
-               // Log.Debug(pickup.Info.ItemId.ToString());
+            // Log.Debug(pickup.Info.ItemId.ToString());
+
+            if (Mask035List.Contains(pickup.NetworkInfo.Serial))
+            {
+               
                 
+                ChangeTo035(plr);
+            }
+            
 
             
             if (cfg.Debug == true)
@@ -5597,7 +5725,7 @@ namespace Plugin
 
         
 
-[CommandHandler(typeof(RemoteAdminCommandHandler))]
+        [CommandHandler(typeof(RemoteAdminCommandHandler))]
         public class givethebutton : ICommand
         {
             public string Command { get; } = "givethebutton";
@@ -5620,6 +5748,10 @@ namespace Plugin
                 return false;
             }
         }
+
+
+
+        
 
         [CommandHandler(typeof(RemoteAdminCommandHandler))]
         public class forceserpentshand : ICommand
@@ -5782,6 +5914,8 @@ namespace Plugin
                 return false;
             }
         }
+
+
 
 
         [CommandHandler(typeof(RemoteAdminCommandHandler))]

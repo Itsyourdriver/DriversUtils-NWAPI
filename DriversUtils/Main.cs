@@ -27,6 +27,7 @@ using slocLoader.Objects;
 using static TheRiptide.Utility;
 using Log = PluginAPI.Core.Log;
 using RueI;
+using HarmonyLib;
 
 
 namespace Plugin
@@ -47,7 +48,7 @@ namespace Plugin
         // public static Config CassieSettings;
 
 
-
+        private Harmony harmony;
 
 
 
@@ -71,6 +72,9 @@ namespace Plugin
             EventManager.RegisterEvents<MTFUnits>(this);
             EventManager.RegisterEvents<Coin914>(this);
             EventManager.RegisterEvents<TheKid>(this);
+            harmony = new Harmony("Patches");
+            harmony.PatchAll();
+
             Log.Debug("Finished loading and initializing DriversUtils!");
             RueIMain.EnsureInit();
             //  Log.Debug("RueI Loaded and Initialized");
