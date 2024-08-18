@@ -1501,9 +1501,9 @@ namespace Plugin
                     if (player.CustomInfo != string.Empty)
                     {
 
-                        player.PlayerInfo.IsRoleHidden = true;
-                        player.PlayerInfo.IsNicknameHidden = true;
-                        player.PlayerInfo.IsUnitNameHidden = true;
+                        player.PlayerInfo.IsRoleHidden = false;
+                        player.PlayerInfo.IsNicknameHidden = false;
+                        player.PlayerInfo.IsUnitNameHidden = false;
 
                         //player.CustomInfo = string.Empty;
 
