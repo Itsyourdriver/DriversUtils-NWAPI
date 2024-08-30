@@ -55,7 +55,7 @@ namespace Plugin
                         //           player.ReceiveHint("Your coin was upgraded into a random item...", 3);
                         //                   Log.Info("upgraded.");
                         player.RemoveItem(new Item(item));
-                        player.AddItem(ItemType.KeycardJanitor);
+                        player.AddItem(ItemType.KeycardScientist);
                          return;
                     case Scp914KnobSetting.VeryFine:
                         player.RemoveItem(new Item(item));

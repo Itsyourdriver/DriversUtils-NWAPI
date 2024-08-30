@@ -1143,6 +1143,15 @@ namespace Plugin
         [PluginEvent(ServerEventType.PlayerSpawn)]
         void OnPlayerSpawned(Player player, RoleTypeId role)
         {
+            if (player.CustomInfo != string.Empty)
+            {
+                player.PlayerInfo.IsUnitNameHidden = false;
+                player.PlayerInfo.IsNicknameHidden = false;
+                player.PlayerInfo.IsRoleHidden = false;
+                player.CustomInfo = string.Empty;
+
+            }
+
             if (RoundEvent == "PowerBlackout")
             {
                 Timing.CallDelayed(1.5f, () =>
@@ -1307,6 +1316,22 @@ namespace Plugin
         [PluginEvent(ServerEventType.PlayerChangeRole)]
         void PlayerChangeRole(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
         {
+            if (player != null && newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Overwatch || newRole != RoleTypeId.Filmmaker)
+            {
+                if (player.CustomInfo != string.Empty)
+                {
+
+                    player.PlayerInfo.IsRoleHidden = false;
+                    player.PlayerInfo.IsNicknameHidden = false;
+                    player.PlayerInfo.IsUnitNameHidden = false;
+
+                    //player.CustomInfo = string.Empty;
+
+                    player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = string.Empty;
+                }
+            }
+
+
             if (player != null && scp035s.Contains(player.PlayerId))
             {
                 scp035s.Remove(player.PlayerId);
@@ -1332,7 +1357,7 @@ namespace Plugin
                     player.PlayerInfo.IsRoleHidden = true;
                     player.PlayerInfo.IsNicknameHidden = true;
                     player.PlayerInfo.IsUnitNameHidden = true;
-                    player.PlayerInfo.IsRoleHidden = true;
+                    
                     
 
 
@@ -1496,20 +1521,7 @@ namespace Plugin
 
             if (player != null)
             {
-                if (newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Overwatch || newRole != RoleTypeId.Filmmaker)
-                {
-                    if (player.CustomInfo != string.Empty)
-                    {
-
-                        player.PlayerInfo.IsRoleHidden = false;
-                        player.PlayerInfo.IsNicknameHidden = false;
-                        player.PlayerInfo.IsUnitNameHidden = false;
-
-                        //player.CustomInfo = string.Empty;
-
-                        player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = string.Empty;
-                    }
-                }
+                
 
                 if (RoundEvent == "Nextbots")
                 {
@@ -2338,10 +2350,10 @@ namespace Plugin
                         player.SendConsoleMessage("Old List of SCP-294 Drinks: oxygen, speed, cola, anit-cola, Coffee, GoldenAtomKick, godmode, Invisibility, Me, Tea, Horror, Borgor, Cheeserburger, Antimatter, Zombie, CherryAtomKick, pinkcandy, Boom, Peanut, Saltwater, Teleport, Windex, Medusa, Candy, BEPIS, Small, grow, LeafLover, Water, Slushy, Ghost, Ice, Death, Steel, RazorBlade, Oil, Bose-Einstein, Beer, slime, scp1853, choccymilk, lava, lemonade, Balls, Crazy", "white");
                     }
 
-                    if (player.Room != null && ItemType.Coin.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && player.Room.name == "EZ_upstairs" && arguments.First().ToLower() != "list" || player.Room.name == "LCZ_TCross (11)")
+                    if (player.Room != null && player.CurrentItem != null && player.CurrentItem.ItemTypeId == ItemType.Coin && arguments.First().ToLower() != "list" && arguments.First().ToLower() != "oldlist" && (player.Room.name == "EZ_upstairs"  || player.Room.name == "LCZ_TCross (11)"))
                     {
 
-
+                        //player.ReferenceHub.inventory.NetworkCurItem.TypeId
 
 
 
@@ -3200,7 +3212,10 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
+
+                  
 
                     SetScale(plr, new Vector3(1f, 1f, 0.1f));
                    // plr.ReceiveHint("Why?", 3);
@@ -3259,6 +3274,7 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
                     plr.Heal(60);
@@ -3285,15 +3301,16 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-                    
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.AntiScp207 sevHands) && sevHands.IsEnabled)
+
+                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
                     {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.AntiScp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.AntiScp207>().Intensity = (byte)(num - 1);
+                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
                     }
                     else
                     {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.AntiScp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     //plr.EffectsManager.DisableEffect<CustomPlayerEffects.AntiScp207>();
                     plr.EffectsManager.EnableEffect<MovementBoost>(10, true);
@@ -3445,6 +3462,7 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
@@ -3644,6 +3662,7 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Invigorated>(28, true);
@@ -3682,6 +3701,7 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Invigorated>(20, true);
@@ -3715,6 +3735,7 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     // plr.EffectsManager.EnableEffect<Invigorated>(20, true);
@@ -3748,6 +3769,7 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     // plr.EffectsManager.EnableEffect<Invigorated>(20, true);
@@ -3781,6 +3803,7 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     //   plr.EffectsManager.EnableEffect<Invigorated>(20, true);
@@ -3861,11 +3884,16 @@ namespace Plugin
                             plr.EffectsManager.DisableEffect<Invisible>();
                         });
                     }
+                    
                     else
                     {
                         plrpos = plr.Position;
-
+                        bool PlayerWasOnSurface = false;
                         plr.Position = dimension;
+                        if (plr.Room.name == "Outside")
+                        {
+                            PlayerWasOnSurface = true;
+                        }
                         plr.ReceiveHint("You put on SCP-1499.", 3);
                         Timing.CallDelayed(0.5f, () =>
                         {
@@ -3877,8 +3905,16 @@ namespace Plugin
                         //plr.EffectsManager.DisableEffect<Deafened>();
                         Timing.CallDelayed(15f, () =>
                         {
-                            plr.Position = plrpos;
-                            plr.EffectsManager.DisableEffect<Invisible>();
+                            if (!PlayerWasOnSurface && Warhead.IsDetonated)
+                            {
+                                plr.Kill("Warhead Radiation.");
+                            }
+                            else
+                            {
+                                plr.Position = plrpos;
+                                plr.EffectsManager.DisableEffect<Invisible>();
+                            }
+                           
 
                         });
                     }
@@ -3935,6 +3971,7 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     plr.EffectsManager.EnableEffect<Ghostly>(41, true);
@@ -4017,13 +4054,14 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
                     //plr.EffectsManager.EnableEffect<Flashed>(20, true);
                     //plr.Kill("I don't know what you expected.");
 
-                  //  plr.ReceiveHint("You drank a cup of [REDACTED]. Your items magically disappeared!", 3);
-                  
+                    //  plr.ReceiveHint("You drank a cup of [REDACTED]. Your items magically disappeared!", 3);
+
                     //plr.SetRole(RoleTypeId.Scp0492);
                     plr.Position = plrpos;
                     plr.EffectsManager.EnableEffect<SeveredHands>(10, true);
@@ -4255,13 +4293,19 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
                     //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
                     // plr.EffectsManager.EnableEffect<Invisible>(10, true);
                     // plr.Heal(50);
                     //   plr.Damage(damageHandlerBase);
+                    bool PlayerWasOnSurface = false;
                     plr.ClearBroadcasts();
+                    if (plr.Room.name == "Outside")
+                    {
+                        PlayerWasOnSurface = true;
+                    }
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
                     DisplayCore.Get(plr.ReferenceHub).SetElemTemp("Timeout for you!", 450f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
@@ -4276,7 +4320,17 @@ namespace Plugin
 
                     Timing.CallDelayed(20f, () =>
                     {
-                        plr.Position = plrpos;
+
+                        if (!PlayerWasOnSurface && Warhead.IsDetonated)
+                        {
+                            plr.Kill("The timeout was not able to save you this time.");
+                        }
+                        else
+                        {
+                            plr.Position = plrpos;
+                          //  plr.EffectsManager.DisableEffect<Invisible>();
+                        }
+                        //
                     });
 
                 });
@@ -4412,7 +4466,7 @@ namespace Plugin
 
                         foreach (var randplr in Playerss)
                         {
-                            if (!randplr.IsSCP == true && randplr.Role != RoleTypeId.Scp079 && randplr.Role != RoleTypeId.Spectator && randplr.Role != RoleTypeId.Overwatch && randplr.PlayerId != plr.PlayerId)
+                            if (!randplr.IsSCP == true && randplr.Role != RoleTypeId.Scp079 && randplr.Role != RoleTypeId.Spectator && randplr.Role != RoleTypeId.Overwatch)
                             {
 
 
@@ -4711,6 +4765,7 @@ namespace Plugin
                     else
                     {
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     DisplayCore.Get(plr.ReferenceHub).SetElemTemp("Good luck!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     if (plr.IsAlive && plr.RoleBase is IFpcRole role)
