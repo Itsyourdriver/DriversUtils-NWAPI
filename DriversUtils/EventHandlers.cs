@@ -1478,10 +1478,7 @@ namespace Plugin
 
                         foreach (var items in player.Items)
                         {
-                            if (items.ItemTypeId is ItemType.KeycardScientist || items.ItemTypeId is ItemType.Medkit || items.ItemTypeId is ItemType.Radio)
-                            {
-                                player.RemoveItem(items);
-                            }
+                                player.ReferenceHub.inventory.ServerRemoveItem(items.ItemSerial, items.PickupDropModel);
                         }
                         player.AddItem(ItemType.KeycardResearchCoordinator);
                         player.AddItem(ItemType.Radio);
@@ -5891,6 +5888,10 @@ namespace Plugin
                 return false;
             }
         }
+
+
+
+
 
         [CommandHandler(typeof(ClientCommandHandler))]
         public class nickname : ICommand
