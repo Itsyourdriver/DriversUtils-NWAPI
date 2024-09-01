@@ -134,10 +134,10 @@ namespace Plugin
                             RemoveItem(player, ItemType.KeycardGuard);
                             AddOrDropFirearm(player, ItemType.GunCrossvec, true);
                             player.AddItem(ItemType.KeycardMTFPrivate);
-                            player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#727472>{player.DisplayNickname}</color>" + "\n<color=#727472>FACILITY GUARD CAPTAIN</color>";
-                             player.PlayerInfo.IsRoleHidden = true;
-                             player.PlayerInfo.IsNicknameHidden = true;
-                             player.PlayerInfo.IsUnitNameHidden = true;
+                            //player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#727472>{player.DisplayNickname}</color>" + "\n<color=#727472>FACILITY GUARD CAPTAIN</color>";
+                             //player.PlayerInfo.IsRoleHidden = true;
+                             //player.PlayerInfo.IsNicknameHidden = true;
+                             //player.PlayerInfo.IsUnitNameHidden = true;
                             if (config.Debug == true)
                             {
                                 Log.Debug("Finished setting up guard captain.");

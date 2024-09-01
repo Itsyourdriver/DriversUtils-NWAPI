@@ -119,6 +119,21 @@ namespace Plugin
 
 
 
+        public bool Is035(Player player)
+        {
+            if (player != null && scp035s.Contains(player.PlayerId))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
+
+
         public static string RoundEvent;
         string LastRoundEvent;
         bool buttonused = false;
@@ -237,7 +252,7 @@ namespace Plugin
                             }
                             if (RoundEvent == "Nextbots")
                             {
-                                p.SendBroadcast("<color=#228B22>EVENT:</color> The SCPs are now nextbots!", 13, Broadcast.BroadcastFlags.Normal, false);
+                                p.SendBroadcast("<color=#228B22>EVENT:</color> The SCPs are now nextbots! (Note: 939 & 106 are not effected by this event.)", 13, Broadcast.BroadcastFlags.Normal, false);
 
                                 
                                 
@@ -296,7 +311,7 @@ namespace Plugin
             RespawnEffectsController.PlayCassieAnnouncement(finished, true, true, true);
         }
 
-        public void ChangeTo035(Player player)
+        public static void ChangeTo035(Player player, bool RoundStart)
         {
             if (!scp035s.Contains(player.PlayerId))
             {
@@ -339,6 +354,21 @@ namespace Plugin
                             }
                         }
                     });
+
+                    if (RoundStart == true)
+                    {
+
+                        String RoomName = "HCZ_079";
+
+
+                        List<ItemType> Scp035Loadout = new List<ItemType> {ItemType.KeycardScientist, ItemType.Medkit};
+
+                        foreach(ItemType item in Scp035Loadout)
+                        {
+                            player.AddItem(item);
+                        }
+                        player.Position = new Vector3((float)(RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RoomName).transform.position.x), (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RoomName).transform.position.y + 1.4f, (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RoomName).transform.position.z);
+                    }
                 });
             }
         }
@@ -1527,7 +1557,7 @@ namespace Plugin
                 {
                     Timing.CallDelayed(1.5f, () =>
                     {
-                        if (player.IsSCP && player.Role != RoleTypeId.Scp079 && player.Role != RoleTypeId.Scp939)
+                        if (player.IsSCP && player.Role != RoleTypeId.Scp079 && player.Role != RoleTypeId.Scp939 && player.Role != RoleTypeId.Scp106)
                         {
 
 
@@ -1680,6 +1710,8 @@ namespace Plugin
                             Cassie.Message("SCP 0 3 5 Successfully Terminated By Alpha Warhead", true, true, true);
                         }
 
+
+                        /*
                         if (damageHandler is UniversalDamageHandler udh)
                         {
                             if (udh.TranslationId == DeathTranslations.Tesla.Id)
@@ -1698,6 +1730,7 @@ namespace Plugin
                                 Cassie.Message("SCP 0 3 5 Successfully Terminated . Termination cause unspecified", true, true, true);
                             }
                         }
+                        */
                     }
                     else if (attacker != null)
                     {
@@ -1727,8 +1760,8 @@ namespace Plugin
                     {
                         Cassie.Message("SCP 0 3 5 Successfully Terminated . Termination cause unspecified", true, true, true);
                     }
-                   
-                   
+                    Round.IsLocked = false;
+
                 }
                 // player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
 
@@ -1818,6 +1851,10 @@ namespace Plugin
                     if (attacker.IsHuman == true && !attacker.IsTutorial)
                 {
                     DisplayCore.Get(attacker.ReferenceHub).SetElemTemp(config.LastOneAliveHint, 200f, TimeSpan.FromSeconds(10), new TimedElemRef<SetElement>());
+                }
+                    else if (scp035s.Contains(attacker.PlayerId))
+                {
+                    Round.IsLocked = false;
                 }
                    
 
@@ -3879,11 +3916,9 @@ namespace Plugin
                     else if (plr.EffectsManager.TryGetEffect(out PocketCorroding sevHands) && sevHands.IsEnabled)
                     {
                         plr.SendBroadcast("Unable to use SCP-1499 as you were in the pocket dimension.", 3);
-                        Timing.CallDelayed(0.5f, () =>
-                        {
-                            plr.EffectsManager.DisableEffect<Invisible>();
-                        });
+                       
                     }
+                   
                     
                     else
                     {
@@ -3905,7 +3940,7 @@ namespace Plugin
                         //plr.EffectsManager.DisableEffect<Deafened>();
                         Timing.CallDelayed(15f, () =>
                         {
-                            if (!PlayerWasOnSurface && Warhead.IsDetonated)
+                            if (PlayerWasOnSurface == false && Warhead.IsDetonated == true)
                             {
                                 plr.Kill("Warhead Radiation.");
                             }
@@ -3935,7 +3970,7 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-
+                     
                     if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
                     {
                         byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
@@ -3974,8 +4009,9 @@ namespace Plugin
                         plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                     }
                     // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
-                    plr.EffectsManager.EnableEffect<Ghostly>(41, true);
-                 //   plr.EffectsManager.EnableEffect<CustomPlayerEffects.Invisible>(41, true);
+                    plr.EffectsManager.EnableEffect<Ghostly>(15, true);
+                    plr.EffectsManager.EnableEffect<AmnesiaVision>(15, true);
+                    //   plr.EffectsManager.EnableEffect<CustomPlayerEffects.Invisible>(41, true);
                     DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank the Ghastly Brew.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                     // ReferenceHub TempDummy = AddDummy();
@@ -5234,7 +5270,7 @@ namespace Plugin
             {
                
                 
-                ChangeTo035(plr);
+                ChangeTo035(plr, false);
             }
             
 
