@@ -975,13 +975,17 @@ namespace Plugin
             Log.Debug(randomNumber.ToString());
             RoundEvent = "";
 
-            /*
+            
             foreach (var room in Facility.Rooms)
             {
-                if (room.GameObject.name == "LCZ_Crossing (6)") { 
+                if (room.GameObject.name == "HCZ_Testroom") { 
                 foreach (var component in room.GameObject.GetComponentsInChildren<Component>())
                     try
                     {
+                        if (component.name.Contains("Generator"))
+                        {
+                                continue;
+                        }
                         if (component.name.Contains("SCP-079") || component.name.Contains("CCTV"))
                         {
                            // Log.Debug(
@@ -997,7 +1001,7 @@ namespace Plugin
                             continue;
                         }
 
-                            // Log.Debug($"Destroying component: {component.name} {component.tag} {component.GetType().FullName}");
+                             //Log.Debug($"Destroying component: {component.name} {component.tag} {component.GetType().FullName}");
 
                             Object.Destroy(component);
                         }
@@ -1007,7 +1011,7 @@ namespace Plugin
                     }
                 }
             }
-            */
+            
 
         }
 
@@ -1771,7 +1775,7 @@ namespace Plugin
                 }
 
 
-                if (attacker != null && PlayerKills.TryGetValue(attacker, out int test))
+                if (attacker != null && PlayerKills.TryGetValue(attacker, out int test) && attacker != player)
                 {
                     PlayerKills[attacker]++;
                     DisplayCore.Get(attacker.ReferenceHub).SetElemTemp($"<b>{PlayerKills[attacker]} kills this round.</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
