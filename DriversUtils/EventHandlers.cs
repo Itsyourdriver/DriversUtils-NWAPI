@@ -670,26 +670,34 @@ namespace Plugin
 
                             }
 
+                            int ScpCount = 0;
+                            ScpCount = 0;
+
                             if (player.IsSCP || (player.Role == RoleTypeId.Tutorial && (fbi.Contains(player.PlayerId) || scp035s.Contains(player.PlayerId))))
                         {
 
+                                ScpCount++;
+
+                                if (ScpCount >= 1)
+                                {
+                                    string text = $"<align=right>";
+
+
+
+                                    foreach (var scp in Player.GetPlayers().Where(p => (p?.Role.GetTeam() == Team.SCPs || p.Role == RoleTypeId.Tutorial) && cfg.DisplayStrings.ContainsKey(p.Role)))
+                                    {
+                                        text += (player == scp && true ? "<color=#50C878>You --></color>" + " " : "") + ProcessStringVariables(cfg.DisplayStrings[scp.Role], player, scp) + "\n";
+                                    }
+
+                                    text += $"<voffset={30}em> </voffset></align>";
+                                    // player.ReceiveHint(text, 1.25f);
+                                    //text += $"</align>";
+
+                                    /*DisplayCore.Get(player.ReferenceHub)*/
+                                    core.SetElemTemp(text, 850f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                }
+
                             
-
-                            string text = $"<align=right>";
-
-                          
-
-                            foreach (var scp in Player.GetPlayers().Where(p => (p?.Role.GetTeam() == Team.SCPs || p.Role == RoleTypeId.Tutorial) && cfg.DisplayStrings.ContainsKey(p.Role)))
-                            {
-                                text += (player == scp && true ? "<color=#50C878>You --></color>" + " " : "") + ProcessStringVariables(cfg.DisplayStrings[scp.Role], player, scp) + "\n";
-                            }
-
-                            text += $"<voffset={30}em> </voffset></align>";
-                            // player.ReceiveHint(text, 1.25f);
-                            //text += $"</align>";
-
-                            /*DisplayCore.Get(player.ReferenceHub)*/
-                            core.SetElemTemp(text, 850f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                         }
 
 
@@ -717,7 +725,7 @@ namespace Plugin
                                         specCount++;
                                         if (specCount != 0)
                                         {
-                                            if (x.ReferenceHub.IsSpectatedBy(x.ReferenceHub))
+                                            if (player.ReferenceHub.IsSpectatedBy(x.ReferenceHub))
                                             {
                                                 PlayerSpectators[player]++;
                                             }
@@ -1372,6 +1380,7 @@ namespace Plugin
                 Round.IsLocked = false;
             }
 
+            /*
             if (player != null && newRole == RoleTypeId.NtfSergeant)
             {
 
@@ -1385,9 +1394,9 @@ namespace Plugin
                     player.AddItem(ItemType.GrenadeHE);
 
                     //   player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}\nNine Tailed Fox Boom Boom Boy</color>";
-                    /*
-                       player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX DEMOLITIONIST</color>";
-                    */
+                    
+                    //   player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX DEMOLITIONIST</color>";
+                    
                     player.PlayerInfo.IsRoleHidden = true;
                     player.PlayerInfo.IsNicknameHidden = true;
                     player.PlayerInfo.IsUnitNameHidden = true;
@@ -1402,6 +1411,8 @@ namespace Plugin
 
                   }
             }
+            */
+
 
             if (player != null && oldRole != null && oldRole.RoleTypeId == RoleTypeId.Scp173 && reason == RoleChangeReason.Died)
             {
