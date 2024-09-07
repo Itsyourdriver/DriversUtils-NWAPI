@@ -36,11 +36,15 @@ namespace Plugin
 
     public class Plugin
     {
-      //  public static Plugin Singleton { get; private set; }
-
+        //  public static Plugin Singleton { get; private set; }
+        public static Plugin Instance;
         public static Plugin Singleton;
         
+        public static bool IsSerpentsSpawning;
+        public static bool isScienceTeamSpawning;
         private Player player = null;
+
+
 
         [PluginConfig]
         public Config Config;
@@ -54,7 +58,7 @@ namespace Plugin
 
 
 
-        [PluginEntryPoint("DriversUtils", "1.52.0", "This plugin adds custom features to scpsl.", "itsyourdriver")]
+        [PluginEntryPoint("DriversUtils", "1.7.1", "This plugin adds custom features to scpsl.", "itsyourdriver")]
         public void LoadPlugin()
         {
             if (!Config.IsEnabled)
@@ -93,6 +97,8 @@ namespace Plugin
 
 
         // static int randomGlitchSound = new System.Random().Next(30, 150);
+
+
 
 
 

@@ -103,10 +103,16 @@ namespace Plugin
 
 
 
-        public static Dictionary<Player, int> PlayerKills = new Dictionary<Player, int>();
+
 
         public static Dictionary<Player, ReferenceHub> PlayerAudioBots = new Dictionary<Player, ReferenceHub>();
+
+
         public static Dictionary<Player, int> PlayerSpectators = new Dictionary<Player, int>();
+        public static Dictionary<Player, int> PlayerKills = new Dictionary<Player, int>();
+
+        public static Dictionary<String, bool> PlayerPreferenceEffectList = new Dictionary<String,bool>();
+
         // Custom Items that need to be accessed everwhere (should really make a custom enum or smthn for this lmao)
         public static HashSet<ushort> THEButton = new HashSet<ushort>();
         public static HashSet<ushort> doublenade = new HashSet<ushort>();
@@ -210,6 +216,16 @@ namespace Plugin
                         if (p.Role != RoleTypeId.Overwatch && p.Role != RoleTypeId.Tutorial && p.Role != RoleTypeId.Spectator)
                         {
 
+                            
+                            if (RoundEvent == "FriendlyFire")
+                            {
+                                Server.FriendlyFire = true;
+                                p.SendBroadcast("<color=#228B22>EVENT:</color> Friendly fire is enabled.", 13, Broadcast.BroadcastFlags.Normal, false);
+                            }
+                            if (RoundEvent == "ClearDay")
+                            {
+                                p.SendBroadcast("<color=#228B22>EVENT:</color> The fog has subsided.", 13, Broadcast.BroadcastFlags.Normal, false);
+                            }
 
                             if (RoundEvent == "EveryoneIsSmall")
                             {
@@ -656,8 +672,8 @@ namespace Plugin
                             if (RoundEvent == "Foggy")
                             {
 
-                                if (player.Role != RoleTypeId.Overwatch && player.Role != RoleTypeId.Spectator)
-                                {
+                               // if (player.Role != RoleTypeId.Overwatch && player.Role != RoleTypeId.Spectator)
+                                //{
 
 
                                     player.EffectsManager.ChangeState("FogControl", 255, 1.25f, false);
@@ -666,8 +682,12 @@ namespace Plugin
 
 
 
-                                }
+                                //}
 
+                            }
+                            if (RoundEvent == "ClearDay")
+                            {
+                                player.EffectsManager.ChangeState("FogControl", 0, 1.25f, false);
                             }
 
                             int ScpCount = 0;
@@ -686,7 +706,7 @@ namespace Plugin
 
                                     foreach (var scp in Player.GetPlayers().Where(p => (p?.Role.GetTeam() == Team.SCPs || p.Role == RoleTypeId.Tutorial) && cfg.DisplayStrings.ContainsKey(p.Role)))
                                     {
-                                        text += (player == scp && true ? "<color=#50C878>You --></color>" + " " : "") + ProcessStringVariables(cfg.DisplayStrings[scp.Role], player, scp) + "\n";
+                                        text += (player == scp && true ? "<color=#50C878>(You)</color>" + " " : "") + ProcessStringVariables(cfg.DisplayStrings[scp.Role], player, scp) + "\n";
                                     }
 
                                     text += $"<voffset={30}em> </voffset></align>";
@@ -752,6 +772,32 @@ namespace Plugin
                                 core.SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
 
                                 core.SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+
+
+
+                                    if (PlayerPreferenceEffectList.ContainsKey(player.UserId)) 
+                                    {
+                                        if (PlayerPreferenceEffectList[player.UserId] == true)
+                                        {
+                                            string text2 = "<size=75%><align=left><color=#960018><b>";
+                                            foreach (StatusEffectBase effect in player.ReferenceHub.playerEffectsController.AllEffects)
+                                            {
+                                                byte intensity = effect.Intensity;
+                                                float duration = effect.Duration;
+                                                string name = effect.name;
+
+                                                if (effect.IsEnabled)
+                                                {
+                                                    text2 += $"{name} {intensity}\n";
+                                                }
+
+                                            }
+                                            text2 += "</b></color></align></size>";
+                                            core.SetElemTemp(text2, 900f, TimeSpan.FromSeconds(1.25f), new TimedElemRef<SetElement>());
+                                        }   
+
+                                    }
+                                    
                             }
                            
                             
@@ -1043,11 +1089,28 @@ namespace Plugin
                     SpecCount ++;
                 }
             }
-            if (respawn_count >= 2 && spawning_team == SpawnableTeamType.ChaosInsurgency && config.ShouldSerpentsSpawn == true && new System.Random().Next(4) == 1)
+
+
+            if (config.ShouldSerpentsSpawn == true && isSerpentSpawning == false && new System.Random().Next(8) == 1 && haveSerpentsSpawned == false)
             {
-                if (haveSerpentsSpawned == false)
+                isSerpentSpawning = true;
+               // Plugin.Instance.IsSerpentsSpawning = true;
+            }
+
+
+            if (config.ShouldScienceTeamSpawn == true && isScienceTeamSpawning == false && new System.Random().Next(6) == 1 && havetheScienceTeamSpawned == false)
+            {
+                isScienceTeamSpawning = true;
+               // Plugin.Instance.isScienceTeamSpawning = true;
+            }
+
+
+            if (respawn_count >= 1 && spawning_team == SpawnableTeamType.ChaosInsurgency && config.ShouldSerpentsSpawn == true)
+            {
+                if (haveSerpentsSpawned == false && isSerpentSpawning == true)
                 {
-                   // isSerpentSpawning = true;
+                    isSerpentSpawning = false;
+                   // Plugin.Instance.IsSerpentsSpawning = false;
 
                     if (config.ShouldSerpentsHandSpawnMore == false)
                     {
@@ -1088,12 +1151,14 @@ namespace Plugin
 
                
             }
-            else if (respawn_count >= 2 && spawning_team == SpawnableTeamType.NineTailedFox && config.ShouldScienceTeamSpawn == true && new System.Random().Next(7) == 1 && isSerpentSpawning == false)
+            else if (respawn_count >= 1 && spawning_team == SpawnableTeamType.NineTailedFox && config.ShouldScienceTeamSpawn == true && isScienceTeamSpawning == true && isSerpentSpawning == false)
             {
 
                 if (havetheScienceTeamSpawned == false)
                 {
-                   // isScienceTeamSpawning = true;
+                    isScienceTeamSpawning = false;
+                   // Plugin.Instance.isScienceTeamSpawning = true;
+
 
                     if (respawn_count == 1 && spawning_team == SpawnableTeamType.NineTailedFox)
                     {
@@ -1447,26 +1512,31 @@ namespace Plugin
 
                     Timing.CallDelayed(0.2f, () =>
                     {
-                        player.SendBroadcast("You are a <color=#4B5320>Chaos Specialist</color>. You have access to ???.", 10);
 
-                        //player.CustomInfo = $"<color=#228b22>{player.DisplayNickname}</color>" + "\n<color=#228b22>CHAOS SPECIALIST</color>";
-                        player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#228b22>{player.DisplayNickname}</color>" + "\n<color=#228b22>CHAOS SPECIALIST</color>";
-
-                        player.PlayerInfo.IsNicknameHidden = true;
-                        player.PlayerInfo.IsUnitNameHidden = true;
-                        player.PlayerInfo.IsRoleHidden = true;
-
-                        switch (UnityEngine.Random.Range(0, 8))
+                        if (player.Role == RoleTypeId.ChaosRifleman)
                         {
-                            case 0: AddOrDropItem(player, ItemType.SCP2176); break;
-                            case 1: AddOrDropItem(player, ItemType.SCP500); break;
-                            case 2: AddOrDropItem(player, ItemType.SCP1853); break;
-                            case 3: AddOrDropItem(player, ItemType.SCP207); break;
-                            case 4: AddOrDropItem(player, ItemType.SCP018); break;
-                            case 5: AddOrDropItem(player, ItemType.SCP268); break;
-                            case 6: AddOrDropItem(player, ItemType.SCP244a); break;
-                            case 7: AddOrDropItem(player, ItemType.AntiSCP207); break;
-                            case 8: AddOrDropItem(player, ItemType.SCP244b); break;
+                            player.SendBroadcast("You are a <color=#4B5320>Chaos Specialist</color>. You have access to ???.", 10);
+
+                            //player.CustomInfo = $"<color=#228b22>{player.DisplayNickname}</color>" + "\n<color=#228b22>CHAOS SPECIALIST</color>";
+                            player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#228b22>{player.DisplayNickname}</color>" + "\n<color=#228b22>CHAOS SPECIALIST</color>";
+
+                            player.PlayerInfo.IsNicknameHidden = true;
+                            player.PlayerInfo.IsUnitNameHidden = true;
+                            player.PlayerInfo.IsRoleHidden = true;
+
+                            switch (UnityEngine.Random.Range(0, 8))
+                            {
+                                case 0: AddOrDropItem(player, ItemType.SCP2176); break;
+                                case 1: AddOrDropItem(player, ItemType.SCP500); break;
+                                case 2: AddOrDropItem(player, ItemType.SCP1853); break;
+                                case 3: AddOrDropItem(player, ItemType.SCP207); break;
+                                case 4: AddOrDropItem(player, ItemType.SCP018); break;
+                                case 5: AddOrDropItem(player, ItemType.SCP268); break;
+                                case 6: AddOrDropItem(player, ItemType.SCP244a); break;
+                                case 7: AddOrDropItem(player, ItemType.AntiSCP207); break;
+                                case 8: AddOrDropItem(player, ItemType.SCP244b); break;
+                            }
+
                         }
 
                     });
@@ -1484,20 +1554,23 @@ namespace Plugin
 
                     Timing.CallDelayed(0.2f, () =>
                     {
-                        player.SendBroadcast("You are a <color=#FAFF86>Senior Researcher</color>. Check your inventory.", 10);
-                        player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
-                        // player.CustomInfo = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
-                        player.PlayerInfo.IsNicknameHidden = true;
-                        player.PlayerInfo.IsUnitNameHidden = true;
-                        player.PlayerInfo.IsRoleHidden = true;
-
-                        foreach (var items in player.Items)
+                        if (player.Role == RoleTypeId.Scientist)
                         {
+                            player.SendBroadcast("You are a <color=#FAFF86>Senior Researcher</color>. Check your inventory.", 10);
+                            player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
+                            // player.CustomInfo = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
+                            player.PlayerInfo.IsNicknameHidden = true;
+                            player.PlayerInfo.IsUnitNameHidden = true;
+                            player.PlayerInfo.IsRoleHidden = true;
+
+                            foreach (var items in player.Items)
+                            {
                                 player.ReferenceHub.inventory.ServerRemoveItem(items.ItemSerial, items.PickupDropModel);
+                            }
+                            player.AddItem(ItemType.KeycardResearchCoordinator);
+                            player.AddItem(ItemType.Radio);
+                            player.AddItem(ItemType.Medkit);
                         }
-                        player.AddItem(ItemType.KeycardResearchCoordinator);
-                        player.AddItem(ItemType.Radio);
-                        player.AddItem(ItemType.Medkit);
                     });
 
 
@@ -1512,17 +1585,23 @@ namespace Plugin
 
                     Timing.CallDelayed(0.2f, () =>
                     {
-                        player.SendBroadcast("You are a <color=#00B7EB>Nine-Tailed Fox Medic</color>. Check your inventory.", 10);
 
-                        player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
-                        //  player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
-                        //   player.PlayerInfo.IsRoleHidden = true;
-                        player.PlayerInfo.IsNicknameHidden = true;
-                        player.PlayerInfo.IsUnitNameHidden = true;
-                        player.PlayerInfo.IsRoleHidden = true;
+                        if (player.Role == RoleTypeId.NtfPrivate)
+                        {
 
-                        player.AddItem(ItemType.Medkit);
-                        player.AddItem(ItemType.Painkillers);
+                            player.SendBroadcast("You are a <color=#00B7EB>Nine-Tailed Fox Medic</color>. Check your inventory.", 10);
+
+                            player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
+                            //  player.CustomInfo = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
+                            //   player.PlayerInfo.IsRoleHidden = true;
+                            player.PlayerInfo.IsNicknameHidden = true;
+                            player.PlayerInfo.IsUnitNameHidden = true;
+                            player.PlayerInfo.IsRoleHidden = true;
+
+                            player.AddItem(ItemType.Medkit);
+                            player.AddItem(ItemType.Painkillers);
+                        }
+                       
                     });
 
 
@@ -1628,7 +1707,13 @@ namespace Plugin
                     {
                         if (newRole == RoleTypeId.FacilityGuard)
                         {
-                            player.SetRole(RoleTypeId.NtfPrivate);
+
+
+                            switch (UnityEngine.Random.Range(0, 1))
+                            {
+                                case 0: player.SetRole(RoleTypeId.NtfPrivate); break;
+                                case 1: player.SetRole(RoleTypeId.NtfSergeant); break;
+                            }
                         }
                     });
                 }
@@ -1695,6 +1780,8 @@ namespace Plugin
         [PluginEvent(ServerEventType.PlayerDeath)]
         void OnPlayerDied(Player player, Player attacker, DamageHandlerBase damageHandler)
         {
+
+           // Log.Debug(damageHandler.GetType().Name);
             Config config = Plugin.Singleton.Config;
             if (player != null)
             {
@@ -1789,15 +1876,30 @@ namespace Plugin
                 if (attacker != null && PlayerKills.TryGetValue(attacker, out int test) && attacker != player)
                 {
                     PlayerKills[attacker]++;
-                    DisplayCore.Get(attacker.ReferenceHub).SetElemTemp($"<b>{PlayerKills[attacker]} kills this round.</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                    attacker.SendBroadcast($"You killed <color=#C50000>{player.Nickname}</color>. You now have {PlayerKills[attacker]} kills this round.", 3, Broadcast.BroadcastFlags.Normal, false);
+                    //DisplayCore.Get(attacker.ReferenceHub).SetElemTemp($"<b>{PlayerKills[attacker]} kills this round.</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                 }
                 else
                 {
                   //  PlayerKills[attacker]++;
                     // NULL
                 }
+                
 
-
+                if (attacker == null && damageHandler is UniversalDamageHandler udh)
+                {
+                    if (udh.TranslationId == DeathTranslations.PocketDecay.Id)
+                    {
+                        foreach (var scp106search in Player.GetPlayers())
+                        {
+                            if (scp106search.Role == RoleTypeId.Scp106)
+                            {
+                                PlayerKills[scp106search]++;
+                                scp106search.SendBroadcast($"You killed <color=#C50000>{player.Nickname}</color>. You now have {PlayerKills[scp106search]} kills this round.", 3, Broadcast.BroadcastFlags.Normal, false);
+                            }
+                         }
+                    }
+                }
 
                
 
@@ -2239,11 +2341,11 @@ namespace Plugin
                     return false;
                 if (ev.DamageHandler is Scp049DamageHandler sc049dh && ev.Player.IsSCP == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
                     return false;
-                if (ev.DamageHandler is Scp3114DamageHandler scp3114dh && ev.Player.IsSCP == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
+                if (ev.DamageHandler is Scp3114DamageHandler scp3114dh && ev.Player.IsSCP == true && (fbi.Contains(ev.Target.PlayerId) || scp035s.Contains(ev.Target.PlayerId)))
                     return false;
                 if ((fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)) && ev.Player.IsTutorial && ev.Target.IsSCP == true)
                     return false;
-                if (ev.Player.IsSCP == true && ev.Target.IsTutorial == true && (fbi.Contains(ev.Player.PlayerId) || scp035s.Contains(ev.Player.PlayerId)))
+                if (ev.Player.IsSCP == true && ev.Target.IsTutorial == true && (fbi.Contains(ev.Target.PlayerId) || scp035s.Contains(ev.Target.PlayerId)))
                     return false;
                 if (ev.Target.IsHuman == true && !fbi.Contains(ev.Target.PlayerId) && ev.Player.Role == RoleTypeId.Scp106)
                 {
@@ -3252,23 +3354,33 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    if (plr.Role != RoleTypeId.Spectator)
                     {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
-                    }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
-                    }
 
-                  
+                        Timing.CallDelayed(0.2f, () =>
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        });
+                        if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                        {
+                            byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                            plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                        }
+                        else
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        }
 
-                    SetScale(plr, new Vector3(1f, 1f, 0.1f));
-                   // plr.ReceiveHint("Why?", 3);
-                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank the bottle of Diet Cola.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+
+                        
+
+
+                        SetScale(plr, new Vector3(1f, 1f, 0.1f));
+                        // plr.ReceiveHint("Why?", 3);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank the bottle of Diet Cola.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                    }
+                   
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3280,7 +3392,7 @@ namespace Plugin
 
                     
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You opened the green juice and spilt it. Oops!", 3);
+                    plr.ReceiveHint("You opened the green juice and spilt it all over yourself. Oops!", 3);
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3315,32 +3427,40 @@ namespace Plugin
                 Timing.CallDelayed(3.4f, () =>
                 {
 
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    if (plr.Role != RoleTypeId.Spectator)
                     {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+
+                        Timing.CallDelayed(0.2f, () =>
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        });
+
+                        if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                        {
+                            byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                            plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                        }
+                        else
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                           // plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        }
+                        // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
+                        plr.Heal(60);
+                        plr.EffectsManager.EnableEffect<Invigorated>(28, true);
+
+                        // ReferenceHub TempDummy = AddDummy();
+                        // PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
+
+                        Timing.CallDelayed(28.2f, () =>
+                        {
+                            // RemoveDummy096(TempDummy);
+                        });
+
+                        // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                        //  plr.ReceiveHint("You drank a cup of coffee. It was refreshing.", 3);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank a cup of coffee. It was refreshing.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
-                    }
-                    // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true);
-                    plr.Heal(60);
-                    plr.EffectsManager.EnableEffect<Invigorated>(28, true);
-
-                    // ReferenceHub TempDummy = AddDummy();
-                    // PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
-
-                    Timing.CallDelayed(28.2f, () =>
-                    {
-                        // RemoveDummy096(TempDummy);
-                    });
-
-                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    //  plr.ReceiveHint("You drank a cup of coffee. It was refreshing.", 3);
-                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank a cup of coffee. It was refreshing.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
-
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3350,7 +3470,13 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
+                if (plr.Role != RoleTypeId.Spectator)
+                {
 
+                    Timing.CallDelayed(0.2f, () =>
+                    {
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                    });
                     if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
                     {
                         byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
@@ -3372,6 +3498,7 @@ namespace Plugin
                     // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
                     //plr.ReceiveHint("You drank a can of golden atom kick. You feel amazing and think about the good times.", 3);
                     DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank a bottle of super cola!!!!!!!!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                   }
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3502,28 +3629,34 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    if (plr.Role != RoleTypeId.Spectator)
                     {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
-                    }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
-                    }
-                    // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
-                    //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
-                    plr.EffectsManager.EnableEffect<Invisible>(15, true);
-                    // plr.Heal(50);
-                   
-                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("EW! It tastes like SCP-268 for some reason.", 3);
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
-                    //  plr.IsGodModeEnabled = true;
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
 
+                        Timing.CallDelayed(0.2f, () =>
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        });
+                        if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                        {
+                            byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                            plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                        }
+                        else
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        }
+                        // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
+                        //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
+                        plr.EffectsManager.EnableEffect<Invisible>(15, true);
+                        // plr.Heal(50);
+
+                        // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                        plr.ReceiveHint("EW! It tastes like SCP-268 for some reason.", 3);
+                        //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
+                        //  plr.IsGodModeEnabled = true;
+                        //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
+                    }
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3533,31 +3666,38 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    if (plr.Role != RoleTypeId.Spectator)
                     {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
-                    }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                    }
-                    // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
-                    //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
-                    plr.EffectsManager.EnableEffect<Flashed>(10, true);
-                    // plr.EffectsManager.EnableEffect<SeveredHands>(0, true);
-                    plr.EffectsManager.EnableEffect<CardiacArrest>(60, true);
-                    /// plr.EffectsManager.EnableEffect<Bleeding>(60, true);
-                    // plr.Heal(50);
-                    //plr.Kill("You drank yourself, how could you?");
-                  
-                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You drank part of yourself, how could you?", 3);
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
-                    //  plr.IsGodModeEnabled = true;
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
 
+                        Timing.CallDelayed(0.2f, () =>
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        });
+
+                        if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                        {
+                            byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                            plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                        }
+                        else
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        }
+                        // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
+                        //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
+                        plr.EffectsManager.EnableEffect<Flashed>(10, true);
+                        // plr.EffectsManager.EnableEffect<SeveredHands>(0, true);
+                        plr.EffectsManager.EnableEffect<CardiacArrest>(60, true);
+                        /// plr.EffectsManager.EnableEffect<Bleeding>(60, true);
+                        // plr.Heal(50);
+                        //plr.Kill("You drank yourself, how could you?");
+
+                        // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                        plr.ReceiveHint("You drank part of yourself, how could you?", 3);
+                        //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
+                        //  plr.IsGodModeEnabled = true;
+                        //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
+                    }
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3702,36 +3842,43 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    if (plr.Role != RoleTypeId.Spectator)
                     {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+
+                        Timing.CallDelayed(0.2f, () =>
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        });
+                        if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                        {
+                            byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                            plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                        }
+                        else
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        }
+                        // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
+                        plr.EffectsManager.EnableEffect<Invigorated>(28, true);
+                        plr.EffectsManager.EnableEffect<BodyshotReduction>(28, true);
+                        plr.EffectsManager.EnableEffect<DamageReduction>(28, true);
+                        plr.EffectsManager.EnableEffect<Scp1853>(28, true);
+                        // plr.Kill("I don't know what you expected.");
+
+
+                        // ReferenceHub TempDummy = AddDummy();
+                        // PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
+
+                        Timing.CallDelayed(28.2f, () =>
+                        {
+                            // RemoveDummy096(TempDummy);
+                        });
+                        //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
+
+                        // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                        plr.ReceiveHint("You took a sip of Cherry Atom Kick. It was perfectly refreshing.", 3);
                     }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
-                    }
-                    // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
-                    plr.EffectsManager.EnableEffect<Invigorated>(28, true);
-                    plr.EffectsManager.EnableEffect<BodyshotReduction>(28, true);
-                    plr.EffectsManager.EnableEffect<DamageReduction>(28, true);
-                    plr.EffectsManager.EnableEffect<Scp1853>(28, true);
-                    // plr.Kill("I don't know what you expected.");
-
-
-                    // ReferenceHub TempDummy = AddDummy();
-                    // PlayPlayerAudio096(plr, "orangecandy.ogg", (byte)65f, TempDummy);
-
-                    Timing.CallDelayed(28.2f, () =>
-                    {
-                        // RemoveDummy096(TempDummy);
-                    });
-                    //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
-
-                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    plr.ReceiveHint("You took a sip of Cherry Atom Kick. It was perfectly refreshing.", 3);
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3741,31 +3888,38 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    if (plr.Role != RoleTypeId.Spectator)
                     {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+
+                        Timing.CallDelayed(0.2f, () =>
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        });
+                        if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                        {
+                            byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                            plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                        }
+                        else
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        }
+                        // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
+                        plr.EffectsManager.EnableEffect<Invigorated>(20, true);
+                        plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
+                        plr.EffectsManager.ChangeState<BodyshotReduction>(3, 20, false);
+                        plr.EffectsManager.EnableEffect<DamageReduction>(20, true);
+                        plr.EffectsManager.ChangeState<DamageReduction>(15, 20, false);
+                        plr.EffectsManager.EnableEffect<Scp1853>(20, true);
+
+                        // plr.Kill("I don't know what you expected.");
+
+                        //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
+
+                        // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank the Iron Skin potion.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
-                    }
-                    // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
-                    plr.EffectsManager.EnableEffect<Invigorated>(20, true);
-                    plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
-                    plr.EffectsManager.ChangeState<BodyshotReduction>(3, 20, false);
-                    plr.EffectsManager.EnableEffect<DamageReduction>(20, true);
-                    plr.EffectsManager.ChangeState<DamageReduction>(15,20,false);
-                    plr.EffectsManager.EnableEffect<Scp1853>(20, true);
-
-                    // plr.Kill("I don't know what you expected.");
-
-                    //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
-
-                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank the Iron Skin potion.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3775,31 +3929,39 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    if (plr.Role != RoleTypeId.Spectator)
                     {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
-                    }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
-                    }
-                    // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
-                    // plr.EffectsManager.EnableEffect<Invigorated>(20, true);
-                    //  plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
-                    //  plr.EffectsManager.EnableEffect<DamageReduction>(15, true);
-                    //  plr.EffectsManager.EnableEffect<Scp1853>(20, true);
-                    // plr.Kill("I don't know what you expected.");
-                    // SetScale(plr, 0.85f);
-                    SetScale(plr, plr.GameObject.transform.localScale.y - 0.2f);
-                    // player.GameObject.transform.localScale.y
-                    // plr.SCal
-                    //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
 
-                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank a potion of shrinking.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                        Timing.CallDelayed(0.2f, () =>
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        });
+                        if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                        {
+                            byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                            plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                        }
+                        else
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        }
+                        // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
+                        // plr.EffectsManager.EnableEffect<Invigorated>(20, true);
+                        //  plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
+                        //  plr.EffectsManager.EnableEffect<DamageReduction>(15, true);
+                        //  plr.EffectsManager.EnableEffect<Scp1853>(20, true);
+                        // plr.Kill("I don't know what you expected.");
+                        // SetScale(plr, 0.85f);
+                        SetScale(plr, plr.GameObject.transform.localScale.y - 0.2f);
+                        // player.GameObject.transform.localScale.y
+                        // plr.SCal
+                        //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
+
+                        // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank a potion of shrinking.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+
+                    }
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -3809,31 +3971,38 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    if (plr.Role != RoleTypeId.Spectator)
                     {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
-                    }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
-                    }
-                    // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
-                    // plr.EffectsManager.EnableEffect<Invigorated>(20, true);
-                    //  plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
-                    //  plr.EffectsManager.EnableEffect<DamageReduction>(15, true);
-                    //  plr.EffectsManager.EnableEffect<Scp1853>(20, true);
-                    // plr.Kill("I don't know what you expected.");
-                    // SetScale(plr, 0.85f);
-                    SetScale(plr, plr.GameObject.transform.localScale.y + 0.15f);
-                    // player.GameObject.transform.localScale.y
-                    // plr.SCal
-                    //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
 
-                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank a potion of growing.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                        Timing.CallDelayed(0.2f, () =>
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        });
+                        if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                        {
+                            byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                            plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                        }
+                        else
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        }
+                        // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
+                        // plr.EffectsManager.EnableEffect<Invigorated>(20, true);
+                        //  plr.EffectsManager.EnableEffect<BodyshotReduction>(20, true);
+                        //  plr.EffectsManager.EnableEffect<DamageReduction>(15, true);
+                        //  plr.EffectsManager.EnableEffect<Scp1853>(20, true);
+                        // plr.Kill("I don't know what you expected.");
+                        // SetScale(plr, 0.85f);
+                        SetScale(plr, plr.GameObject.transform.localScale.y + 0.15f);
+                        // player.GameObject.transform.localScale.y
+                        // plr.SCal
+                        //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
+
+                        // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank a potion of growing.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                    }
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -4009,41 +4178,45 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    if (plr.Role != RoleTypeId.Spectator)
                     {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+
+                        Timing.CallDelayed(0.2f, () =>
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        });
+                        if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                        {
+                            byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                            plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
+                        }
+                        else
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        }
+                        // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
+                        plr.EffectsManager.EnableEffect<Ghostly>(15, true);
+                        plr.EffectsManager.EnableEffect<AmnesiaVision>(15, true);
+                        //   plr.EffectsManager.EnableEffect<CustomPlayerEffects.Invisible>(41, true);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank the Ghastly Brew.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+
+                        // ReferenceHub TempDummy = AddDummy();
+
+
+                        // PlayPlayerAudio096(plr, "whitecandy.ogg", (byte)65f, TempDummy);
+
+
+
+                       
+
+
+
+                        //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
+
+                        // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                        // plr.ReceiveHint("Borgor.", 3);
                     }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
-                    }
-                    // plr.EffectsManager.EnableEffect<CustomPlayerEffects.>(30, true
-                    plr.EffectsManager.EnableEffect<Ghostly>(15, true);
-                    plr.EffectsManager.EnableEffect<AmnesiaVision>(15, true);
-                    //   plr.EffectsManager.EnableEffect<CustomPlayerEffects.Invisible>(41, true);
-                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You drank the Ghastly Brew.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
-
-                    // ReferenceHub TempDummy = AddDummy();
-
-
-                     // PlayPlayerAudio096(plr, "whitecandy.ogg", (byte)65f, TempDummy);
-
-
-                    
-                    Timing.CallDelayed(41.2f, () =>
-                    {
-                   //     // RemoveDummy096(TempDummy);
-                    });
-                    
-
-
-                    //plr.EffectsManager.EnableEffect<PocketCorroding>(120, true);
-
-                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    // plr.ReceiveHint("Borgor.", 3);
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -4332,55 +4505,62 @@ namespace Plugin
 
                 Timing.CallDelayed(3.4f, () =>
                 {
-
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
-                    {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
-                    }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
-                    }
-                    // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
-                    //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
-                    // plr.EffectsManager.EnableEffect<Invisible>(10, true);
-                    // plr.Heal(50);
-                    //   plr.Damage(damageHandlerBase);
-                    bool PlayerWasOnSurface = false;
-                    plr.ClearBroadcasts();
-                    if (plr.Room.name == "Outside")
-                    {
-                        PlayerWasOnSurface = true;
-                    }
-                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("Timeout for you!", 450f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
-                    UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
-                    UnityEngine.Vector3 tppos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
-                    // plrpos = plr.Position;
-                    plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                    //  plr.ReceiveHint("You drank a cup of [REDACTED]. Your items magically disappeared!", 3);
-                    plr.ClearBroadcasts();
-                    plrpos = plr.Position;
-                    plr.Position = tppos;
-
-
-                    Timing.CallDelayed(20f, () =>
+                    if (plr.Role != RoleTypeId.Spectator)
                     {
 
-                        if (!PlayerWasOnSurface && Warhead.IsDetonated)
+                        Timing.CallDelayed(0.2f, () =>
                         {
-                            plr.Kill("The timeout was not able to save you this time.");
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        });
+
+                        if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                        {
+                            byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                            plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
                         }
                         else
                         {
-                            plr.Position = plrpos;
-                          //  plr.EffectsManager.DisableEffect<Invisible>();
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
                         }
-                        //
-                    });
+                        // plr.EffectsManager.EnableEffect<MovementBoost>(3, true);
+                        //   plr.EffectsManager.ChangeState<MovementBoost>(255, 4, false);
+                        // plr.EffectsManager.EnableEffect<Invisible>(10, true);
+                        // plr.Heal(50);
+                        //   plr.Damage(damageHandlerBase);
+                        bool PlayerWasOnSurface = false;
+                        plr.ClearBroadcasts();
+                        if (plr.Room.name == "Outside")
+                        {
+                            PlayerWasOnSurface = true;
+                        }
+                        // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("Timeout for you!", 450f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                        UnityEngine.Vector3 plrpos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
+                        UnityEngine.Vector3 tppos = new UnityEngine.Vector3(40f, 1014f, -32.60f);
+                        // plrpos = plr.Position;
+                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                        //  plr.ReceiveHint("You drank a cup of [REDACTED]. Your items magically disappeared!", 3);
+                        plr.ClearBroadcasts();
+                        plrpos = plr.Position;
+                        plr.Position = tppos;
 
+
+                        Timing.CallDelayed(20f, () =>
+                        {
+
+                            if (!PlayerWasOnSurface && Warhead.IsDetonated)
+                            {
+                                plr.Kill("The timeout was not able to save you this time.");
+                            }
+                            else
+                            {
+                                plr.Position = plrpos;
+                                //  plr.EffectsManager.DisableEffect<Invisible>();
+                            }
+                            //
+                        });
+                    }
                 });
             }
             if (item.ItemTypeId == ItemType.SCP207 && choccymilk.Contains(item.ItemSerial))
@@ -4804,47 +4984,53 @@ namespace Plugin
             {
                 Timing.CallDelayed(3.4f, () =>
                 {
-
-                    if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                    if (plr.Role != RoleTypeId.Spectator)
                     {
-                        byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
-                        plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
-                    }
-                    else
-                    {
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
-                        plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
-                    }
-                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("Good luck!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
-                    if (plr.IsAlive && plr.RoleBase is IFpcRole role)
-                    {
-                        plr.EffectsManager.EnableEffect<PocketCorroding>();
-                        var position = Scp106PocketExitFinder.GetBestExitPosition(role);
-                        plr.EffectsManager.DisableEffect<PocketCorroding>();
-                        plr.EffectsManager.DisableEffect<Corroding>();
-                        plr.Position = position;
-                        
 
-                    }
-
-                    /*
-                    List<Player> Playerss = Player.GetPlayers();
-
-                    foreach (var randplr in Playerss)
-                    {
-                        if (randplr.IsSCP == true && randplr.Role != RoleTypeId.Scp079)
+                        Timing.CallDelayed(0.2f, () =>
                         {
-                            // plr.Position = randplr.Position;
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        });
+                        if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.Scp207 sevHands) && sevHands.IsEnabled)
+                        {
+                            byte num = plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity;
+                            plr.EffectsManager.GetEffect<CustomPlayerEffects.Scp207>().Intensity = (byte)(num - 1);
                         }
-                    }
-                    */
-                   // plr.Kill("Tried to drink the telportation potion.");
-                    // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
-                    //plr.ReceiveHint("You have been teleported to the nearest SCP... Have fun!", 3);
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
-                    //  plr.IsGodModeEnabled = true;
-                    //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
+                        else
+                        {
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Scp207>();
+                            plr.EffectsManager.DisableEffect<CustomPlayerEffects.Poisoned>();
+                        }
+                        DisplayCore.Get(plr.ReferenceHub).SetElemTemp("Good luck!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                        if (plr.IsAlive && plr.RoleBase is IFpcRole role)
+                        {
+                            plr.EffectsManager.EnableEffect<PocketCorroding>();
+                            var position = Scp106PocketExitFinder.GetBestExitPosition(role);
+                            plr.EffectsManager.DisableEffect<PocketCorroding>();
+                            plr.EffectsManager.DisableEffect<Corroding>();
+                            plr.Position = position;
 
+
+                        }
+
+                        /*
+                        List<Player> Playerss = Player.GetPlayers();
+
+                        foreach (var randplr in Playerss)
+                        {
+                            if (randplr.IsSCP == true && randplr.Role != RoleTypeId.Scp079)
+                            {
+                                // plr.Position = randplr.Position;
+                            }
+                        }
+                        */
+                        // plr.Kill("Tried to drink the telportation potion.");
+                        // plr.SendBroadcast("You drank pure oxygen... You didn't feel so good.", 5);
+                        //plr.ReceiveHint("You have been teleported to the nearest SCP... Have fun!", 3);
+                        //  plr.EffectsManager.EnableEffect<Invigorated>(5, false);
+                        //  plr.IsGodModeEnabled = true;
+                        //  plr.EffectsManager.EnableEffect<Invigorated>(30, true);
+                    }
                 });
                 // Log.Info($"Player &6{plr.Nickname}&r (&6{plr.UserId}&r) started using item {item.ItemTypeId}");
             }
@@ -5904,6 +6090,43 @@ namespace Plugin
             }
         }
 
+
+
+        [CommandHandler(typeof(ClientCommandHandler))]
+        public class optineffectlist : ICommand
+        {
+            public string Command { get; } = "tgel";
+
+            public string[] Aliases { get; } = new string[] { };
+
+            public string Description { get; } = "Opt in to having an effect list on your screen.";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+                Player player;
+                if (Player.TryGet(sender, out player))
+                {
+                    
+
+                    if (PlayerPreferenceEffectList.ContainsKey(player.UserId))
+                    {
+                        PlayerPreferenceEffectList.Remove(player.UserId);
+                        response = "Removed your effect list.";
+                        return true;
+                    }
+                    else
+                    {
+                        PlayerPreferenceEffectList.Add(player.UserId, true);
+                        response = "You should now be able to view your effects in the top left.";
+                        return true;
+                    }
+
+
+                }
+                response = "failed!";
+                return false;
+            }
+        }
 
 
 

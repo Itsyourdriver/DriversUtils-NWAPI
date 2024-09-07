@@ -37,9 +37,9 @@ namespace DriversUtils
         [PluginEvent(ServerEventType.PlayerChangeRole)]
         void PlayerChangeRole(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
         {
-            if (CanSwap == true && (player.IsSCP || EventHandlers.scp035s.Contains(player.PlayerId)))
+            if (CanSwap == true && player.IsSCP && oldRole.Team != Team.SCPs)
             {
-                DisplayCore.Get(player.ReferenceHub).SetElemTemp("<b>To Swap Scp Classes, type .scpswap (scp nickname/number) in your (~) console. \nYou can get a list of classes to swap to by running the command .scpswap list</b>", 100f, TimeSpan.FromSeconds(5), new TimedElemRef<SetElement>());
+                player.SendBroadcast("<b>Reminder: To Swap Scp Classes, type .scpswap (scp nickname/number) in your (~) console. \nYou can get a list of classes to swap to by running the command .scpswap list</b>",10);
             }
         }
 
@@ -263,7 +263,7 @@ namespace DriversUtils
                     else if (arguments.First().ToLower() == "list" || arguments.First().ToLower() == "help" || arguments.First().ToLower() == "roles" || arguments.First().ToLower() == "classes")
                     {
 
-                        response = "List of scps: \n- doctor \n- computer \n- shyguy \n- larry \n- peanut \n- dog \nUnimplemented: \n- 966 \n- 999";
+                        response = "List of scps: \n- doctor \n- computer \n- shyguy \n- larry \n- peanut \n- dog";
                         return true;
 
 
