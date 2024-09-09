@@ -667,6 +667,7 @@ namespace Plugin
                     {
                         DisplayCore core = DisplayCore.Get(player.ReferenceHub);
 
+
                         if (player.IsReady) {
 
                             if (RoundEvent == "Foggy")
@@ -830,14 +831,14 @@ namespace Plugin
                                 {
                                         //  player.ReceiveHint("You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)", 1.25f);
                                         /*DisplayCore.Get(player.ReferenceHub)*/
-                                        core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-294</color>. (.vm (drink), run [.vm list] for a list of drinks.)</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                        core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-294</color> (.vm (drink), run [.vm list] for a list of drinks.)</b>", 200f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                                 }
 
                                 if (player.Room.name == "LCZ_372 (18)")
                                 {
                                         //player.ReceiveHint("You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)", 1.25f);
                                         /*DisplayCore.Get(player.ReferenceHub)*/
-                                        core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-1025</color>. (.book) - This will give you a random effect.</b>", 100f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                        core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-1025</color> (.book) - This will give you a random effect.</b>", 200f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                                 }
                             }
 
@@ -1030,6 +1031,7 @@ namespace Plugin
             RoundEvent = "";
 
             
+            /*
             foreach (var room in Facility.Rooms)
             {
                 if (room.GameObject.name == "HCZ_Testroom") { 
@@ -1065,6 +1067,7 @@ namespace Plugin
                     }
                 }
             }
+            */
             
 
         }
@@ -1548,28 +1551,28 @@ namespace Plugin
             if (player != null && newRole == RoleTypeId.Scientist && isScienceTeamSpawning == false)
             {
 
-                if ((Random.Range(1, 10) == 3))
+                if ((Random.Range(1, 12) == 1))
                 {
 
 
-                    Timing.CallDelayed(0.2f, () =>
+                    Timing.CallDelayed(0.3f, () =>
                     {
                         if (player.Role == RoleTypeId.Scientist)
                         {
-                            player.SendBroadcast("You are a <color=#FAFF86>Senior Researcher</color>. Check your inventory.", 10);
-                            player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
+                            player.SendBroadcast("You are a <color=#FAFF86>Research Supervisor</color>. Check your inventory.", 10);
+                            player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#FAFF86>{player.DisplayNickname}\nRESEARCH SUPERVISOR</color>";
                             // player.CustomInfo = $"<color=#FAFF86>{player.DisplayNickname}\nSENIOR RESEARCHER</color>";
                             player.PlayerInfo.IsNicknameHidden = true;
                             player.PlayerInfo.IsUnitNameHidden = true;
                             player.PlayerInfo.IsRoleHidden = true;
 
-                            foreach (var items in player.Items)
+                            RemoveItem(player, ItemType.KeycardScientist);
+                            Timing.CallDelayed(0.1f, () =>
                             {
-                                player.ReferenceHub.inventory.ServerRemoveItem(items.ItemSerial, items.PickupDropModel);
-                            }
-                            player.AddItem(ItemType.KeycardResearchCoordinator);
-                            player.AddItem(ItemType.Radio);
-                            player.AddItem(ItemType.Medkit);
+
+                                AddOrDropItem(player, ItemType.KeycardResearchCoordinator);
+                            });
+                                
                         }
                     });
 
