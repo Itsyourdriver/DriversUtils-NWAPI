@@ -143,7 +143,7 @@ namespace Plugin
         public static string RoundEvent;
         string LastRoundEvent;
         bool buttonused = false;
-
+        int PlrCount = 0;
         [PluginEvent(ServerEventType.RoundStart)]
         void RoundStarted()
         {
@@ -171,6 +171,33 @@ namespace Plugin
                     PlayerKills[p] = 0;
                     PlayerSpectators[p] = 0;
                 }
+            }
+
+            foreach (var p in Player.GetPlayers())
+            {
+                PlrCount++;
+            }
+
+
+            if (PlrCount == 8 || PlrCount == 9)
+            {
+                Timing.CallDelayed(0.2f, () =>
+                {
+                    foreach (var p in Player.GetPlayers())
+                    {
+                       if (p.IsSCP && p.Role != RoleTypeId.Scp0492)
+                        {
+                            switch (UnityEngine.Random.Range(0, 2))
+                            {
+                                case 0: p.SetRole(RoleTypeId.Scientist); break;
+                                case 1: p.SetRole(RoleTypeId.ClassD); break;
+                                case 2: p.SetRole(RoleTypeId.FacilityGuard); break;
+                            }
+                            break;
+                        }
+                    }
+                });
+
             }
 
 
@@ -1108,7 +1135,7 @@ namespace Plugin
             }
 
 
-            if (respawn_count >= 1 && spawning_team == SpawnableTeamType.ChaosInsurgency && config.ShouldSerpentsSpawn == true)
+            if (respawn_count >= 1 && spawning_team == SpawnableTeamType.ChaosInsurgency && config.ShouldSerpentsSpawn == true && players.Count >= 8)
             {
                 if (haveSerpentsSpawned == false && isSerpentSpawning == true)
                 {
@@ -4124,14 +4151,15 @@ namespace Plugin
                         //plr.EffectsManager.DisableEffect<Deafened>();
                         Timing.CallDelayed(15f, () =>
                         {
+                            plr.Position = plrpos;
+                            plr.EffectsManager.DisableEffect<Invisible>();
                             if (PlayerWasOnSurface == false && Warhead.IsDetonated == true)
                             {
                                 plr.Kill("Warhead Radiation.");
                             }
                             else
                             {
-                                plr.Position = plrpos;
-                                plr.EffectsManager.DisableEffect<Invisible>();
+                                
                             }
                            
 
@@ -4724,12 +4752,13 @@ namespace Plugin
                                                             allplrs.SendBroadcast($"The player selected is... {randplr.Nickname}! Say goodbye!", 3);
 
                                                             randplr.Kill("Better luck next time!");
-                                                            return;
+                                                            
                                                         });
                                                     });
                                                 });
                                             });
                                         });
+                                        break;
                                     }
                                 }
 
@@ -5007,11 +5036,20 @@ namespace Plugin
                         DisplayCore.Get(plr.ReferenceHub).SetElemTemp("Good luck!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                         if (plr.IsAlive && plr.RoleBase is IFpcRole role)
                         {
-                            plr.EffectsManager.EnableEffect<PocketCorroding>();
-                            var position = Scp106PocketExitFinder.GetBestExitPosition(role);
-                            plr.EffectsManager.DisableEffect<PocketCorroding>();
-                            plr.EffectsManager.DisableEffect<Corroding>();
-                            plr.Position = position;
+
+                            if (plr.EffectsManager.TryGetEffect(out CustomPlayerEffects.PocketCorroding pcc) && pcc.IsEnabled)
+                            {
+                                plr.SendBroadcast("You were inside of the pocket dimension and your bottle was ineffective.", 5);
+                            }
+                            else
+                            {
+                                plr.EffectsManager.EnableEffect<PocketCorroding>();
+                                var position = Scp106PocketExitFinder.GetBestExitPosition(role);
+                                plr.EffectsManager.DisableEffect<PocketCorroding>();
+                                plr.EffectsManager.DisableEffect<Corroding>();
+                                plr.Position = position;
+                            }
+                            
 
 
                         }
@@ -6274,7 +6312,7 @@ namespace Plugin
                         {
                             if (p.Role != RoleTypeId.Spectator)
                             {
-                                if (p.Nickname == arguments.First())
+                                if (p.Nickname.ToLower() == arguments.First().ToLower())
                                 {
                                     if (float.TryParse(arguments.At(1), out float spd))
                                     {
