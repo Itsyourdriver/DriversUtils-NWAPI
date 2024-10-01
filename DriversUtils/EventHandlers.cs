@@ -74,6 +74,7 @@ namespace Plugin
     using System.Net;
     using InventorySystem.Items.Radio;
     using HarmonyLib;
+    using System.Runtime.Remoting.Messaging;
 
     // woo I love converting 6k lines of code over to new things (i'm gonna have to do it again when labapi drops :D)
     public class EventHandlers : IComparable
@@ -85,6 +86,8 @@ namespace Plugin
 
 
         public static HashSet<int> scp035s = new HashSet<int>();
+        public static HashSet<int> thebosszombies = new HashSet<int>();
+
 
         static UnityEngine.Vector3 offset = new UnityEngine.Vector3(-40.021f, -8.119f, -36.140f);
         SpawnableTeamType spawning_team = SpawnableTeamType.None;
@@ -137,6 +140,17 @@ namespace Plugin
             }
         }
 
+        public bool IsTheBoss(Player player)
+        {
+            if (player != null && thebosszombies.Contains(player.PlayerId))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
 
 
@@ -252,6 +266,17 @@ namespace Plugin
                             if (RoundEvent == "ClearDay")
                             {
                                 p.SendBroadcast("<color=#228B22>EVENT:</color> The fog has subsided.", 13, Broadcast.BroadcastFlags.Normal, false);
+                            }
+                            if (RoundEvent == "TestingDay")
+                            {
+                                p.SendBroadcast("<color=#228B22>EVENT:</color> Testing day.", 13, Broadcast.BroadcastFlags.Normal, false);
+                                foreach (var pl in Player.GetPlayers())
+                                {
+                                    if (pl.IsHuman == true)
+                                    {
+                                        pl.Position = new Vector3((float)(RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == "LCZ_372").transform.position.x), (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == "LCZ_372").transform.position.y + 1.4f, (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == "LCZ_372").transform.position.z);
+                                    }
+                                }
                             }
 
                             if (RoundEvent == "EveryoneIsSmall")
@@ -417,8 +442,56 @@ namespace Plugin
         }
 
 
+        public static void ChangeToTheBoss(Player player, bool RoundStart)
+        {
+            if (!thebosszombies.Contains(player.PlayerId))
+            {
+               
+                Timing.CallDelayed(0.1f, () =>
+                {
 
-      
+                    player.ReferenceHub.roleManager.ServerSetRole(RoleTypeId.Scp0492, RoleChangeReason.RemoteAdmin, RoleSpawnFlags.None);
+                    //player.EffectsManager.DisableAllEffects();
+
+                    thebosszombies.Add(player.PlayerId);
+
+                    player.SendBroadcast("You are now <color=#C50000>THE BOSS</color>. You are a beefed up zombie with a few small buffs.", 15, Broadcast.BroadcastFlags.Normal, true);
+                    player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#C50000>{player.Nickname}</color>" + "\n<color=#C50000>THE BOSS</color>";
+
+                    player.PlayerInfo.IsNicknameHidden = true;
+                    player.PlayerInfo.IsUnitNameHidden = true;
+                    player.PlayerInfo.IsRoleHidden = true;
+
+                    player.Health = 1200f;
+
+                    SetScale(player, 1.1f);
+
+                    player.EffectsManager.EnableEffect<SilentWalk>(0, false);
+                    player.EffectsManager.ChangeState<SilentWalk>(5, 0, false);
+
+
+                    if (player.ReferenceHub.playerStats.StatModules[1] is AhpStat ahpStat)
+                    {
+                        //AhpStat.AhpProcess ahpProcess = (250f, 250f, 0f, 10f, 1f, true);
+                       // ahpStat.ServerAddProcess(250f, 250f, 0f, 10f, 1f, true);
+                    }
+
+
+                    if (RoundStart == true)
+                    {
+
+                        String RoomNamee = "HCZ_HID";
+
+
+                        player.Position = new Vector3((float)(RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RoomNamee).transform.position.x), (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RoomNamee).transform.position.y + 1.4f, (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RoomNamee).transform.position.z);
+                    }
+                });
+            }
+        }
+
+
+
+
 
         void ChangeToTutorial(Player player, RoleTypeId role)
         {
@@ -539,6 +612,21 @@ namespace Plugin
                     Facility.TurnOnAllLights();
                     Cassie.GlitchyMessage("Facility power is back online", 0.1f, 0.1f);
                 }
+            }
+        }
+
+
+        [PluginEvent]
+        public bool OnScp049StartResurrectingBody(Scp049StartResurrectingBodyEvent ev)
+        {
+            //Log.Info($"Player &6{ev.Player.Nickname}&r (&6{ev.Player.UserId}&r) playing as SCP-049 tried resurrecting body of &6{ev.Target.Nickname}&r (&6{ev.Target.UserId}&r), ragdoll with class &2{ev.Body.Info.RoleType}&r but it {(ev.CanResurrct ? "failed" : "succeded")}!");
+            if (thebosszombies.Contains(ev.Target.PlayerId) || scp035s.Contains(ev.Target.PlayerId))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
             }
         }
 
@@ -732,7 +820,7 @@ namespace Plugin
 
 
 
-                                    foreach (var scp in Player.GetPlayers().Where(p => (p?.Role.GetTeam() == Team.SCPs || p.Role == RoleTypeId.Tutorial) && cfg.DisplayStrings.ContainsKey(p.Role)))
+                                    foreach (var scp in Player.GetPlayers().Where(p => (p?.Role.GetTeam() == Team.SCPs || p.Role == RoleTypeId.Tutorial || thebosszombies.Contains(p.PlayerId)) && cfg.DisplayStrings.ContainsKey(p.Role)))
                                     {
                                         text += (player == scp && true ? "<color=#50C878>(You)</color>" + " " : "") + ProcessStringVariables(cfg.DisplayStrings[scp.Role], player, scp) + "\n";
                                     }
@@ -807,8 +895,12 @@ namespace Plugin
                                     {
                                         if (PlayerPreferenceEffectList[player.UserId] == true)
                                         {
-                                            string text2 = "<size=75%><align=left><color=#960018><b>";
-                                            foreach (StatusEffectBase effect in player.ReferenceHub.playerEffectsController.AllEffects)
+                                            string text2 = $"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>";
+                                            text2 += "            ";
+                                            text2 += "        ";
+                                            text2 += "            ";
+                                            text2 += "😎 | <size=40%>";
+                                        foreach (StatusEffectBase effect in player.ReferenceHub.playerEffectsController.AllEffects)
                                             {
                                                 byte intensity = effect.Intensity;
                                                 float duration = effect.Duration;
@@ -816,12 +908,12 @@ namespace Plugin
 
                                                 if (effect.IsEnabled)
                                                 {
-                                                    text2 += $"{name} {intensity}\n";
+                                                    text2 += $"{name} {intensity},";
                                                 }
-
+                                                
                                             }
-                                            text2 += "</b></color></align></size>";
-                                            core.SetElemTemp(text2, 900f, TimeSpan.FromSeconds(1.25f), new TimedElemRef<SetElement>());
+                                            text2 += "</size></b></align></color>";
+                                            core.SetElemTemp(text2, 15f, TimeSpan.FromSeconds(1.25f), new TimedElemRef<SetElement>());
                                         }   
 
                                     }
@@ -938,12 +1030,16 @@ namespace Plugin
             {
                 raw = raw.Replace("Serpent's Hand Agent", "SCP-035");
             }
+            if (thebosszombies.Contains(target.PlayerId))
+            {
+                raw = raw.Replace("SCP-049-2", "THE BOSS");
+            }
 
             return raw
                 .Replace("%healthpercent%", "♥" + Math.Floor(target.Health / target.MaxHealth * 100).ToString())
                 .Replace("%health%", "♥" + Math.Floor(target.Health).ToString() + "HP")
                 .Replace("%generators%", _generators.Count(gen => gen.Engaged).ToString())
-            .Replace("%engaging%", _generators.Count(gen => gen.Activating) > 0 ? $" (+{_generators.Count(gen => gen.Activating)})" : "").Replace("%zombies%", Player.GetPlayers<Player>().Count(p => p.Role == RoleTypeId.Scp0492).ToString())
+                .Replace("%engaging%", _generators.Count(gen => gen.Activating) > 0 ? $" (+{_generators.Count(gen => gen.Activating)})" : "").Replace("%zombies%", Player.GetPlayers<Player>().Count(p => p.Role == RoleTypeId.Scp0492 && !thebosszombies.Contains(p.PlayerId)).ToString())
           //  .Replace("%distance%", target != observer ? Math.Floor(Vector3.Distance(observer.Position, target.Position)) + "m" : "");
            .Replace("%distance%", "");
         }
@@ -1474,7 +1570,11 @@ namespace Plugin
                 scp035s.Remove(player.PlayerId);
                 Round.IsLocked = false;
             }
-
+            if (player != null && thebosszombies.Contains(player.PlayerId))
+            {
+                thebosszombies.Remove(player.PlayerId);
+               
+            }
             /*
             if (player != null && newRole == RoleTypeId.NtfSergeant)
             {
@@ -1687,7 +1787,17 @@ namespace Plugin
                     });
                 }
 
-                
+                if (RoundEvent == "EveryoneIsSmall")
+                {
+                    Timing.CallDelayed(0.3f, () =>
+                    {
+                        if (newRole != RoleTypeId.Spectator || newRole != RoleTypeId.Filmmaker && newRole != RoleTypeId.Overwatch)
+                        {
+                            SetScale(player, 0.5f);
+                        }
+                    });
+                }
+
 
                 if (randomNumber > cfg.EventRarity)
                     return;
@@ -1892,6 +2002,72 @@ namespace Plugin
                     Round.IsLocked = false;
 
                 }
+
+                if (thebosszombies.Contains(player.PlayerId))
+                {
+                    thebosszombies.Remove(player.PlayerId);
+                    if (damageHandler != null)
+                    {
+                        if (damageHandler is WarheadDamageHandler wdh)
+                        {
+                            // SubtitledCassie("SCP 0 3 5 Successfully Terminated By Alpha Warhead", "SCP-035 successfully terminated by Alpha Warhead");
+                            Cassie.Message("SCP 0 4 9 - B Successfully Terminated By Alpha Warhead", true, true, true);
+                        }
+
+
+                        /*
+                        if (damageHandler is UniversalDamageHandler udh)
+                        {
+                            if (udh.TranslationId == DeathTranslations.Tesla.Id)
+                            {
+                                // SubtitledCassie("SCP 0 3 5 successfully terminated by Automatic Security System", "SCP-035 successfully terminated by Automatic Security System.");
+                                Cassie.Message("SCP 0 3 5 successfully terminated by Automatic Security System", true, true, true);
+                            }
+                            else if (udh.TranslationId == DeathTranslations.Decontamination.Id)
+                            {
+                                //SubtitledCassie("SCP 0 3 5 lost in Decontamination Sequence", "SCP-035 lost in Decontamination Sequence.");
+                                Cassie.Message("SCP 0 3 5 lost in Decontamination Sequence", true, true, true);
+                            }
+                            else
+                            {
+                                // SubtitledCassie("SCP 0 3 5 Successfully Terminated . Termination cause unspecified", "SCP-035 successfully terminated. Termination cause unspecified.");
+                                Cassie.Message("SCP 0 3 5 Successfully Terminated . Termination cause unspecified", true, true, true);
+                            }
+                        }
+                        */
+                    }
+                    else if (attacker != null)
+                    {
+                        if (attacker.Role == RoleTypeId.ClassD)
+                        {
+                            // SubtitledCassie("SCP 0 3 5 Contained Successfully By Class D Personnel", "SCP-035 contained successfully by Class D Personnel");
+                            Cassie.Message("SCP 0 4 9 - B Contained Successfully By Class D Personnel", true, true, true);
+
+                        }
+                        if (attacker.IsChaos)
+                        {
+                            //  SubtitledCassie("SCP 0 3 5 Contained Successfully By Chaos Insurgency", "SCP-035 contained successfully by Chaos Insurgency");
+                            Cassie.Message("SCP 0 4 9 - B Contained Successfully By Chaos Insurgency", true, true, true);
+                        }
+                        if (attacker.IsNTF)
+                        {
+                            // SubtitledCassie("SCP 0 3 5 Contained Successfully . Containment Unit .g4", "SCP-035 contained successfully. Containment unit Unknown");
+                            Cassie.Message("SCP 0 4 9 - B Contained Successfully . Containment Unit Unknown", true, true, true);
+                        }
+                        if (attacker.Role == RoleTypeId.Scientist)
+                        {
+                            // SubtitledCassie("SCP 0 3 5 Contained Successfully By Science Personnel", "SCP-035 contained successfully. Containment unit Unknown");
+                            Cassie.Message("SCP 0 4 9 - B Contained Successfully By Science Personnel", true, true, true);
+                        }
+                    }
+                    else if (attacker != null && damageHandler != null)
+                    {
+                        Cassie.Message("SCP 0 4 9 - B Successfully Terminated . Termination cause unspecified", true, true, true);
+                    }
+                    
+
+                }
+
                 // player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#00B7EB>{player.DisplayNickname}</color>" + "\n<color=#00B7EB>NINE-TAILED FOX MEDIC</color>";
 
                 if (chase096Music.Contains(player.PlayerId))
@@ -2073,6 +2249,10 @@ namespace Plugin
             if (player != null & scp035s.Contains(player.PlayerId))
             {
                 scp035s.Remove(player.PlayerId);
+            }
+            if (player != null & thebosszombies.Contains(player.PlayerId))
+            {
+                thebosszombies.Remove(player.PlayerId);
             }
         }
 
@@ -2377,6 +2557,11 @@ namespace Plugin
                     return false;
                 if (ev.Player.IsSCP == true && ev.Target.IsTutorial == true && (fbi.Contains(ev.Target.PlayerId) || scp035s.Contains(ev.Target.PlayerId)))
                     return false;
+                if (ev.Target.IsHuman == true && !fbi.Contains(ev.Player.PlayerId) && thebosszombies.Contains(ev.Player.PlayerId))
+                {
+
+                    return true;
+                }
                 if (ev.Target.IsHuman == true && !fbi.Contains(ev.Target.PlayerId) && ev.Player.Role == RoleTypeId.Scp106)
                 {
                     /*

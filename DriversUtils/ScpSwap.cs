@@ -35,11 +35,14 @@ namespace DriversUtils
         }
 
         [PluginEvent(ServerEventType.PlayerChangeRole)]
-        void PlayerChangeRole(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
+        void PlayerChangeRolee(Player player, PlayerRoleBase oldRole, RoleTypeId newRole, RoleChangeReason reason)
         {
-            if (CanSwap == true && player.IsSCP && oldRole.Team != Team.SCPs)
+            if (CanSwap == true && newRole.GetTeam() == Team.SCPs)
             {
-                player.SendBroadcast("<b>Reminder: To Swap Scp Classes, type .scpswap (scp nickname/number) in your (~) console. \nYou can get a list of classes to swap to by running the command .scpswap list</b>",10);
+                Timing.CallDelayed(0.1f, () =>
+                {
+                    player.SendBroadcast("<b><color=#00B7EB>Reminder: To Swap Scp Classes, type .scpswap (scp nickname/number) in your (~) console.</color> \n<color=#FAFF86>You can get a list of classes to swap to by running the command .scpswap list</color></b>", 10);
+                });
             }
         }
 
@@ -56,7 +59,7 @@ namespace DriversUtils
             public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
             {
                 Player player;
-                if (Player.TryGet(sender, out player) && CanSwap == true  && (player.IsSCP || EventHandlers.scp035s.Contains(player.PlayerId)) && player.Role != PlayerRoles.RoleTypeId.Scp0492)
+                if (Player.TryGet(sender, out player) && CanSwap == true  && (player.IsSCP || EventHandlers.scp035s.Contains(player.PlayerId)))
                 {
 
                     if (arguments.First().ToLower() == "scp939" || arguments.First().ToLower() == "939" || arguments.First().ToLower() == "dog" || arguments.First().ToLower() == "scp-939")
@@ -233,6 +236,31 @@ namespace DriversUtils
                         }
 
                     }
+                    else if (arguments.First().ToLower() == "scp-049-3" || arguments.First().ToLower() == "boss" || arguments.First().ToLower() == "theboss" || arguments.First().ToLower() == "bosszombie")
+                    {
+                        bool ExistingPlayer = false;
+                        foreach (var p in Player.GetPlayers())
+                        {
+                            if (p != player)
+                            {
+                                if (p.Role == PlayerRoles.RoleTypeId.Scp0492 && EventHandlers.thebosszombies.Contains(p.PlayerId))
+                                {
+                                    response = "Could not swap. Someone is already playing as SCP-035. Ask them to swap to a different SCP.";
+                                    ExistingPlayer = true;
+                                    return false;
+
+                                }
+
+                            }
+                        }
+                        if (ExistingPlayer == false)
+                        {
+                            EventHandlers.ChangeToTheBoss(player, true);
+                            response = "Swapped.";
+                            return true;
+                        }
+
+                    }
                     /*
                     else if (arguments.First().ToLower() == "035" || arguments.First().ToLower() == "scp035" || arguments.First().ToLower() == "mask" || arguments.First().ToLower() == "scp-035")
                     {
@@ -259,11 +287,13 @@ namespace DriversUtils
                         }
 
                     }
+
                     */
+
                     else if (arguments.First().ToLower() == "list" || arguments.First().ToLower() == "help" || arguments.First().ToLower() == "roles" || arguments.First().ToLower() == "classes")
                     {
 
-                        response = "List of scps: \n- doctor \n- computer \n- shyguy \n- larry \n- peanut \n- dog";
+                        response = "List of scps: \n- doctor \n- computer \n- shyguy \n- larry \n- peanut \n- dog \n\nDO NOT SWAP TO: \n- TheBoss";
                         return true;
 
 
