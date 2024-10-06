@@ -75,11 +75,14 @@ namespace Plugin
     using InventorySystem.Items.Radio;
     using HarmonyLib;
     using System.Runtime.Remoting.Messaging;
+    using slocLoader;
+    using slocLoader.Objects;
 
     // woo I love converting 6k lines of code over to new things (i'm gonna have to do it again when labapi drops :D)
     public class EventHandlers : IComparable
     {
         int respawn_count = 0;
+        private GameObject game_object;
         HashSet<int> fbi = new HashSet<int>();
         HashSet<int> sci = new HashSet<int>();
         HashSet<int> chase096Music = new HashSet<int>();
@@ -153,6 +156,8 @@ namespace Plugin
         }
 
 
+        
+
 
         public static string RoundEvent;
         string LastRoundEvent;
@@ -171,6 +176,7 @@ namespace Plugin
           //  PlayerAudioBots.Clear();
             //  RoundEvent = "";
             generatorsActivated = 0;
+
             // PlayAudio64("ninefourteen.ogg", (byte)65F, true, TempDummyy);
             // audioPlayerr = AudioPlayerBase.Get(TempDummyy);
             foreach (var p in Player.GetPlayers())
@@ -233,7 +239,13 @@ namespace Plugin
                     }
 
                 }
-
+                /*
+                PrimitiveObject divider = new PrimitiveObject(ObjectType.Cube);
+                divider.ColliderMode = PrimitiveObject.ColliderCreationMode.ClientOnly;
+                divider.Transform.Scale = new Vector3(1.0f, 1.0f, 1.0f);
+                divider.MaterialColor = Color.white;
+                divider.SpawnObject(game_object);
+                */
                 LastRoundEvent = RoundEvent;
 
 
@@ -803,7 +815,7 @@ namespace Plugin
                             }
                             if (RoundEvent == "ClearDay")
                             {
-                                player.EffectsManager.ChangeState("FogControl", 0, 1.25f, false);
+                                player.EffectsManager.ChangeState("FogControl", 1, 1.25f, false);
                             }
 
                             int ScpCount = 0;
@@ -957,7 +969,7 @@ namespace Plugin
                                 {
                                         //player.ReceiveHint("You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)", 1.25f);
                                         /*DisplayCore.Get(player.ReferenceHub)*/
-                                        core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-1025</color> (.book) - This will give you a random effect.</b>", 200f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                      //  core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-1025</color> (.book) - This will give you a random effect.</b>", 200f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                                 }
                             }
 
@@ -5827,13 +5839,13 @@ namespace Plugin
 
                 if (new System.Random().Next(5) == 1 && !ghostLantern.Contains(pickup.NetworkInfo.Serial) && !normalLantern.Contains(pickup.NetworkInfo.Serial))
                 {
-                    ghostLantern.Add(pickup.NetworkInfo.Serial);
+                 //   ghostLantern.Add(pickup.NetworkInfo.Serial);
                   //  plr.ReceiveHint("You equipped the <color=#4B5320> Ghastly Lantern</color>. You can now phase through doors, at a cost...", 3);
 
                 }
                 else if (!normalLantern.Contains(pickup.NetworkInfo.Serial) && !ghostLantern.Contains(pickup.NetworkInfo.Serial))
                 {
-                    hats.Add(pickup.NetworkInfo.Serial);
+                    normalLantern.Add(pickup.NetworkInfo.Serial);
                 }
                 else if (ghostLantern.Contains(pickup.NetworkInfo.Serial))
                 {
@@ -6643,8 +6655,10 @@ namespace Plugin
         }
 
 
-        static bool coolDowned2 = true;
+        
 
+        static bool coolDowned2 = true;
+        /*
         [CommandHandler(typeof(ClientCommandHandler))]
         public class scp1025 : ICommand
         {
@@ -6700,7 +6714,7 @@ namespace Plugin
             }
         }
 
-
+        */
 
 
         [CommandHandler(typeof(ClientCommandHandler))]

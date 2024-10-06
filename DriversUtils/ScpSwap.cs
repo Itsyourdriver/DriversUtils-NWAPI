@@ -47,7 +47,7 @@ namespace DriversUtils
         }
 
 
-            [CommandHandler(typeof(ClientCommandHandler))]
+        [CommandHandler(typeof(ClientCommandHandler))]
         public class scpswap : ICommand
         {
             public string Command { get; } = "scpswap";
