@@ -108,8 +108,7 @@ namespace Plugin
         [PluginEvent(ServerEventType.RoundStart)]
         void OnRoundStart()
         {
-            Config config = Plugin.Singleton.Config;
-
+            /*
             try
             {
                 Timing.CallDelayed(0.2f, () => // 0.2f
@@ -123,9 +122,11 @@ namespace Plugin
 
                     guard_captain = -1;
                     attempts = 0;
+                    
                     while (guard_captain == -1)
                     {
 
+                        
                         int i = random.Next(0, players.Count);
                         player = players[i];
                         if (player.Role == PlayerRoles.RoleTypeId.FacilityGuard)
@@ -157,6 +158,7 @@ namespace Plugin
                                 break;
                         }
                     }
+                    
 
                 });
               
@@ -167,6 +169,7 @@ namespace Plugin
             {
                 Log.Warning(e.ToString());
             }
+*/
         }
 
 

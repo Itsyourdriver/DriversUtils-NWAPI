@@ -49,7 +49,7 @@ namespace Plugin
 
 
 
-
+        /*
         [PluginEvent(ServerEventType.RoundStart)]
         void OnRoundStart()
         {
@@ -123,12 +123,12 @@ namespace Plugin
                             }
 
 
-                                /*
-                                                                player.CustomInfo = $"<color=#FF9966>{player.Nickname}</color>" + "\n<color=#FF9966>THE KID</color>";
-                                                                player.PlayerInfo.IsRoleHidden = true;
-                                                                player.PlayerInfo.IsNicknameHidden = true;
-                                                                player.PlayerInfo.IsUnitNameHidden = true;
-                                */
+                               
+                                                             //   player.CustomInfo = $"<color=#FF9966>{player.Nickname}</color>" + "\n<color=#FF9966>THE KID</color>";
+                                                         //       player.PlayerInfo.IsRoleHidden = true;
+                                                          //      player.PlayerInfo.IsNicknameHidden = true;
+                                                            //    player.PlayerInfo.IsUnitNameHidden = true;
+                                
                                 //player.DisplayNickname = "Facility Guard Captain | " + player.Nickname;
                                 // player.GameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 0.5f);
                                 // Log.Info("set player's scale, they may get dcd");
@@ -157,7 +157,7 @@ namespace Plugin
             }
         }
 
-
+        */
 
 
 

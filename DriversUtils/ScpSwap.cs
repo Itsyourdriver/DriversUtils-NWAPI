@@ -41,7 +41,7 @@ namespace DriversUtils
             {
                 Timing.CallDelayed(0.1f, () =>
                 {
-                    player.SendBroadcast("<b><color=#00B7EB>Reminder: To Swap Scp Classes, type .scpswap (scp nickname/number) in your (~) console.</color> \n<color=#FAFF86>You can get a list of classes to swap to by running the command .scpswap list</color></b>", 10);
+                 //   player.SendBroadcast("<b><color=#00B7EB>Reminder: To Swap Scp Classes, type .scpswap (scp nickname/number) in your (~) console.</color> \n<color=#FAFF86>You can get a list of classes to swap to by running the command .scpswap list</color></b>", 10);
                 });
             }
         }

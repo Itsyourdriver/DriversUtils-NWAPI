@@ -1576,6 +1576,14 @@ namespace Plugin
                 }
             }
 
+            if (ScpSwap.CanSwap == true && newRole.GetTeam() == Team.SCPs)
+            {
+                Timing.CallDelayed(0.1f, () =>
+                {
+                    player.SendBroadcast("<b><color=#00B7EB>Reminder: To Swap Scp Classes, type .scpswap (scp nickname/number) in your (~) console.</color>\n<color=#FAFF86>You can opt out of playing an SCP by running the command .human</color></b>", 10);
+                });
+            }
+
 
             if (player != null && scp035s.Contains(player.PlayerId))
             {
@@ -1644,7 +1652,7 @@ namespace Plugin
 
 
 
-
+            /*
             if (player != null && newRole == RoleTypeId.ChaosRifleman && isSerpentSpawning == false)
             {
 
@@ -1749,7 +1757,7 @@ namespace Plugin
 
                 }
             }
-
+            */
 
             if (player != null && fbi.Contains(player.PlayerId) && player.PlayerId == captainplayer.PlayerId)
             {
