@@ -77,6 +77,9 @@ namespace Plugin
     using System.Runtime.Remoting.Messaging;
     using slocLoader;
     using slocLoader.Objects;
+    using AdminToys;
+    using RemoteAdmin;
+    using System.Reflection;
 
     // woo I love converting 6k lines of code over to new things (i'm gonna have to do it again when labapi drops :D)
     public class EventHandlers : IComparable
@@ -414,7 +417,7 @@ namespace Plugin
                     player.Health = 500f;
 
                    
-                        
+
 
 
                     if (player.ReferenceHub.playerStats.StatModules[1] is AhpStat ahpStat)
@@ -448,6 +451,24 @@ namespace Plugin
                             player.AddItem(item);
                         }
                         player.Position = new Vector3((float)(RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RoomName).transform.position.x), (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RoomName).transform.position.y + 1.4f, (float)RoomIdentifier.AllRoomIdentifiers?.FirstOrDefault(r => r.name == RoomName).transform.position.z);
+                    }
+
+                    LightSourceToy adminToy;
+                    LightSourceToy light;
+                    Dictionary<uint, GameObject>.ValueCollection.Enumerator Enumerator = NetworkClient.prefabs.Values.GetEnumerator();
+                    ReferenceHub playerref = player.ReferenceHub;
+                    while (Enumerator.MoveNext())
+                    {
+                        if (Enumerator.Current.TryGetComponent<LightSourceToy>(out adminToy))
+                        {
+                            light = UnityEngine.Object.Instantiate(adminToy, playerref.transform);
+                            light.Position = playerref.transform.position;
+                            light.LightColor = Color.red;
+                            light.LightShadows = false;
+                            light.LightRange = 5f;
+                            light.LightIntensity = 1f;
+                            light.OnSpawned(playerref, new ArraySegment<string>());
+                        }
                     }
                 });
             }
@@ -782,13 +803,16 @@ namespace Plugin
                 yield return Timing.WaitForSeconds(1f);
                 try
                 {
+                    if (Round.IsRoundStarted)
+                    {
 
+                    
                     if (scp035s.Count != 0)
                     {
                         Round.IsLocked = true;
                     }
                     
-
+                    
                     List<Player> players = Player.GetPlayers();
                     foreach (var player in players.Where(p => p != null))// && p.CurrentItem == ItemType.SCP207 || p.CurrentItem == ItemType.AntiSCP207))
                     {
@@ -1007,7 +1031,8 @@ namespace Plugin
                         }
                     }
                 }
-               }
+                    }
+                }
                 catch (Exception ex)
                 {
                     if (cfg.Debug == true)
@@ -4995,7 +5020,7 @@ namespace Plugin
                     DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You swallowed <color=#C50000>SCP-500-R</color> and summoned a wave of reinforcements.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     foreach (var plrr in Player.GetPlayers())
                     {
-                        if (plrr.Role == RoleTypeId.Spectator)
+                        if (plrr.Role == RoleTypeId.Spectator && plrr != plr)
                         {
                             if (plr.Role == RoleTypeId.Tutorial && fbi.Contains(plr.PlayerId))
                             {
@@ -5083,7 +5108,7 @@ namespace Plugin
                         case 2: SetScale(plr, 0.8f); break;
                         case 3: SetScale(plr, 0.7f); break;
                         case 4: SetScale(plr, 0.75f); break;
-                        case 5: SetScale(plr, -1f); break;
+                        case 5: SetScale(plr, -1.0f); break;
                         case 6: SetScale(plr, 0.85f); break;
                         case 7: SetScale(plr, 1.1f); break;
                     }
@@ -5100,7 +5125,7 @@ namespace Plugin
                     DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You swallowed <color=#C50000>SCP-500-F</color> You should have a friend with you at any second!.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     foreach (var plrr in Player.GetPlayers())
                     {
-                        if (plrr.Role == RoleTypeId.Spectator)
+                        if (plrr.Role == RoleTypeId.Spectator && plrr != plr)
                         {
                             if (plr.Role == RoleTypeId.Tutorial && fbi.Contains(plr.PlayerId))
                             {
@@ -5522,7 +5547,7 @@ namespace Plugin
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP268)
                 {
                    
-
+                     /*
                      if (new System.Random().Next(7) == 1 && !scp1499.Contains(newItemBase.ItemSerial) && !hats.Contains(newItemBase.ItemSerial))
                        {
                         scp1499.Add(newItemBase.ItemSerial);
@@ -5539,7 +5564,7 @@ namespace Plugin
                      //  plr.ReceiveHint("You equipped <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 3);
                         DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped <color=#C50000>SCP-1499</color> \nPutting it on will transport you to another dimension.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     }
-
+                     */
 
                 }
 
@@ -5578,17 +5603,16 @@ namespace Plugin
                 
                 if (!newItemBase == false && newItemBase.ItemTypeId == ItemType.SCP500 && !scp500s.Contains(newItemBase.ItemSerial) && !scale_pills.Contains(newItemBase.ItemSerial) && !friend_pills.Contains(newItemBase.ItemSerial) && !invis_pills.Contains(newItemBase.ItemSerial) && !resurrection_pills.Contains(newItemBase.ItemSerial) && !super_pills.Contains(newItemBase.ItemSerial) && !teleport_pills.Contains(newItemBase.ItemSerial))
                 {
-                    if (UnityEngine.Random.Range(1, 12) <= 5)
+                    if (UnityEngine.Random.Range(1, 12) <= 4)
                     {
 
-                        switch (UnityEngine.Random.Range(0, 5))
+                        switch (UnityEngine.Random.Range(0, 3))
                         {
-                            case 0: scale_pills.Add(newItemBase.ItemSerial); break;
-                            case 1: invis_pills.Add(newItemBase.ItemSerial); break;
-                            case 2: resurrection_pills.Add(newItemBase.ItemSerial); break;
-                            case 3: super_pills.Add(newItemBase.ItemSerial); break;
-                            case 4: friend_pills.Add(newItemBase.ItemSerial); break;
-                            case 5: teleport_pills.Add(newItemBase.ItemSerial); break;
+                            //case 0: scale_pills.Add(newItemBase.ItemSerial); break;
+                            case 0: invis_pills.Add(newItemBase.ItemSerial); break;
+                            case 1: super_pills.Add(newItemBase.ItemSerial); break;
+                            case 2: friend_pills.Add(newItemBase.ItemSerial); break;
+                            case 3: teleport_pills.Add(newItemBase.ItemSerial); break;
                         }
 
                     }
@@ -6490,6 +6514,41 @@ namespace Plugin
                 return false;
             }
         }
+
+
+
+
+        [CommandHandler(typeof(RemoteAdminCommandHandler))]
+        public class changeetoooo035 : ICommand
+        {
+            public string Command { get; } = "changeto035";
+
+            public string[] Aliases { get; } = new string[] { };
+
+            public string Description { get; } = "Sets you to scp-035 for testing.";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+                Player player;
+                if (Player.TryGet(sender, out player))
+                {
+                        ChangeTo035(player,false);
+
+
+                        response = "set player scale";
+                        return true;
+                }
+
+
+
+
+
+                response = "failed";
+                return false;
+            }
+            
+        }
+
 
 
 
