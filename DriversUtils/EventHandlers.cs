@@ -806,26 +806,27 @@ namespace Plugin
                     if (Round.IsRoundStarted)
                     {
 
-                    
-                    if (scp035s.Count != 0)
-                    {
-                        Round.IsLocked = true;
-                    }
-                    
-                    
-                    List<Player> players = Player.GetPlayers();
-                    foreach (var player in players.Where(p => p != null))// && p.CurrentItem == ItemType.SCP207 || p.CurrentItem == ItemType.AntiSCP207))
-                    {
-                        DisplayCore core = DisplayCore.Get(player.ReferenceHub);
+
+                        if (scp035s.Count != 0)
+                        {
+                            Round.IsLocked = true;
+                        }
 
 
-                        if (player.IsReady) {
+                        List<Player> players = Player.GetPlayers();
+                        foreach (var player in players.Where(p => p != null))// && p.CurrentItem == ItemType.SCP207 || p.CurrentItem == ItemType.AntiSCP207))
+                        {
+                            DisplayCore core = DisplayCore.Get(player.ReferenceHub);
 
-                            if (RoundEvent == "Foggy")
+
+                            if (player.IsReady)
                             {
 
-                               // if (player.Role != RoleTypeId.Overwatch && player.Role != RoleTypeId.Spectator)
-                                //{
+                                if (RoundEvent == "Foggy")
+                                {
+
+                                    // if (player.Role != RoleTypeId.Overwatch && player.Role != RoleTypeId.Spectator)
+                                    //{
 
 
                                     player.EffectsManager.ChangeState("FogControl", 255, 1.25f, false);
@@ -834,100 +835,103 @@ namespace Plugin
 
 
 
-                                //}
+                                    //}
 
-                            }
-                            if (RoundEvent == "ClearDay")
-                            {
-                                player.EffectsManager.ChangeState("FogControl", 1, 1.25f, false);
-                            }
-
-                            int ScpCount = 0;
-                            ScpCount = 0;
-
-                            if (player.IsSCP || (player.Role == RoleTypeId.Tutorial && (fbi.Contains(player.PlayerId) || scp035s.Contains(player.PlayerId))))
-                        {
-
-                                ScpCount++;
-
-                                if (ScpCount >= 1)
+                                }
+                                if (RoundEvent == "ClearDay")
                                 {
-                                    string text = $"<align=right>";
-
-
-
-                                    foreach (var scp in Player.GetPlayers().Where(p => (p?.Role.GetTeam() == Team.SCPs || p.Role == RoleTypeId.Tutorial || thebosszombies.Contains(p.PlayerId)) && cfg.DisplayStrings.ContainsKey(p.Role)))
-                                    {
-                                        text += (player == scp && true ? "<color=#50C878>(You)</color>" + " " : "") + ProcessStringVariables(cfg.DisplayStrings[scp.Role], player, scp) + "\n";
-                                    }
-
-                                    text += $"<voffset={30}em> </voffset></align>";
-                                    // player.ReceiveHint(text, 1.25f);
-                                    //text += $"</align>";
-
-                                    /*DisplayCore.Get(player.ReferenceHub)*/
-                                    core.SetElemTemp(text, 850f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                    player.EffectsManager.ChangeState("FogControl", 1, 1.25f, false);
                                 }
 
-                            
-                        }
+                                int ScpCount = 0;
+                                ScpCount = 0;
 
-
-
-                        int specCount = 0;
-
-                        specCount = 0;
-
-
-                            int TargetCount = 0;
-                            TargetCount = 0;
-                            //Player.GetPlayers().First(x => x.ReferenceHub.IsSpectatedBy(player.ReferenceHub));
-                            PlayerSpectators[player] = 0;
-                            foreach (var x in players)
-                            {
-                                if (players.Count != 1)
+                                if (player.IsSCP || (player.Role == RoleTypeId.Tutorial && (fbi.Contains(player.PlayerId) || scp035s.Contains(player.PlayerId))))
                                 {
-                                    if (x.IsHuman && x.Role != RoleTypeId.Tutorial)
+
+                                    ScpCount++;
+
+                                    if (ScpCount >= 1)
                                     {
-                                        TargetCount++;
+                                        string text = $"<align=right>";
+
+
+
+                                        foreach (var scp in Player.GetPlayers().Where(p => (p?.Role.GetTeam() == Team.SCPs || p.Role == RoleTypeId.Tutorial || thebosszombies.Contains(p.PlayerId)) && cfg.DisplayStrings.ContainsKey(p.Role)))
+                                        {
+                                            text += (player == scp && true ? "<color=#50C878>(You)</color>" + " " : "") + ProcessStringVariables(cfg.DisplayStrings[scp.Role], player, scp) + "\n";
+                                        }
+
+                                        text += $"<voffset={30}em> </voffset></align>";
+                                        // player.ReceiveHint(text, 1.25f);
+                                        //text += $"</align>";
+
+                                        /*DisplayCore.Get(player.ReferenceHub)*/
+                                        core.SetElemTemp(text, 850f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                                     }
 
-                                    if (x.Role == RoleTypeId.Spectator)
+
+                                }
+
+
+
+                                int specCount = 0;
+
+                                specCount = 0;
+
+
+                                int TargetCount = 0;
+                                TargetCount = 0;
+                                //Player.GetPlayers().First(x => x.ReferenceHub.IsSpectatedBy(player.ReferenceHub));
+                                PlayerSpectators[player] = 0;
+                                foreach (var x in players)
+                                {
+                                    if (players.Count != 1)
                                     {
-                                        specCount++;
-                                        if (specCount != 0)
+                                        if (x.IsHuman && x.Role != RoleTypeId.Tutorial)
                                         {
-                                            if (player.ReferenceHub.IsSpectatedBy(x.ReferenceHub))
+                                            TargetCount++;
+                                        }
+
+                                        if (x.Role == RoleTypeId.Spectator)
+                                        {
+                                            specCount++;
+                                            if (specCount != 0)
                                             {
-                                                PlayerSpectators[player]++;
+                                                if (player.ReferenceHub.IsSpectatedBy(x.ReferenceHub))
+                                                {
+                                                    PlayerSpectators[player]++;
+                                                  //  DisplayCore.Get(x.ReferenceHub).SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                                    //DisplayCore.Get(x.ReferenceHub).SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                                }
                                             }
 
 
                                         }
                                     }
-                                   
+
                                 }
-                               
-                               
-                            }
-
-                           
-                            
-
-                            if (scp035s.Contains(player.PlayerId))
-                            {
-                                core.SetElemTemp($"<align=right><pos=890><voffset=70><b><size=150%>👤{TargetCount}</size></b></voffset></align>", 890f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                            }
-
-                            if (player.IsHuman || player.IsSCP || player.IsTutorial && player.Role != RoleTypeId.Scp079)
-                            {
-                                core.SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-
-                                core.SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
 
 
 
-                                    if (PlayerPreferenceEffectList.ContainsKey(player.UserId)) 
+
+
+
+
+                                if (scp035s.Contains(player.PlayerId))
+                                {
+                                    core.SetElemTemp($"<align=right><pos=890><voffset=70><b><size=150%>👤{TargetCount}</size></b></voffset></align>", 890f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                }
+
+                                if (player.IsHuman || player.IsSCP || player.IsTutorial && player.Role != RoleTypeId.Scp079)
+                                {
+                                    core.SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+
+                                    core.SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {PlayerSpectators[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+
+
+
+                                    if (PlayerPreferenceEffectList.ContainsKey(player.UserId))
                                     {
                                         if (PlayerPreferenceEffectList[player.UserId] == true)
                                         {
@@ -936,7 +940,7 @@ namespace Plugin
                                             text2 += "        ";
                                             text2 += "            ";
                                             text2 += "😎 | <size=40%>";
-                                        foreach (StatusEffectBase effect in player.ReferenceHub.playerEffectsController.AllEffects)
+                                            foreach (StatusEffectBase effect in player.ReferenceHub.playerEffectsController.AllEffects)
                                             {
                                                 byte intensity = effect.Intensity;
                                                 float duration = effect.Duration;
@@ -946,92 +950,94 @@ namespace Plugin
                                                 {
                                                     text2 += $"{name} {intensity},";
                                                 }
-                                                
+
                                             }
                                             text2 += "</size></b></align></color>";
                                             core.SetElemTemp(text2, 15f, TimeSpan.FromSeconds(1.25f), new TimedElemRef<SetElement>());
-                                        }   
+                                        }
 
                                     }
-                                    
+
+                                }
+
+
+
+
+
+                                if (player.IsHuman || player.Role == RoleTypeId.Tutorial)
+                                {
+
+
+
+                                    if (ItemType.Lantern.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && ghostLantern.Contains(player.CurrentItem.ItemSerial) && player.Room.name != "HCZ_079" && player.Room != null)
+                                    {
+                                        player.EffectsManager.ChangeState("Ghostly", 1, 1.25f, false);
+
+                                        if (RoundEvent != "Foggy")
+                                        {
+                                            player.EffectsManager.ChangeState("FogControl", 255, 1.25f, false);
+                                        }
+
+                                        player.EffectsManager.ChangeState("Sinkhole", 1, 1.25f, false);
+                                        player.EffectsManager.ChangeState("Poisoned", 1, 1.25f, false);
+                                    }
+
+                                    // ReferenceHub PlayersAudioBot;
+                                    if (/*!ItemType.SCP207.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) &&*/ player.Room != null)
+                                    {
+
+
+                                        if (player.Room.name == "EZ_upstairs" || player.Room.name == "LCZ_TCross (11)")
+                                        {
+                                            //  player.ReceiveHint("You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)", 1.25f);
+                                            /*DisplayCore.Get(player.ReferenceHub)*/
+                                            core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-294</color> (.vm (drink), run [.vm list] for a list of drinks.)</b>", 200f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                        }
+
+                                        if (player.Room.name == "LCZ_372 (18)")
+                                        {
+                                            //player.ReceiveHint("You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)", 1.25f);
+                                            /*DisplayCore.Get(player.ReferenceHub)*/
+                                            //  core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-1025</color> (.book) - This will give you a random effect.</b>", 200f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
+                                        }
+                                    }
+
+                                    /*
+                                    if (player.Room.name == "LCZ_914 (14)" && !player.TemporaryData.Contains("scp914_ambience") || player.Room.name != "LCZ_914 (14)" && player.TemporaryData.Contains("scp914_ambience"))
+                                    {
+                                        PlayersAudioBot = AddDummy();
+                                        if (player.Room.name == "LCZ_914 (14)" && !player.TemporaryData.Contains("scp914_ambience"))
+                                        {
+
+                                            player.TemporaryData.Add("scp914_ambience", this);
+
+                                            //PlayersAudioBot = AddDummy();
+
+                                            //     PlayersAudioBot = TemporaryBot;
+                                            // PlayPlayerAudio096_Loop(player, "ninefourteen.ogg", (byte)65f, PlayersAudioBot);
+                                           // player.EffectsManager.EnableEffect<SoundtrackMute>(0, false);
+                                        }
+
+                                        if (player.Room.name != "LCZ_914 (14)" && player.TemporaryData.Contains("scp914_ambience"))
+                                        {
+
+                                            player.TemporaryData.Remove("scp914_ambience");
+
+                                            //player.EffectsManager.DisableEffect<SoundtrackMute>();
+                                            Log.Debug($"{PlayersAudioBot.name}");
+                                            //StopAudio096(PlayersAudioBot);
+                                            StopAudio096(PlayersAudioBot);
+                                            RemoveDummy096(PlayersAudioBot);
+                                            Log.Debug($"{PlayersAudioBot.name}");
+                                        }
+
+                                    }
+                                    */
+                                }
                             }
-                           
-                            
-                            
-
-                        if (player.IsHuman || player.Role == RoleTypeId.Tutorial)
-                        {
-
-
-
-                            if (ItemType.Lantern.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) && ghostLantern.Contains(player.CurrentItem.ItemSerial) && player.Room.name != "HCZ_079" && player.Room != null)
-                            {
-                                player.EffectsManager.ChangeState("Ghostly", 1, 1.25f, false);
-
-                                if (RoundEvent != "Foggy")
-                                {
-                                    player.EffectsManager.ChangeState("FogControl", 255, 1.25f, false);
-                                }
-
-                                player.EffectsManager.ChangeState("Sinkhole", 1, 1.25f, false);
-                                player.EffectsManager.ChangeState("Poisoned", 1, 1.25f, false);
-                            }
-
-                            // ReferenceHub PlayersAudioBot;
-                            if (/*!ItemType.SCP207.Equals(player.ReferenceHub.inventory.NetworkCurItem.TypeId) &&*/ player.Room != null)
-                            {
-
-
-                                if (player.Room.name == "EZ_upstairs" || player.Room.name == "LCZ_TCross (11)")
-                                {
-                                        //  player.ReceiveHint("You may be able to use <color=#C50000>SCP-294</color>. (.scp294 (drink), run [.scp294 list] for a list of available drinks, some are hidden.)", 1.25f);
-                                        /*DisplayCore.Get(player.ReferenceHub)*/
-                                        core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-294</color> (.vm (drink), run [.vm list] for a list of drinks.)</b>", 200f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                }
-
-                                if (player.Room.name == "LCZ_372 (18)")
-                                {
-                                        //player.ReceiveHint("You may be able to use <color=#C50000>SCP-1025</color>. (.scp1025)", 1.25f);
-                                        /*DisplayCore.Get(player.ReferenceHub)*/
-                                      //  core.SetElemTemp("<b>You may be able to use <color=#C50000>SCP-1025</color> (.book) - This will give you a random effect.</b>", 200f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
-                                }
-                            }
-
-                            /*
-                            if (player.Room.name == "LCZ_914 (14)" && !player.TemporaryData.Contains("scp914_ambience") || player.Room.name != "LCZ_914 (14)" && player.TemporaryData.Contains("scp914_ambience"))
-                            {
-                                PlayersAudioBot = AddDummy();
-                                if (player.Room.name == "LCZ_914 (14)" && !player.TemporaryData.Contains("scp914_ambience"))
-                                {
-
-                                    player.TemporaryData.Add("scp914_ambience", this);
-
-                                    //PlayersAudioBot = AddDummy();
-
-                                    //     PlayersAudioBot = TemporaryBot;
-                                    // PlayPlayerAudio096_Loop(player, "ninefourteen.ogg", (byte)65f, PlayersAudioBot);
-                                   // player.EffectsManager.EnableEffect<SoundtrackMute>(0, false);
-                                }
-
-                                if (player.Room.name != "LCZ_914 (14)" && player.TemporaryData.Contains("scp914_ambience"))
-                                {
-
-                                    player.TemporaryData.Remove("scp914_ambience");
-
-                                    //player.EffectsManager.DisableEffect<SoundtrackMute>();
-                                    Log.Debug($"{PlayersAudioBot.name}");
-                                    //StopAudio096(PlayersAudioBot);
-                                    StopAudio096(PlayersAudioBot);
-                                    RemoveDummy096(PlayersAudioBot);
-                                    Log.Debug($"{PlayersAudioBot.name}");
-                                }
-
-                            }
-                            */
                         }
                     }
-                }
-                    }
+
                 }
                 catch (Exception ex)
                 {
