@@ -111,7 +111,7 @@ namespace Plugin
         public static HashSet<ushort> normalLantern = new HashSet<ushort>();
 
 
-
+        public static bool PlayingEvents = false;
 
 
         public static Dictionary<Player, ReferenceHub> PlayerAudioBots = new Dictionary<Player, ReferenceHub>();
@@ -923,7 +923,7 @@ namespace Plugin
                                     core.SetElemTemp($"<align=right><pos=890><voffset=70><b><size=150%>👤{TargetCount}</size></b></voffset></align>", 890f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
                                 }
 
-                                if (player.IsHuman || player.IsSCP || player.IsTutorial && player.Role != RoleTypeId.Scp079)
+                                if (player.IsHuman || player.IsSCP || player.IsTutorial && player.Role != RoleTypeId.Scp079 && PlayingEvents == true)
                                 {
                                     core.SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1.25), new TimedElemRef<SetElement>());
 
@@ -5035,7 +5035,7 @@ namespace Plugin
                                 {
                                     plrr.Position = plr.Position;
                                  //   plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!");
-                                    DisplayCore.Get(plr.ReferenceHub).SetElemTemp("<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                                    DisplayCore.Get(plrr.ReferenceHub).SetElemTemp("<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
 
                                 });
                             }
@@ -5045,7 +5045,7 @@ namespace Plugin
                                 plrr.Position = plr.Position;
                                // plrr.ReceiveHint($"<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!");
 
-                                DisplayCore.Get(plr.ReferenceHub).SetElemTemp("<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
+                                DisplayCore.Get(plrr.ReferenceHub).SetElemTemp("<color=#00FFFF>{plr.DisplayNickname}</color> has respawned you using the <color=#C50000>SCP-500-R</color>!", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                             }
                         }
                     }
@@ -6230,6 +6230,38 @@ namespace Plugin
                 {
                     ItemBase adminscp1499item = player.AddItem(ItemType.SCP268);
                     scp1499.Add(adminscp1499item.ItemSerial);
+                    response = "success";
+                    return true;
+                }
+                response = "failed";
+                return false;
+            }
+        }
+
+
+        [CommandHandler(typeof(RemoteAdminCommandHandler))]
+        public class SetEvents : ICommand
+        {
+            public string Command { get; } = "setevents";
+
+            public string[] Aliases { get; } = new string[] { };
+
+            public string Description { get; } = "give scp-1499";
+
+            public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+            {
+                Player player;
+                if (Player.TryGet(sender, out player))
+                {
+                    if (PlayingEvents == true)
+                    {
+                        PlayingEvents = true;
+
+                    }
+                    else
+                    {
+                        PlayingEvents = false;
+                    }
                     response = "success";
                     return true;
                 }
