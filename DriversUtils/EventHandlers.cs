@@ -210,12 +210,7 @@ namespace Plugin
                     {
                        if (p.IsSCP && p.Role != RoleTypeId.Scp0492)
                         {
-                            switch (UnityEngine.Random.Range(0, 2))
-                            {
-                                case 0: p.SetRole(RoleTypeId.Scientist); break;
-                                case 1: p.SetRole(RoleTypeId.ClassD); break;
-                                case 2: p.SetRole(RoleTypeId.FacilityGuard); break;
-                            }
+                            p.SetRole(RoleTypeId.ClassD);
                             break;
                         }
                     }
@@ -1339,7 +1334,7 @@ namespace Plugin
 
                         Timing.CallDelayed(2f, () =>
                         {
-                            RespawnTokensManager.ForceTeamDominance(SpawnableTeamType.ChaosInsurgency, 85);
+                            //RespawnTokensManager.ForceTeamDominance(SpawnableTeamType.ChaosInsurgency, 85);
                         });
 
 
@@ -2383,7 +2378,7 @@ namespace Plugin
         [PluginEvent]
         public void OnScp096Enrage(Scp096EnragingEvent ev)
         {
-
+            /*
             Timing.CallDelayed(6.1f, () =>
             {
                 if (ev.Player != null)
@@ -2432,7 +2427,7 @@ namespace Plugin
                         
                     }
                 }
-            
+            */
         }
 
 
@@ -2502,6 +2497,7 @@ namespace Plugin
         {
             //Config config = Plugin.Singleton.Config;
           //  Log.Debug("Started LCZ decontamination.");
+          /*
             if (new System.Random().Next(10) == 1)
             {
                 if (new System.Random().Next(4) == 1)
@@ -2533,7 +2529,7 @@ namespace Plugin
                 
                 
             }
-
+          */
         }
 
 
@@ -5688,12 +5684,14 @@ namespace Plugin
                         //plr.ReceiveHint("You equipped a <color=#C50000>Prototype Grenade</color> \nThis grenade will create a 2nd grenade that will explode 2s after the first explosion.", 3);
                         DisplayCore.Get(plr.ReferenceHub).SetElemTempFunctional("You equipped a <color=#C50000>Prototype Grenade</color> \nThis grenade will create a 2nd grenade that will explode 2s after the first explosion.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                     }
+                    /*
                     else if (GrenadeRandomizer == 3)
                     {
                         peanutnade.Add(newItemBase.ItemSerial);
                         DisplayCore.Get(plr.ReferenceHub).SetElemTemp("You equipped a <color=#C50000>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 400f, TimeSpan.FromSeconds(3), new TimedElemRef<SetElement>());
                         //plr.ReceiveHint("You equipped a <color=#C50000>Peanut-Infused Grenade</color> \nThis grenade will leave a nasty residue that slows people walking through it after exploding.", 3);
                     }
+                    */
                     else
                     {
                         grenades.Add(newItemBase.ItemSerial);
@@ -6380,7 +6378,7 @@ namespace Plugin
         {
             public string Command { get; } = "fixmepls";
 
-            public string[] Aliases { get; } = new string[] { };
+            public string[] Aliases { get; } = new string[] {"fixscale","resetscale","fixme", "rs","fs"};
 
             public string Description { get; } = "Hi!";
 
@@ -6708,7 +6706,7 @@ namespace Plugin
                     NetworkServer.AddPlayerForConnection(fakeConnection, newPlayer);
                     hubPlayer.authManager.InstanceMode = CentralAuth.ClientInstanceMode.Unverified;
                     hubPlayer.roleManager.ServerSetRole(RoleTypeId.Tutorial, RoleChangeReason.RemoteAdmin, RoleSpawnFlags.None);
-                    hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 1f, 1f);
+                    //hubPlayer.transform.localScale = new UnityEngine.Vector3(0.1f, 1f, 1f);
 
                     try
                     {
@@ -6727,7 +6725,7 @@ namespace Plugin
 
                     try
                     {
-                        hubPlayer.nicknameSync.SetNick("This is a bot");
+                        //hubPlayer.nicknameSync.SetNick("This is a bot");
 
                     }
                     catch (Exception) { }
@@ -6821,7 +6819,7 @@ namespace Plugin
 
         */
 
-
+        /*
         [CommandHandler(typeof(ClientCommandHandler))]
         public class forcepowerfailure : ICommand
         {
@@ -6892,7 +6890,7 @@ namespace Plugin
 
             }
         }
-
+        */
         static bool coolDowned = false;
 
         [CommandHandler(typeof(ClientCommandHandler))]
