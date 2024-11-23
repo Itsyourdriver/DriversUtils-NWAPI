@@ -52,7 +52,7 @@ namespace DriversUtils
         {
             public string Command { get; } = "scpswap";
 
-            public string[] Aliases { get; } = new string[] {"swapscp", "swap" };
+            public string[] Aliases { get; } = new string[] {"swapscp", "swap", "scp"};
 
             public string Description { get; } = "Swap the SCP you're currently playing";
 

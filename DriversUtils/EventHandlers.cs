@@ -1606,7 +1606,7 @@ namespace Plugin
             {
                 Timing.CallDelayed(0.1f, () =>
                 {
-                    player.SendBroadcast("<b><color=#00B7EB>Reminder: To Swap Scp Classes, type .scpswap (scp nickname/number) in your (~) console.</color>\n<color=#FAFF86>You can opt out of playing an SCP by running the command .human</color></b>", 10);
+                    player.SendBroadcast("<b><color=#00B7EB>Reminder: To Swap Scp Classes, type .scpswap (scp nickname/number) in your (~) console.</color>", 10); //\n<color=#FAFF86>You can opt out of playing an SCP by running the command .human</color></b>
                 });
             }
 
