@@ -8,11 +8,9 @@
 
     public class Plugin : Plugin<Config>
     {
-        public override string Author { get; } = "xNexusACS";
+        public override string Author { get; } = "Itsyourdriver";
 
-        public override string Name { get; } = "SCP-559";
-
-        public override string Prefix { get; } = "scp_559";
+        public override string Name { get; } = "DriversUtils";
 
         private static readonly Plugin Singleton = new();
 
