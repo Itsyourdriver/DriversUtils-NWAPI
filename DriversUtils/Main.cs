@@ -1,245 +1,144 @@
-﻿using CentralAuth;
-using CommandSystem;
-using CustomPlayerEffects;
-//using DriversUtils;
-using GameCore;
-using InventorySystem.Items.Firearms;
-using InventorySystem.Items.Pickups;
-using MEC;
-using Mirror;
-using PlayerRoles;
-using PlayerRoles.FirstPersonControl;
-using PlayerStatsSystem;
-//using Plugin;
-//using Plugin.Commands;
-using PluginAPI.Core;
-using PluginAPI.Core.Attributes;
-using PluginAPI.Core.Interfaces;
-using PluginAPI.Enums;
-using PluginAPI.Events;
-using RemoteAdmin.Communication;
-using SCPSLAudioApi.AudioCore;
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-using slocLoader;
-using slocLoader.Objects;
-using static TheRiptide.Utility;
-using Log = PluginAPI.Core.Log;
-using RueI;
-using HarmonyLib;
-
-
-namespace Plugin
+﻿namespace DriversUtils
 {
+    using Exiled.API.Enums;
+    using Exiled.API.Features;
+    using HarmonyLib;
+    using InventorySystem.Items.Usables;
+    using RueI;
 
-    public class Plugin
+    public class Plugin : Plugin<Config>
     {
-        //  public static Plugin Singleton { get; private set; }
-        public static Plugin Instance;
-        public static Plugin Singleton;
-        
-        public static bool IsSerpentsSpawning;
-        public static bool isScienceTeamSpawning;
-        private Player player = null;
+        public override string Author { get; } = "xNexusACS";
 
+        public override string Name { get; } = "SCP-559";
 
+        public override string Prefix { get; } = "scp_559";
 
-        [PluginConfig]
-        public Config Config;
+        private static readonly Plugin Singleton = new();
 
-        // public static Config CassieSettings;
+        private EventHandler EventHandler;
 
+        public static Plugin Instance => Singleton;
 
-        private Harmony harmony;
+        public override PluginPriority Priority { get; } = PluginPriority.Last;
 
-
-
-
-
-        [PluginEntryPoint("DriversUtils", "1.7.1", "This plugin adds custom features to scpsl.", "itsyourdriver")]
-        public void LoadPlugin()
+        public override void OnEnabled()
         {
-            if (!Config.IsEnabled)
-                return;
+            RegisterEvents();
 
-
-//            Log.Info("Loading Item Commands...");
-            //    Singleton = this;
-
-
-            Singleton = this;
-            Log.Info("Loading DriversUtils...");
-            EventManager.RegisterEvents<Plugin>(this);
-            EventManager.RegisterEvents<EventHandlers>(this);
-            EventManager.RegisterEvents<MTFUnits>(this);
-            EventManager.RegisterEvents<Coin914>(this);
-            EventManager.RegisterEvents<TheKid>(this);
-            harmony = new Harmony("Patches");
-            harmony.PatchAll();
-
-            Log.Debug("Finished loading and initializing DriversUtils!");
+            Log.Warn($"I correctly read the string config, its value is: {Config.String}");
+            Log.Warn($"I correctly read the int config, its value is: {Config.Int}");
+            Log.Warn($"I correctly read the float config, its value is: {Config.Float}");
             RueIMain.EnsureInit();
-            //  Log.Debug("RueI Loaded and Initialized");
-
-
-            
+            base.OnEnabled();
         }
 
-
-        
-
-
-
-        static int guard_captain = -1;
-        static int attempts = 0;
-
-
-        // static int randomGlitchSound = new System.Random().Next(30, 150);
-
-
-
-
-
-        public ReferenceHub RadioHub;
-        public Player Radio;
-
-        [PluginEvent(ServerEventType.RoundStart)]
-        void OnRoundStart()
+        public override void OnDisabled()
         {
+            UnregisterEvents();
+            base.OnDisabled();
+        }
+
+        /// <summary>
+        /// Registers the plugin events.
+        /// </summary>
+        private void RegisterEvents()
+        {
+           // EventHandler = new EventHandler();
+
+            Exiled.Events.Handlers.Server.WaitingForPlayers += EventHandler.OnWaitingForPlayers;
+            Exiled.Events.Handlers.Server.RoundStarted += EventHandler.OnRoundStarted;
             /*
-            try
-            {
-                Timing.CallDelayed(0.2f, () => // 0.2f
-                {
-                    if (config.Debug == true)
-                    {
-                        Log.Debug("Picking player...");
-                    }
-                    List<Player> players = Player.GetPlayers();
-                    System.Random random = new System.Random();
+            Exiled.Events.Handlers.Player.Destroying += playerHandler.OnDestroying;
+            Exiled.Events.Handlers.Player.Spawning += playerHandler.OnSpawning;
+            Exiled.Events.Handlers.Player.Escaping += playerHandler.OnEscaping;
+            Exiled.Events.Handlers.Player.Hurting += playerHandler.OnHurting;
+            Exiled.Events.Handlers.Player.Dying += playerHandler.OnDying;
+            Exiled.Events.Handlers.Player.Died += playerHandler.OnDied;
+            Exiled.Events.Handlers.Player.ChangingRole += playerHandler.OnChangingRole;
+            Exiled.Events.Handlers.Player.ChangingItem += playerHandler.OnChangingItem;
+            Exiled.Events.Handlers.Player.UsingItem += playerHandler.OnUsingItem;
+            Exiled.Events.Handlers.Player.PickingUpItem += playerHandler.OnPickingUpItem;
+            Exiled.Events.Handlers.Player.DroppingItem += playerHandler.OnDroppingItem;
+            Exiled.Events.Handlers.Player.Verified += playerHandler.OnVerified;
+            Exiled.Events.Handlers.Player.FailingEscapePocketDimension += playerHandler.OnFailingEscapePocketDimension;
+            Exiled.Events.Handlers.Player.EscapingPocketDimension += playerHandler.OnEscapingPocketDimension;
+            Exiled.Events.Handlers.Player.UnlockingGenerator += playerHandler.OnUnlockingGenerator;
+            Exiled.Events.Handlers.Player.PreAuthenticating += playerHandler.OnPreAuthenticating;
+            Exiled.Events.Handlers.Player.Shooting += playerHandler.OnShooting;
+            Exiled.Events.Handlers.Player.ReloadingWeapon += playerHandler.OnReloading;
+            Exiled.Events.Handlers.Player.ReceivingEffect += playerHandler.OnReceivingEffect;
 
-                    guard_captain = -1;
-                    attempts = 0;
-                    
-                    while (guard_captain == -1)
-                    {
+            Exiled.Events.Handlers.Warhead.Stopping += warheadHandler.OnStopping;
+            Exiled.Events.Handlers.Warhead.Starting += warheadHandler.OnStarting;
 
-                        
-                        int i = random.Next(0, players.Count);
-                        player = players[i];
-                        if (player.Role == PlayerRoles.RoleTypeId.FacilityGuard)
-                        {
-                            guard_captain = 0;
-                            player = players[i];
+            Exiled.Events.Handlers.Scp106.Teleporting += playerHandler.OnTeleporting;
 
-                            player.SendBroadcast(config.GuardText, 10);
-                            player.AddItem(ItemType.ArmorCombat);
-                            RemoveItem(player, ItemType.ArmorLight);
-                            RemoveItem(player, ItemType.GunFSP9);
-                            RemoveItem(player, ItemType.KeycardGuard);
-                            AddOrDropFirearm(player, ItemType.GunCrossvec, true);
-                            player.AddItem(ItemType.KeycardMTFPrivate);
-                            //player.ReferenceHub.nicknameSync.Network_customPlayerInfoString = $"<color=#727472>{player.DisplayNickname}</color>" + "\n<color=#727472>FACILITY GUARD CAPTAIN</color>";
-                             //player.PlayerInfo.IsRoleHidden = true;
-                             //player.PlayerInfo.IsNicknameHidden = true;
-                             //player.PlayerInfo.IsUnitNameHidden = true;
-                            if (config.Debug == true)
-                            {
-                                Log.Debug("Finished setting up guard captain.");
-                            }
-                            break;
-                        }
-                        else
-                        {
-                            attempts++;
-                            if (attempts >= 30)
-                                break;
-                        }
-                    }
-                    
+            Exiled.Events.Handlers.Scp914.Activating += playerHandler.OnActivating;
+            Exiled.Events.Handlers.Scp914.ChangingKnobSetting += playerHandler.OnChangingKnobSetting;
+            Exiled.Events.Handlers.Scp914.UpgradingPlayer += playerHandler.OnUpgradingPlayer;
 
-                });
-              
+            Exiled.Events.Handlers.Map.ExplodingGrenade += mapHandler.OnExplodingGrenade;
+            Exiled.Events.Handlers.Map.GeneratorActivating += mapHandler.OnGeneratorActivated;
 
+            Exiled.Events.Handlers.Item.ChangingAmmo += itemHandler.OnChangingAmmo;
+            Exiled.Events.Handlers.Item.ChangingAttachments += itemHandler.OnChangingAttachments;
+            Exiled.Events.Handlers.Item.ReceivingPreference += itemHandler.OnReceivingPreference;
 
-            }
-            catch (Exception e)
-            {
-                Log.Warning(e.ToString());
-            }
-*/
+            Exiled.Events.Handlers.Scp914.UpgradingPickup += scp914Handler.OnUpgradingItem;
+
+            Exiled.Events.Handlers.Scp096.AddingTarget += scp096Handler.OnAddingTarget;
+            */
         }
 
-
-
-
-
-
-
-        [PluginEvent(PluginAPI.Enums.ServerEventType.PlayerDeath)]
-        private void PlayerDead(Player player, Player attacker, DamageHandlerBase damageHandler)
+        /// <summary>
+        /// Unregisters the plugin events.
+        /// </summary>
+        private void UnregisterEvents()
         {
-            try
-            {
-                if (this.player != null)
-                {
-                    if (player.UserId == this.player.UserId)
-                    {
-                        Config config = Plugin.Singleton.Config;
-                        this.player = null;
-                        guard_captain = -1;
-                        if (config.Debug == true)
-                        {
-                            Log.Debug("Reset Guard Captain stats for next round :)");
-                        }
+            Exiled.Events.Handlers.Server.WaitingForPlayers -= EventHandler.OnWaitingForPlayers;
+            Exiled.Events.Handlers.Server.RoundStarted -= EventHandler.OnRoundStarted;
+            /*
+            Exiled.Events.Handlers.Player.Destroying -= playerHandler.OnDestroying;
+            Exiled.Events.Handlers.Player.Dying -= playerHandler.OnDying;
+            Exiled.Events.Handlers.Player.Died -= playerHandler.OnDied;
+            Exiled.Events.Handlers.Player.ChangingRole -= playerHandler.OnChangingRole;
+            Exiled.Events.Handlers.Player.ChangingItem -= playerHandler.OnChangingItem;
+            Exiled.Events.Handlers.Player.PickingUpItem += playerHandler.OnPickingUpItem;
+            Exiled.Events.Handlers.Player.Verified -= playerHandler.OnVerified;
+            Exiled.Events.Handlers.Player.FailingEscapePocketDimension -= playerHandler.OnFailingEscapePocketDimension;
+            Exiled.Events.Handlers.Player.EscapingPocketDimension -= playerHandler.OnEscapingPocketDimension;
+            Exiled.Events.Handlers.Player.UnlockingGenerator -= playerHandler.OnUnlockingGenerator;
+            Exiled.Events.Handlers.Player.PreAuthenticating -= playerHandler.OnPreAuthenticating;
 
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Warning(e.ToString());
-            }
-        }
+            Exiled.Events.Handlers.Warhead.Stopping -= warheadHandler.OnStopping;
+            Exiled.Events.Handlers.Warhead.Starting -= warheadHandler.OnStarting;
 
+            Exiled.Events.Handlers.Scp106.Teleporting -= playerHandler.OnTeleporting;
 
+            Exiled.Events.Handlers.Scp914.Activating -= playerHandler.OnActivating;
+            Exiled.Events.Handlers.Scp914.ChangingKnobSetting -= playerHandler.OnChangingKnobSetting;
 
+            Exiled.Events.Handlers.Map.ExplodingGrenade -= mapHandler.OnExplodingGrenade;
+            Exiled.Events.Handlers.Map.GeneratorActivating -= mapHandler.OnGeneratorActivated;
 
+            Exiled.Events.Handlers.Item.ChangingAmmo -= itemHandler.OnChangingAmmo;
+            Exiled.Events.Handlers.Item.ChangingAttachments -= itemHandler.OnChangingAttachments;
+            Exiled.Events.Handlers.Item.ReceivingPreference -= itemHandler.OnReceivingPreference;
 
+            Exiled.Events.Handlers.Scp914.UpgradingPickup -= scp914Handler.OnUpgradingItem;
 
-        [PluginEvent(ServerEventType.RoundEnd)]
-        void OnRoundEnded(RoundSummary.LeadingTeam leadingTeam)
-        {
-            guard_captain = -1;
-            attempts = 0;
-            Config config = Plugin.Singleton.Config;
-            if (config.Debug == true)
-            {
-                Log.Debug("Reset guard captain as round ended.");
-                Log.Debug($"Round ended. {leadingTeam.ToString()} won!");
-            }
-        }
+            Exiled.Events.Handlers.Scp096.AddingTarget -= scp096Handler.OnAddingTarget;
 
-
-        [PluginEvent(ServerEventType.PlayerLeft)]
-        void OnPlayerLeave(Player player)
-        {
-            if (this.player != null)
-            {
-                if (player.UserId == this.player.UserId)
-                {
-                    Config config = Plugin.Singleton.Config;
-                    guard_captain = -1;
-                    if (config.Debug == true)
-                    {
-                        Log.Debug("Reset guard captain as player left.");
-                    }
-                }
-            }
+            serverHandler = null;
+            playerHandler = null;
+            warheadHandler = null;
+            mapHandler = null;
+            itemHandler = null;
+            scp914Handler = null;
+            scp096Handler = null;
+            */
+            EventHandler = null;
         }
     }
 }
-
-
-
