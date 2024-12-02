@@ -31,9 +31,14 @@ namespace DriversUtils
         private CoroutineHandle _mainCourtine;
         public void OnWaitingForPlayers()
         { 
-            Room room = Room.Get(GetRandomRoom());
-            Vector3 spawnPoint = Plugin.Instance.Config.SpawnPoints[room.Type];
-            _scp294 = ObjectSpawner.SpawnSchematic("scp294", room.WorldPosition(spawnPoint), Quaternion.identity, Vector3.one, data: null);
+          /*
+          Room room = Room.Get(GetRandomRoom());
+          Vector3 spawnPoint = Plugin.Instance.Config.SpawnPoints[room.Type];
+
+
+          _scp294 = ObjectSpawner.SpawnSchematic("scp294", room.WorldPosition(spawnPoint), Quaternion.identity, Vector3.one, data: null);
+          */
+          // MER Spawning is broken, random room function doesn't work either but I'd rather re-write that myself so that's what i'll do on a later day
         }
 
 
@@ -50,6 +55,7 @@ namespace DriversUtils
 
         private IEnumerator<float> MainLoop()
         {
+            TimedElemRef<SetElement> PlayerGlobalItemElem = new TimedElemRef<SetElement>();
             while (!RoundSummary.singleton._roundEnded)
             {
                 yield return Timing.WaitForSeconds(1f);
@@ -61,11 +67,14 @@ namespace DriversUtils
                         {
                             if (player.IsConnected)
                             {
-                                
+                                DisplayCore PlayerDisplayCore = DisplayCore.Get(player.ReferenceHub);
+
+                                PlayerDisplayCore.SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | null </size></b></align></color>", 15f, TimeSpan.FromSeconds(1), new TimedElemRef<SetElement>()); //{PlayerKills[player]}
+                                PlayerDisplayCore.SetElemTemp($"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {player.CurrentSpectatingPlayers.Count()} </size></b></align></color>", 15f, TimeSpan.FromSeconds(1), new TimedElemRef<SetElement>());//{PlayerSpectators[player]}
                                 if (_scp294 == null && Vector3.Distance(player.Position, _scp294.Position) <= Plugin.Instance.Config.UseDistance)
                                 {
-                                    DisplayCore PlayerDisplayCore = DisplayCore.Get(player.ReferenceHub);
-                                    PlayerDisplayCore.SetElemTemp("You can use SCP-294. To use it, open your console (~) and type .vm (drink).\nYou can get a list of drinks by running the command .vm list", 300f, TimeSpan.FromSeconds(1), new TimedElemRef<SetElement>());
+                                   
+                                    PlayerDisplayCore.SetElemTemp("You can use SCP-294. To use it, open your console (~) and type .vm (drink).\nYou can get a list of drinks by running the command .vm list", 300f, TimeSpan.FromSeconds(1), PlayerGlobalItemElem);
                                 }
                             }
                         }

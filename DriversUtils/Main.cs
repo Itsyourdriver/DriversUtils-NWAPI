@@ -18,7 +18,7 @@
 
         public static Plugin Instance => Singleton;
 
-        public override PluginPriority Priority { get; } = PluginPriority.Last;
+        //public override PluginPriority Priority { get; } = PluginPriority.Last;
 
         public override void OnEnabled()
         {
@@ -37,12 +37,9 @@
             base.OnDisabled();
         }
 
-        /// <summary>
-        /// Registers the plugin events.
-        /// </summary>
         private void RegisterEvents()
         {
-           // EventHandler = new EventHandler();
+            EventHandler = new EventHandler();
 
             Exiled.Events.Handlers.Server.WaitingForPlayers += EventHandler.OnWaitingForPlayers;
             Exiled.Events.Handlers.Server.RoundStarted += EventHandler.OnRoundStarted;
@@ -89,9 +86,6 @@
             */
         }
 
-        /// <summary>
-        /// Unregisters the plugin events.
-        /// </summary>
         private void UnregisterEvents()
         {
             Exiled.Events.Handlers.Server.WaitingForPlayers -= EventHandler.OnWaitingForPlayers;
