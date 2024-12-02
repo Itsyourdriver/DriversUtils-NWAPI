@@ -33,7 +33,6 @@ using HarmonyLib;
 namespace Plugin
 {
 
-
     public class Plugin
     {
         //  public static Plugin Singleton { get; private set; }
