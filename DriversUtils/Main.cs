@@ -2,10 +2,15 @@
 {
     using Exiled.API.Enums;
     using Exiled.API.Features;
+    using Exiled.API.Interfaces;
+    using Exiled.CustomItems;
+    using Exiled.CustomItems.API.Features;
+    using Exiled.Events.Commands.Reload;
     using HarmonyLib;
-    using InventorySystem.Items.Usables;
-    using RueI;
+    using System;
+    using System.IO;
 
+    // using RueI;
     public class Plugin : Plugin<Config>
     {
         public override string Author { get; } = "Itsyourdriver";
@@ -13,21 +18,41 @@
         public override string Name { get; } = "DriversUtils";
 
         private static readonly Plugin Singleton = new();
-
+        public static string PluginPath { get; private set; }
+        public static string TextPath { get; private set; }
         private EventHandler EventHandler;
-
+        
         public static Plugin Instance => Singleton;
 
         //public override PluginPriority Priority { get; } = PluginPriority.Last;
 
         public override void OnEnabled()
         {
-            RegisterEvents();
 
+            if (!Config.IsEnabled)
+                return;
+
+            
+            /*
             Log.Warn($"I correctly read the string config, its value is: {Config.String}");
             Log.Warn($"I correctly read the int config, its value is: {Config.Int}");
             Log.Warn($"I correctly read the float config, its value is: {Config.Float}");
-            RueIMain.EnsureInit();
+            */
+            PluginPath = Path.Combine(Paths.Configs, "DriversUtils");
+            TextPath = Path.Combine(PluginPath, "Hints.txt");
+            
+            if (!Directory.Exists(PluginPath))
+            {
+                Directory.CreateDirectory(PluginPath);
+                if (!File.Exists(TextPath))
+                {
+                    File.WriteAllText(TextPath, "Test \n Test2");
+                }
+                //File.Create(Path.Combine(PluginPath, "Hints.txt"));
+                
+            }
+            RegisterEvents();
+            // RueIMain.EnsureInit();
             base.OnEnabled();
         }
 
@@ -43,6 +68,17 @@
 
             Exiled.Events.Handlers.Server.WaitingForPlayers += EventHandler.OnWaitingForPlayers;
             Exiled.Events.Handlers.Server.RoundStarted += EventHandler.OnRoundStarted;
+            Exiled.Events.Handlers.Player.FlippingCoin += EventHandler.OnFlippingCoin;
+            Exiled.Events.Handlers.Player.Verified += EventHandler.OnVerified;
+            Exiled.Events.Handlers.Player.Dying += EventHandler.OnDying;
+            Exiled.Events.Handlers.Player.Left += EventHandler.OnLeft;
+            Exiled.Events.Handlers.Player.ChangedItem += EventHandler.OnEquippedItem;
+            Exiled.Events.Handlers.Scp914.UpgradingPickup += EventHandler.OnUpgradingPickup;
+            Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += EventHandler.OnUpgradingInventoryItem;
+            Exiled.Events.Handlers.Player.ChangingRole += EventHandler.OnChangeRole;
+
+
+            CustomItem.RegisterItems();
             /*
             Exiled.Events.Handlers.Player.Destroying += playerHandler.OnDestroying;
             Exiled.Events.Handlers.Player.Spawning += playerHandler.OnSpawning;
@@ -90,6 +126,14 @@
         {
             Exiled.Events.Handlers.Server.WaitingForPlayers -= EventHandler.OnWaitingForPlayers;
             Exiled.Events.Handlers.Server.RoundStarted -= EventHandler.OnRoundStarted;
+            Exiled.Events.Handlers.Player.FlippingCoin -= EventHandler.OnFlippingCoin;
+            Exiled.Events.Handlers.Player.Verified -= EventHandler.OnVerified;
+            Exiled.Events.Handlers.Player.Dying -= EventHandler.OnDying;
+            Exiled.Events.Handlers.Player.Left -= EventHandler.OnLeft;
+            Exiled.Events.Handlers.Player.ChangedItem -= EventHandler.OnEquippedItem;
+            Exiled.Events.Handlers.Scp914.UpgradingPickup -= EventHandler.OnUpgradingPickup;
+            Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= EventHandler.OnUpgradingInventoryItem;
+            Exiled.Events.Handlers.Player.ChangingRole -= EventHandler.OnChangeRole;
             /*
             Exiled.Events.Handlers.Player.Destroying -= playerHandler.OnDestroying;
             Exiled.Events.Handlers.Player.Dying -= playerHandler.OnDying;

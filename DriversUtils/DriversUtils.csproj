@@ -68,6 +68,9 @@
     <Reference Include="Exiled.Permissions, Version=9.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\Exiled.Permissions.dll</HintPath>
     </Reference>
+    <Reference Include="HintServiceMeow-Exiled">
+      <HintPath>E:\SCPSL_Resources\HintServiceMeow-Exiled.dll</HintPath>
+    </Reference>
     <Reference Include="MapEditorReborn">
       <HintPath>E:\SCPSL_Resources\MapEditorReborn.dll</HintPath>
     </Reference>
@@ -81,15 +84,9 @@
     <Reference Include="NVorbis, Version=0.10.5.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NVorbis.0.10.5\lib\net45\NVorbis.dll</HintPath>
     </Reference>
-    <Reference Include="PluginAPI, Version=13.1.4.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\PluginAPI.dll</HintPath>
-    </Reference>
+    <Reference Include="PluginAPI, Version=13.1.4.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="Pooling">
       <HintPath>E:\SCPSL Runtimes\Pooling.dll</HintPath>
-    </Reference>
-    <Reference Include="RueI, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>E:\SCPSL_Resources\RueI.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -137,6 +134,11 @@
   <ItemGroup>
     <Compile Include="Config.cs" />
     <Compile Include="EventHandler.cs" />
+    <Compile Include="Items\PrototypeGrenade.cs" />
+    <Compile Include="Items\SCP-500-I.cs" />
+    <Compile Include="Items\SCP-500-F.cs" />
+    <Compile Include="Items\SCP-500-T.cs" />
+    <Compile Include="Items\scp1499.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\DrinkType.cs" />
