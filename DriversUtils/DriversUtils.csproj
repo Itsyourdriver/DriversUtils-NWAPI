@@ -141,6 +141,12 @@
     <Compile Include="Items\scp1499.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Roles\Demoknight.cs" />
+    <Compile Include="Roles\GuardCaptain.cs" />
+    <Compile Include="Roles\Gunslinger.cs" />
+    <Compile Include="Roles\Heisenberg.cs" />
+    <Compile Include="Roles\Shotgunner.cs" />
+    <Compile Include="Roles\TheKid.cs" />
     <Compile Include="Util\DrinkType.cs" />
   </ItemGroup>
   <ItemGroup>

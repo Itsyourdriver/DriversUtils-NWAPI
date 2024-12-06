@@ -5,6 +5,7 @@
     using Exiled.API.Interfaces;
     using Exiled.CustomItems;
     using Exiled.CustomItems.API.Features;
+    using Exiled.CustomRoles.API.Features;
     using Exiled.Events.Commands.Reload;
     using HarmonyLib;
     using System;
@@ -79,6 +80,7 @@
 
 
             CustomItem.RegisterItems();
+            CustomRole.RegisterRoles(true,null);
             /*
             Exiled.Events.Handlers.Player.Destroying += playerHandler.OnDestroying;
             Exiled.Events.Handlers.Player.Spawning += playerHandler.OnSpawning;

@@ -31,6 +31,7 @@ using Exiled.Events.EventArgs.Scp914;
 using PluginAPI.Core.Attributes;
 using PluginAPI.Enums;
 using Exiled.API.Features.Roles;
+using Mirror;
 
 namespace DriversUtils
 {
@@ -278,7 +279,7 @@ namespace DriversUtils
 
         public void OnEquippedItem(ChangedItemEventArgs ev)
         {
-            if (ev.Item.Type == ItemType.SCP500)
+            if (ev.Item != null && ev.Item.Type == ItemType.SCP500)
             {
                 if (UnityEngine.Random.Range(1,15) >= 3)
                 {
