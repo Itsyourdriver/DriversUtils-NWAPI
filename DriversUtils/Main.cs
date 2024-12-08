@@ -77,7 +77,8 @@
             Exiled.Events.Handlers.Scp914.UpgradingPickup += EventHandler.OnUpgradingPickup;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem += EventHandler.OnUpgradingInventoryItem;
             Exiled.Events.Handlers.Player.ChangingRole += EventHandler.OnChangeRole;
-
+            Exiled.Events.Handlers.Server.RoundEnded += EventHandler.OnRoundEnded;
+            Exiled.Events.Handlers.Server.ChoosingStartTeamQueue += EventHandler.OnChoostingStartTeamQueue;
 
             CustomItem.RegisterItems();
             CustomRole.RegisterRoles(true,null);
@@ -136,6 +137,8 @@
             Exiled.Events.Handlers.Scp914.UpgradingPickup -= EventHandler.OnUpgradingPickup;
             Exiled.Events.Handlers.Scp914.UpgradingInventoryItem -= EventHandler.OnUpgradingInventoryItem;
             Exiled.Events.Handlers.Player.ChangingRole -= EventHandler.OnChangeRole;
+            Exiled.Events.Handlers.Server.RoundEnded -= EventHandler.OnRoundEnded;
+            Exiled.Events.Handlers.Server.ChoosingStartTeamQueue -= EventHandler.OnChoostingStartTeamQueue;
             /*
             Exiled.Events.Handlers.Player.Destroying -= playerHandler.OnDestroying;
             Exiled.Events.Handlers.Player.Dying -= playerHandler.OnDying;

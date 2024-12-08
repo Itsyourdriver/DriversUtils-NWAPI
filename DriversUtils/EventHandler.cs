@@ -32,6 +32,10 @@ using PluginAPI.Core.Attributes;
 using PluginAPI.Enums;
 using Exiled.API.Features.Roles;
 using Mirror;
+using Exiled.Events.EventArgs.Server;
+using GameCore;
+using Log = Exiled.API.Features.Log;
+using System.Diagnostics.Eventing.Reader;
 
 namespace DriversUtils
 {
@@ -41,7 +45,6 @@ namespace DriversUtils
         private static MapEditorObject _scp294;
         private CoroutineHandle _mainCourtine;
         private CoroutineHandle _hintCourtine;
-        private CoroutineHandle hintCourntine;
         private static Dictionary<Player, int> PlayerKills = new Dictionary<Player, int>();
 
 
@@ -65,6 +68,12 @@ namespace DriversUtils
         // OnStart stuff
         public void OnWaitingForPlayers()
         {
+            if (_mainCourtine.IsRunning)
+                Timing.KillCoroutines(_mainCourtine);
+
+            _mainCourtine = Timing.RunCoroutine(MainLoop());
+
+            GameObject.Find("StartRound").transform.localScale = Vector3.zero;
             if (File.Exists(hintsPath))
                 server_hints.AddRange(File.ReadAllLines(hintsPath));
 
@@ -95,11 +104,7 @@ namespace DriversUtils
                 }
             }
 
-            if (_mainCourtine.IsRunning)
-                Timing.KillCoroutines(_mainCourtine);
-
-            _mainCourtine = Timing.RunCoroutine(MainLoop());
-
+            
             if (_hintCourtine.IsRunning)
                 Timing.KillCoroutines(_hintCourtine);
 
@@ -112,31 +117,60 @@ namespace DriversUtils
             });
         }
         
+        public void OnRoundEnded(RoundEndedEventArgs ev)
+        {
+            Server.FriendlyFire = true;
+            float restartTime = ConfigFile.ServerConfig.GetFloat("auto_round_restart_time");
+
+            Timing.CallDelayed(restartTime - 0.5f, () =>
+            {
+                Server.FriendlyFire = false;
+            });
+        }
 
         public void OnVerified(VerifiedEventArgs ev)
         {
-            PlayerKills.Add(ev.Player, 0);
-            /*
-            var ui = PlayerUI.Get(ev.Player);
-            PlayerDisplay playerDisplay = PlayerDisplay.Get(ev.Player);
-
-            Hint Hint1 = new Hint
+            if (Round.IsLobby)
             {
-                Text = $"<color={ev.Player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | 0 </size></b></align></color>",
-                YCoordinate = 1030,
-                SyncSpeed = HintSyncSpeed.Fast,
-            };
+                PlayerKills.Add(ev.Player, 0);
+                ev.Player.Role.Set(RoleTypeId.ClassD);
+                ev.Player.Teleport(new UnityEngine.Vector3(117f, 1101f, 64f));
+                ev.Player.EnableEffect<FogControl>(0, false);
+                ev.Player.ChangeEffectIntensity<FogControl>(1, 0);
+                ev.Player.AddItem(ItemType.Flashlight);
+                /*
+                LightSourceToy adminToy;
+                LightSourceToy light;
+                Dictionary<uint, GameObject>.ValueCollection.Enumerator Enumerator = NetworkClient.prefabs.Values.GetEnumerator();
+                ReferenceHub playerref = ev.Player.ReferenceHub;
+                while (Enumerator.MoveNext())
+                {
+                    if (Enumerator.Current.TryGetComponent<LightSourceToy>(out adminToy))
+                    {
+                        light = UnityEngine.Object.Instantiate(adminToy, playerref.transform);
+                        light.Position = playerref.transform.position;
+                        light.LightColor = Color.white;
+                        light.LightRange = 5f;
+                        light.LightIntensity = 0.85f;
+                        light.OnSpawned(playerref, new ArraySegment<string>());
+                        if (Round.IsStarted == true)
+                        {
+                            GameObject.Destroy(light);
+                            break;
+                        }
+                    }
+                }
+                */
+            }
+        }
 
-            Hint Hint2 = new Hint
+        public void OnChoostingStartTeamQueue(ChoosingStartTeamQueueEventArgs ev)
+        {
+            foreach (Player plr in Player.List)
             {
-                Text = $"<color={ev.Player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {ev.Player.CurrentSpectatingPlayers.Count()} </size></b></align></color>",
-                YCoordinate = 1030,
-                SyncSpeed = HintSyncSpeed.Fast,
-            };
-
-            playerDisplay.AddHint(Hint1);
-            playerDisplay.AddHint(Hint2);
-            */
+                plr.Role.Set(RoleTypeId.Spectator);
+                plr.DisableAllEffects();
+            }
         }
 
         // Courntines + Misc Util Functions
@@ -171,8 +205,6 @@ namespace DriversUtils
                 yield return Timing.WaitForSeconds(1f);
                 try
                 {
-                    if (Round.IsStarted)
-                    {
                         foreach (Player player in Player.List)
                         {
                             if (player.IsConnected)
@@ -181,30 +213,78 @@ namespace DriversUtils
                                 
                                 PlayerDisplay playerDisplay = PlayerDisplay.Get(player);
                                 
-                                Hint Hint1 = new Hint
+                                if (player.IsHuman || player.IsScp || player.IsTutorial)
                                 {
-                                    Text = $"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>",
-                                    YCoordinate = 1030,
-                                };
+                                    Hint Hint1 = new Hint
+                                    {
+                                        Text = $"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>",
+                                        YCoordinate = 1048,
+                                        SyncSpeed = HintSyncSpeed.Fast,
+                                    };
 
-                                Hint Hint2 = new Hint
-                                {
-                                    Text = $"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {player.CurrentSpectatingPlayers.Count()} </size></b></align></color>",
-                                    YCoordinate = 1030,
-                                    SyncSpeed = HintSyncSpeed.Fast,
-                                };
+                                    Hint Hint2 = new Hint
+                                    {
+                                        Text = $"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {player.CurrentSpectatingPlayers.Count()} </size></b></align></color>",
+                                        YCoordinate = 1048,
+                                        SyncSpeed = HintSyncSpeed.Fast,
+                                    };
 
-                                playerDisplay.AddHint(Hint1);
-                                playerDisplay.AddHint(Hint2);
-                                Hint1.HideAfter(1.01f);
-                                Hint2.HideAfter(1.01f);
-                                playerDisplay.RemoveAfter(Hint1, 1.02f);
-                                playerDisplay.RemoveAfter(Hint2, 1.02f);
+                                    playerDisplay.AddHint(Hint1);
+                                    playerDisplay.AddHint(Hint2);
+                                    Hint1.HideAfter(1.0f);
+                                    Hint2.HideAfter(1.0f);
+                                    playerDisplay.RemoveAfter(Hint1, 1.0f);
+                                    playerDisplay.RemoveAfter(Hint2, 1.0f);
 
+                                    if (Round.IsLobby)
+                                    {
+                                        if (Round.IsLobbyLocked)
+                                        {
+                                            ui.CommonHint.ShowMapHint($"Lobby is <color=red>locked</color>. Connected Players {Player.List.Count()}.", 1f);
+                                        }
+                                        else
+                                        {
+                                            ui.CommonHint.ShowMapHint($"Lobby is <color=green>unlocked</color>. Connected Players {Player.List.Count()}. \nTime Left: {Round.LobbyWaitingTime}", 1f);
+                                        }
 
-                                if (player.Role == RoleTypeId.Spectator)
+                                        
+                                    }
+
+                                }
+
+                                if (player.Role.Type == RoleTypeId.Spectator)
                                 {
                                     ui.CommonHint.ShowMapHint($"{server_hints[HintIndex]}", 1f);
+
+                                    if (player.Role is Exiled.API.Features.Roles.SpectatorRole spectatorRole)
+                                    {
+                                        if (spectatorRole.SpectatedPlayer != null && spectatorRole.SpectatedPlayer.IsVerified)
+                                        {
+
+                                        
+                                            Hint Hint1 = new Hint
+                                            {
+                                                Text = $"<color={spectatorRole.SpectatedPlayer.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | {PlayerKills[spectatorRole.SpectatedPlayer]} </size></b></align></color>",
+                                                YCoordinate = 1048,
+                                                SyncSpeed = HintSyncSpeed.Fast,
+                                            };
+
+                                            Hint Hint2 = new Hint
+                                            {
+                                                Text = $"<color={spectatorRole.SpectatedPlayer.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {spectatorRole.SpectatedPlayer.CurrentSpectatingPlayers.Count()} </size></b></align></color>",
+                                                YCoordinate = 1048,
+                                                SyncSpeed = HintSyncSpeed.Fast,
+                                            };
+
+                                            playerDisplay.AddHint(Hint1);
+                                            playerDisplay.AddHint(Hint2);
+                                            Hint1.HideAfter(1.0f);
+                                            Hint2.HideAfter(1.0f);
+                                            playerDisplay.RemoveAfter(Hint1, 1.0f);
+                                            playerDisplay.RemoveAfter(Hint2, 1.0f);
+                                        }
+                                        
+                                    }
                                     
                                 }
                                 if (_scp294 == null && Vector3.Distance(player.Position, _scp294.Position) <= Plugin.Instance.Config.UseDistance)
@@ -216,7 +296,7 @@ namespace DriversUtils
                                 
                             }
                         }
-                    }
+                    
                 }
                 catch (Exception ex)
                 {
@@ -232,8 +312,7 @@ namespace DriversUtils
         {
 
             while (!RoundSummary.singleton._roundEnded)
-            {
-                yield return Timing.WaitForSeconds(10f);
+            {                yield return Timing.WaitForSeconds(10f);
                 try
                 {
                     if (Round.IsStarted)
@@ -313,7 +392,15 @@ namespace DriversUtils
 
         public void OnDying(DyingEventArgs ev)
         {
-            if (ev.Attacker != null)
+            if (Round.IsLobby)
+            {
+                ev.Player.Role.Set(RoleTypeId.ClassD);
+                ev.Player.Teleport(new UnityEngine.Vector3(117f, 1101f, 64f));
+                ev.Player.EnableEffect<FogControl>(0, false);
+                ev.Player.ChangeEffectIntensity<FogControl>(1, 0);
+            }
+
+            if (ev.Attacker != null && !Round.IsLobby)
             {
                 var ui = PlayerUI.Get(ev.Attacker);
                 PlayerKills[ev.Attacker]++;
@@ -698,6 +785,36 @@ public class RoundStatsCommand : ICommand
         {
             
             response = $"<color=white>Round Stats:\nTime: {Round.ElapsedTime}\nStarted At: {Round.StartedTime}\nTPS: {Server.Tps}\nRound Count: {Round.UptimeRounds}\nVersion: {Server.Version}\nPlayers: {Server.PlayerCount}</color>";
+            return true;
+        }
+        else
+        {
+            response = "<color=red>There was an error while running this command.</color>";
+            return false;
+        }
+    }
+}
+
+
+[CommandHandler(typeof(ClientCommandHandler))]
+public class PositionCommand : ICommand
+{
+    public string Command { get; } = "position";
+
+    public string[] Aliases { get; } = new string[] { "pos", "rotation", "rot" };
+
+    public string Description { get; } = "Gives you some stats about the current round.";
+
+    public bool Execute(System.ArraySegment<string> arguments, ICommandSender sender, out string response)
+    {
+        Player player = Player.Get(sender);
+        if (player != null)
+        {
+            response = $"<color=white>Position:\nPos: {player.GameObject.gameObject.transform.position}\nRelativePos: {player.RelativePosition.Position}\n Rot: {player.Rotation}</color>";
+            if (player.CurrentRoom != null) 
+            {
+                player.SendConsoleMessage($"Room: {player.CurrentRoom.name}", "white");
+            }
             return true;
         }
         else
