@@ -104,7 +104,9 @@ namespace DriversUtils
                 }
             }
 
-            
+
+           
+
             if (_hintCourtine.IsRunning)
                 Timing.KillCoroutines(_hintCourtine);
 
@@ -200,63 +202,66 @@ namespace DriversUtils
         private IEnumerator<float> MainLoop()
         {
 
-            while (!RoundSummary.singleton._roundEnded)
+            while (Round.IsEnded == false)
             {
                 yield return Timing.WaitForSeconds(1f);
                 try
                 {
-                        foreach (Player player in Player.List)
+                        foreach (Player plr in Player.List)
                         {
-                            if (player.IsConnected)
+                            if (plr.IsVerified && plr.IsConnected && !plr.IsNPC)
                             {
-                                var ui = PlayerUI.Get(player);
+                                var ui = PlayerUI.Get(plr);
                                 
-                                PlayerDisplay playerDisplay = PlayerDisplay.Get(player);
-                                
-                                if (player.IsHuman || player.IsScp || player.IsTutorial)
+                                PlayerDisplay playerDisplay = PlayerDisplay.Get(plr);
+
+                                if (Round.IsLobby)
+                                {
+                                    if (Round.IsLobbyLocked || Player.List.Count() == 1)
+                                    {
+                                        ui.CommonHint.ShowMapHint($"<b>Lobby is <color=red>locked</color>. Connected Players {Player.List.Count()}.</b>", 1f);
+                                    }
+                                    else
+                                    {
+                                        ui.CommonHint.ShowMapHint($"<b>Lobby is <color=green>unlocked</color>. Connected Players {Player.List.Count()}. \nTime Left: {Round.LobbyWaitingTime}</b>", 1f);
+                                    }
+
+
+                                }
+
+
+                            if (plr.IsHuman || plr.IsScp || plr.IsTutorial)
                                 {
                                     Hint Hint1 = new Hint
                                     {
-                                        Text = $"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | {PlayerKills[player]} </size></b></align></color>",
+                                        Text = $"<color={plr.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>        🔪 | {PlayerKills[plr]} </size></b></align></color>",
                                         YCoordinate = 1048,
                                         SyncSpeed = HintSyncSpeed.Fast,
                                     };
 
                                     Hint Hint2 = new Hint
                                     {
-                                        Text = $"<color={player.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {player.CurrentSpectatingPlayers.Count()} </size></b></align></color>",
+                                        Text = $"<color={plr.ReferenceHub.roleManager.CurrentRole.RoleColor.ToHex()}><align=left><b><size=75%>                    👥 | {plr.CurrentSpectatingPlayers.Count()} </size></b></align></color>",
                                         YCoordinate = 1048,
                                         SyncSpeed = HintSyncSpeed.Fast,
                                     };
 
                                     playerDisplay.AddHint(Hint1);
                                     playerDisplay.AddHint(Hint2);
-                                    Hint1.HideAfter(1.0f);
-                                    Hint2.HideAfter(1.0f);
-                                    playerDisplay.RemoveAfter(Hint1, 1.0f);
-                                    playerDisplay.RemoveAfter(Hint2, 1.0f);
+                                    Hint1.HideAfter(1.01f);
+                                    Hint2.HideAfter(1.01f);
+                                    playerDisplay.RemoveAfter(Hint1, 1.01f);
+                                    playerDisplay.RemoveAfter(Hint2, 1.01f);
 
-                                    if (Round.IsLobby)
-                                    {
-                                        if (Round.IsLobbyLocked)
-                                        {
-                                            ui.CommonHint.ShowMapHint($"Lobby is <color=red>locked</color>. Connected Players {Player.List.Count()}.", 1f);
-                                        }
-                                        else
-                                        {
-                                            ui.CommonHint.ShowMapHint($"Lobby is <color=green>unlocked</color>. Connected Players {Player.List.Count()}. \nTime Left: {Round.LobbyWaitingTime}", 1f);
-                                        }
-
-                                        
-                                    }
+                                    
 
                                 }
 
-                                if (player.Role.Type == RoleTypeId.Spectator)
+                                if (plr.Role.Type == RoleTypeId.Spectator)
                                 {
                                     ui.CommonHint.ShowMapHint($"{server_hints[HintIndex]}", 1f);
 
-                                    if (player.Role is Exiled.API.Features.Roles.SpectatorRole spectatorRole)
+                                    if (plr.Role is Exiled.API.Features.Roles.SpectatorRole spectatorRole)
                                     {
                                         if (spectatorRole.SpectatedPlayer != null && spectatorRole.SpectatedPlayer.IsVerified)
                                         {
@@ -280,14 +285,14 @@ namespace DriversUtils
                                             playerDisplay.AddHint(Hint2);
                                             Hint1.HideAfter(1.0f);
                                             Hint2.HideAfter(1.0f);
-                                            playerDisplay.RemoveAfter(Hint1, 1.0f);
-                                            playerDisplay.RemoveAfter(Hint2, 1.0f);
+                                            playerDisplay.RemoveAfter(Hint1, 1.01f);
+                                            playerDisplay.RemoveAfter(Hint2, 1.01f);
                                         }
                                         
                                     }
                                     
                                 }
-                                if (_scp294 == null && Vector3.Distance(player.Position, _scp294.Position) <= Plugin.Instance.Config.UseDistance)
+                                if (_scp294 != null && Vector3.Distance(plr.Position, _scp294.Position) <= Plugin.Instance.Config.UseDistance)
                                 {
 
                                     //PlayerDisplayCore.SetElemTemp("You can use SCP-294. To use it, open your console (~) and type .vm (drink).\nYou can get a list of drinks by running the command .vm list", 300f, TimeSpan.FromSeconds(1), PlayerGlobalItemElem);
@@ -418,7 +423,7 @@ namespace DriversUtils
             if (ev.NewRole.GetTeam() == Team.SCPs)
             {
                 var ui = PlayerUI.Get(ev.Player);
-                ui.CommonHint.ShowMapHint($"Reminder: To Swap Scp Classes, type .scpswap (scp nickname/number) in your (~) console.</color> \n<color=#FAFF86>You can get a list of classes to swap to by running the command .scpswap list</color></b>", 15f);
+                ui.CommonHint.ShowMapHint($"Reminder: To Swap Scp Classes,\ntype .scpswap (scp nickname/number) in your (~) console.</color> \n<b>You can get a list of classes to swap to by running the command .scpswap list</b>", 15f);
             }
         }
 

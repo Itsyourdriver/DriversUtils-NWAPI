@@ -16,18 +16,19 @@ using System.Text;
 using System.Threading.Tasks;
 using Utils;
 using Exiled.API.Features;
+using CustomPlayerEffects;
 
 namespace DriversUtils.Items
 {
     [CustomItem(ItemType.GrenadeHE)]
-    public class PrototypeGrenade : CustomGrenade
+    public class VaporizeGrenade : CustomGrenade
     {
         public override bool ExplodeOnCollision { get; set; } = false;
         public override float FuseTime { get; set; } = 3f;
-        public override uint Id { get; set; } = 1;
-        public override string Name { get; set; } = "2x Prototype Grenade";
-        public override string Description { get; set; } = "A grenade that explodes twice.";
-        public override float Weight { get; set; } = 1.15f;
+        public override uint Id { get; set; } = 6;
+        public override string Name { get; set; } = "Particle Grenade";
+        public override string Description { get; set; } = "A grenade that vaporizes targets.";
+        public override float Weight { get; set; } = 2f;
         public override SpawnProperties? SpawnProperties { get; set; } = new()
         {
             Limit = 1,
@@ -36,27 +37,21 @@ namespace DriversUtils.Items
             new()
             {
                 Chance = 50,
-                Location = SpawnLocationType.InsideHczArmory,
+                Location = SpawnLocationType.Inside049Armory,
             },
         },
         };
 
         protected override void OnExploding(ExplodingGrenadeEventArgs ev)
         {
-            // old method but works i think
-            var nade = ev.Player.ReferenceHub.inventory.CreateItemInstance(new ItemIdentifier(ItemType.GrenadeHE, ItemSerialGenerator.GenerateNext()), false) as ThrowableItem;
-            TimeGrenade grenadeboom = (TimeGrenade)UnityEngine.Object.Instantiate(nade.Projectile, ev.Position, UnityEngine.Quaternion.identity);
-            grenadeboom._fuseTime = 1f;
-            grenadeboom.NetworkInfo = new PickupSyncInfo(nade.ItemTypeId, nade.Weight, nade.ItemSerial);
-            grenadeboom.PreviousOwner = new Footprint(ev.Player.ReferenceHub ?? ReferenceHub.HostHub);
-            NetworkServer.Spawn(grenadeboom.gameObject);
-            grenadeboom.ServerActivate();
-            ev.IsAllowed = true;
-
+            ev.IsAllowed = false;
             //ExplosionUtils.ServerExplode(ev.Player.ReferenceHub, ExplosionType.Grenade); -- keeping this for something else lol
             foreach (Player plr in ev.TargetsToAffect)
             {
-                //plr.Vaporize();
+                if (!plr.IsScp && !plr.IsGodModeEnabled && plr.ReferenceHub.playerEffectsController.TryGetEffect<AntiScp207>(out var effect))
+                {
+                    plr.Vaporize();
+                }
             }
 
         }
