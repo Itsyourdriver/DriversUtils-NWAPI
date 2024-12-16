@@ -77,14 +77,14 @@ namespace DriversUtils
             if (File.Exists(hintsPath))
                 server_hints.AddRange(File.ReadAllLines(hintsPath));
 
-            /*
-            Room room = Room.Get(GetRandomRoom());
-            Vector3 spawnPoint = Plugin.Instance.Config.SpawnPoints[room.Type];
+            
+            //Room room = Room.Get(GetRandomRoom());
+            //Vector3 spawnPoint = Plugin.Instance.Config.SpawnPoints[room.Type];
 
 
-            _scp294 = ObjectSpawner.SpawnSchematic("scp294", room.WorldPosition(spawnPoint), Quaternion.identity, Vector3.one, data: null);
-            */
-                // MER Spawning is broken, random room function doesn't work either but I'd rather re-write that myself so that's what i'll do on a later day
+            //_scp294 = ObjectSpawner.SpawnSchematic("scp294", room.WorldPosition(spawnPoint), Quaternion.identity, Vector3.one, MapUtils.GetSchematicDataByName("scp294"),true);
+            //_scp294 = ObjectSpawner.SpawnSchematic("scp294", new Vector3(0,1000,0), Quaternion.identity, Vector3.one, MapUtils.GetSchematicDataByName("scp294"), true);
+            // MER Spawning is broken, random room function doesn't work either but I'd rather re-write that myself so that's what i'll do on a later day
         }
         
         public void OnRoundStarted()
@@ -184,7 +184,7 @@ namespace DriversUtils
 
             List<RoomType> roomNames = Plugin.Instance.Config.SpawnPoints.Keys.ToList();
 
-            int index = random.Next(roomNames.Count);
+            int index = random.Next(1,roomNames.Count);
             return roomNames[index];
         }
 
@@ -660,6 +660,11 @@ namespace DriversUtils
                     {
 
                     }
+                    if (Vector3.Distance(player.Position, _scp294.Position) >= Plugin.Instance.Config.UseDistance)
+                    {
+                        response = $"<color=red>You are not close enough to use SCP-294.</color>";
+                        return false;
+                    }
                     if (player.CurrentItem.Type != ItemType.Coin)
                     {
                         response = $"<color=red>You aren't holding a coin.</color>";
@@ -681,11 +686,7 @@ namespace DriversUtils
                         return false;
                     }
 
-                    if (Vector3.Distance(player.Position, _scp294.Position) >= Plugin.Instance.Config.UseDistance)
-                    {
-                        response = $"<color=red>You are not close enough to use SCP-294.</color>";
-                        return false;
-                    }
+                    
                    
                 }
 

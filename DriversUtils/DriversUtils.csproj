@@ -45,46 +45,49 @@
       <HintPath>E:\SCPSL_Resources\Assembly-CSharp-Publicized.dll</HintPath>
     </Reference>
     <Reference Include="CommandSystem.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\CommandSystem.Core.dll</HintPath>
+      <HintPath>..\packages\ExMod.Exiled.9.0.0-beta.1\lib\net48\CommandSystem.Core.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.API, Version=9.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\Exiled.API.dll</HintPath>
+      <HintPath>..\packages\ExMod.Exiled.9.0.0-beta.1\lib\net48\Exiled.API.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.CreditTags, Version=9.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\Exiled.CreditTags.dll</HintPath>
+      <HintPath>..\packages\ExMod.Exiled.9.0.0-beta.1\lib\net48\Exiled.CreditTags.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.CustomItems, Version=9.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\Exiled.CustomItems.dll</HintPath>
+      <HintPath>..\packages\ExMod.Exiled.9.0.0-beta.1\lib\net48\Exiled.CustomItems.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.CustomRoles, Version=9.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\Exiled.CustomRoles.dll</HintPath>
+      <HintPath>..\packages\ExMod.Exiled.9.0.0-beta.1\lib\net48\Exiled.CustomRoles.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.Events, Version=9.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\Exiled.Events.dll</HintPath>
+      <HintPath>..\packages\ExMod.Exiled.9.0.0-beta.1\lib\net48\Exiled.Events.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.Loader, Version=9.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\Exiled.Loader.dll</HintPath>
+      <HintPath>..\packages\ExMod.Exiled.9.0.0-beta.1\lib\net48\Exiled.Loader.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.Permissions, Version=9.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\Exiled.Permissions.dll</HintPath>
+      <HintPath>..\packages\ExMod.Exiled.9.0.0-beta.1\lib\net48\Exiled.Permissions.dll</HintPath>
     </Reference>
     <Reference Include="HintServiceMeow-Exiled">
       <HintPath>E:\SCPSL_Resources\HintServiceMeow-Exiled.dll</HintPath>
     </Reference>
-    <Reference Include="MapEditorReborn">
-      <HintPath>E:\SCPSL_Resources\MapEditorReborn.dll</HintPath>
+    <Reference Include="MapEditorReborn, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MapEditorReborn\MapEditorReborn\bin\Release\net48\MapEditorReborn.dll</HintPath>
     </Reference>
     <Reference Include="Mirror, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>E:\SCPSL Runtimes\Mirror.dll</HintPath>
     </Reference>
     <Reference Include="NorthwoodLib, Version=1.3.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\NorthwoodLib.dll</HintPath>
+      <HintPath>..\packages\ExMod.Exiled.9.0.0-beta.1\lib\net48\NorthwoodLib.dll</HintPath>
     </Reference>
     <Reference Include="NVorbis, Version=0.10.5.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NVorbis.0.10.5\lib\net45\NVorbis.dll</HintPath>
     </Reference>
-    <Reference Include="PluginAPI, Version=13.1.4.0, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="PluginAPI, Version=13.1.5.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ExMod.Exiled.9.0.0-beta.1\lib\net48\PluginAPI.dll</HintPath>
+    </Reference>
     <Reference Include="Pooling">
       <HintPath>E:\SCPSL Runtimes\Pooling.dll</HintPath>
     </Reference>
@@ -128,7 +131,7 @@
       <HintPath>..\..\..\..\Downloads\SCPSL Runtimes\SCPSL Runtimes\Utility.dll</HintPath>
     </Reference>
     <Reference Include="YamlDotNet, Version=11.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExMod.Exiled.9.0.0-alpha.4\lib\net48\YamlDotNet.dll</HintPath>
+      <HintPath>..\packages\ExMod.Exiled.9.0.0-beta.1\lib\net48\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
