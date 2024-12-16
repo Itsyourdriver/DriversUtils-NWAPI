@@ -140,6 +140,8 @@ namespace DriversUtils
                 ev.Player.EnableEffect<FogControl>(0, false);
                 ev.Player.ChangeEffectIntensity<FogControl>(1, 0);
                 ev.Player.AddItem(ItemType.Flashlight);
+                ev.Player.AddItem(ItemType.Lantern);
+                ev.Player.AddItem(ItemType.Coin);
                 /*
                 LightSourceToy adminToy;
                 LightSourceToy light;
@@ -202,14 +204,14 @@ namespace DriversUtils
         private IEnumerator<float> MainLoop()
         {
 
-            while (Round.IsEnded == false)
+            while (!RoundSummary.singleton._roundEnded)
             {
                 yield return Timing.WaitForSeconds(1f);
                 try
                 {
                         foreach (Player plr in Player.List)
                         {
-                            if (plr.IsVerified && plr.IsConnected && !plr.IsNPC)
+                            if (plr.IsVerified && plr.IsConnected && !plr.IsNPC && PlayerUI.Get(plr) != null && PlayerDisplay.Get(plr) != null)
                             {
                                 var ui = PlayerUI.Get(plr);
                                 
